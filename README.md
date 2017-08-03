@@ -9,4 +9,4 @@ The theoretical interest here is that people working on iconic words have long d
 
 ![alt text](https://github.com/mdingemanse/playful_iconicity/blob/master/out/playful_iconicity_scatterplot1.png?raw=true "A correlation between humor ratings and (positive) iconicity")
 
-More details in `playful_iconicity.Rmd`. Comments? mark.dingemanse@mpi.nl.
+More details in [playful_iconicity.Rmd](https://github.com/mdingemanse/playful_iconicity/blob/master/playful_iconicity.Rmd). Comments? mark.dingemanse@mpi.nl.
