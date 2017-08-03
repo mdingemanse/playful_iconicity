@@ -7,7 +7,11 @@
 # Prediction: iconicity ratings will be positively correlated with humor
 # ratings, controlling for frequency.
 
-# Outliers (words where ratings disagree most)
+# Outliers (words where ratings disagree most) help to discover other features 
+# at play. E.g. 'blonde' is in the top 10 percentile of funny words but only in 
+# the 2nd percentile of iconicity ratings. Probably related to a genre of jokes.
+# On the other hand, some onomatopoeia are highly iconic but associated with 
+# negative rather than with funny events, e.g. 'crash', 'scratch','roar', 'clash'.
 
 # Preliminaries -----------------------------------------------------------
 
@@ -97,4 +101,27 @@ pcor.test(x=df$humor,y=df$freq_count,z=df$iconicity)
 pcor.test(x=df$iconicity,y=df$freq_count,z=df$humor)
 
 
-# To do: look at words where the ratings disagree most
+# Which words disagree most across the ratings?
+
+df <- df %>% 
+  mutate(humor_perc = ntile(humor,10)) %>%
+  mutate(iconicity_perc = ntile(iconicity,10))
+
+# rated as funny but not iconic
+df %>% 
+  filter(humor_perc > 9, iconicity_perc < 4) %>%
+  arrange(iconicity) %>%
+  dplyr::select(word,humor,humor_perc,iconicity,iconicity_perc)
+
+# rated as iconic but not funny
+df %>% 
+  filter(iconicity_perc > 9, humor_perc < 4) %>%
+  arrange(humor) %>%
+  dplyr::select(word,humor,humor_perc,iconicity,iconicity_perc) %>%
+  slice(1:20)
+
+# Which words are rated as very iconic AND very funny?
+df %>%
+  filter(iconicity_perc >9,humor_perc >9) %>%
+  arrange(desc(iconicity)) %>%
+  dplyr::select(word,humor,humor_perc,iconicity,iconicity_perc)
