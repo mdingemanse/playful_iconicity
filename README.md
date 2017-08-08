@@ -7,4 +7,6 @@ However, humor ratings do not occur in a vacuum: presumably subjects are using s
 
 The theoretical interest here is that people working on iconic words have long drawn attention to their expressive and playful nature. If there is indeed a link between iconicity and the subjective funnyness of words, this solidifies a relationship that has has so far been based mainly on anecdotal observations and studies of relatively small numbers of words.
 
-More details in `playful_iconicity.Rmd`. Comments? mark.dingemanse@mpi.nl.
+![alt text](https://github.com/mdingemanse/playful_iconicity/blob/master/out/playful_iconicity_scatterplot1.png?raw=true "A correlation between humor ratings and (positive) iconicity")
+
+More details in [playful_iconicity.Rmd](https://github.com/mdingemanse/playful_iconicity/blob/master/playful_iconicity.Rmd). Comments? mark.dingemanse@mpi.nl.
