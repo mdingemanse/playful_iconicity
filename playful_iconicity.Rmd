@@ -1,13 +1,8 @@
 ---
 title: "Playful iconicity: relating iconicity and humor ratings for English words"
 author: "Mark Dingemanse"
-output:
-  html_document:
-    keep_md: yes
-    toc: yes
-    toc_float:
-      collapsed: no
-      smooth_scroll: no
+date: "`r format(Sys.Date())`"
+output: github_document
 ---
 
 People have feelings about the funniness of words. They can express these feelings in terms of word-level ratings. In a recent set of word-level norms, Engelthaler & Hills 2017 claim that these ratings are "not well predicted by existing norms". The highest correlations they find are between humor ~ frequency and humour ~ lexical decision RT. 
