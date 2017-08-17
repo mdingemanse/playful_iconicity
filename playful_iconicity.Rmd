@@ -7,7 +7,7 @@ output: github_document
 
 ```{r global_options, include=FALSE}
 knitr::opts_chunk$set(fig.width=8, fig.height=6, fig.path='out/',
-                      echo=FALSE, warning=FALSE, message=FALSE)
+                      echo=TRUE, warning=FALSE, message=FALSE)
 
 ```
 
@@ -42,9 +42,10 @@ rm(list.of.packages,new.packages)
 `%notin%` <- function(x,y) !(x %in% y) 
 
 ```
-# Load data
+## Load data
 
 Data sources:
+
 * Perry, Lynn K. et al. “Iconicity in the Speech of Children and Adults.” Developmental Science, n/a-n/a. doi:10.1111/desc.12572.
 * Engelthaler, Tomas, and Thomas T. Hills. 2017. “Humor Norms for 4,997 English Words.” Behavior Research Methods, July, 1–9. doi:10.3758/s13428-017-0930-6.
 
@@ -85,98 +86,7 @@ df_pred <- humor %>%
 
 ```
 
-# Plots
-First eyeball data. Iconicity looks a pretty good predictor in addition to frequency, which was the best predictor according to Engelthaler & Hills (2017). Humor shows a positive correlation with iconicity rating, as predicted. The relation is clearest for iconicity ratings >0. My take on this (based on considerations noted elsewhere) is that the negative iconicity ratings do not capture one thing.
-
-```{r plots}
-
-summary(lm(humor ~ freq_log + iconicity, df))
-
-ggplot(df,aes(humor,freq_log)) +
-  theme_tufte() + ggtitle("Humor ratings by log frequency") + 
-  geom_point(alpha=0.5) +
-  geom_smooth(method="lm")
-
-ggplot(df,aes(humor,iconicity)) +
-  theme_tufte() + ggtitle("Humor ratings by iconicity") + 
-  geom_point(alpha=0.5) +
-  geom_smooth(method="lm")
-
-```
-
-Let's residualise out `log_freq` so we get a better look at the humor ~ iconicity relation; and conversely, residualise `iconicity` to look at humor ~ frequency. 
-
-(Is this at all helpful?)
-
-```{r residualising1}
-
-summary(lm(humor ~ freq_log + iconicity,df))
-
-df$residuals <- residuals(lm(humor ~ freq_log,df))
-ggplot(df,aes(humor,residuals)) +
-  theme_tufte() + ggtitle("Humor ratings, frequency residualised out") + 
-  geom_point(shape=16,alpha=0.5) +
-  geom_smooth(method="lm")
-
-df$residuals <- residuals(lm(humor ~ iconicity,df))
-ggplot(df,aes(humor,residuals)) +
-  theme_tufte() + ggtitle("Humor ratings, iconicity residualised out") + 
-  geom_point(shape=16,alpha=0.5) +
-  geom_smooth(method="lm")
-
-
-```
-
-Now look at Bill's predicted iconicity ratings. To avoid double-dipping we tease apart words for which the predictions overlap with the ratings (n=1391) and words for which predictions are newly inferred (n=3242) (encoded in `$set`). 
-
-Predicted iconicity values correlate with humor ratings even when controlling for frequency. For every point gained in predicted iconicity there's a .21 increase in humor rating.
-
-```{r iconicity_predicted}
-
-summary(lm(humor ~ freq_log + iconicity_predicted,df_pred))
-
-ggplot(df_pred,aes(iconicity_predicted,humor)) +
-  theme_tufte() + ggtitle("Humor ratings by inferred iconicity ratings") + 
-  geom_point(shape=16,alpha=0.5) +
-  geom_smooth(method="lm") +
-  facet_wrap(~set)
-```
-And here too we can residualise out `freq_log` to get a better view of the relation:
-
-```{r residualising2}
-summary(lm(humor ~ freq_log + iconicity_predicted,df_pred))
-
-df_pred$residuals <- residuals(lm(humor ~ freq_log,df_pred))
-
-ggplot(df_pred,aes(humor,residuals)) +
-  theme_tufte() + ggtitle("Humor ratings by predicted iconicity ratings (frequency residualised out)") +   geom_point(shape=16,alpha=0.5) +
-  geom_smooth(method="lm") +
-  facet_wrap(~ set)
-
-```
-
-# Stats
-LME with orthographic length as a random effect shows that although log frequency is an important predictor of word funnyness, a model including iconicity in addition to log frequency provides a significantly better fit.
-
-```{r stats}
-m0 <- lmer(humor ~ freq_log + (1|len_ortho),data=df)
-m1 <- lmer(humor ~ freq_log + iconicity + (1|len_ortho),data=df)
-m2 <- lmer(humor ~ iconicity + (1|len_ortho),data=df)
-
-m0
-m1
-anova(m0,m1)
-```
-
-Partial correlations show there is 20.6% covariance between humor and iconicity, partialing out log frequency as a mediator. There is -35.7% covariance between humor and frequency, partialing out iconicity as a mediator (the more frequent a word, the less funny). A -9.5% correlation between iconicity and frequency when partialing out humor. (Winter et al. 2017 report a negative correlation between iconicity and frequency.)
-
-```{r}
-pcor.test(x=df$humor,y=df$iconicity,z=df$freq_log)
-pcor.test(x=df$humor,y=df$freq_log,z=df$iconicity)
-pcor.test(x=df$iconicity,y=df$freq_log,z=df$humor)
-```
-
-# Words
+## Words
 Which words are rated as highly funny *and* highly iconic? And what are the most differently rated words?
 
 Let's start by plotting the top ranked words:
@@ -260,8 +170,100 @@ df %>%
   slice(1:20)
 ```
 
+## Plots
+First eyeball data. Iconicity looks a pretty good predictor in addition to frequency, which was the best predictor according to Engelthaler & Hills (2017). Humor shows a positive correlation with iconicity rating, as predicted. The relation is clearest for iconicity ratings >0. My take on this (based on considerations noted elsewhere) is that the negative iconicity ratings do not capture one thing.
 
-# References
+```{r plots}
+
+summary(lm(humor ~ freq_log + iconicity, df))
+
+ggplot(df,aes(humor,freq_log)) +
+  theme_tufte() + ggtitle("Humor ratings by log frequency") + 
+  geom_point(alpha=0.5) +
+  geom_smooth(method="lm")
+
+ggplot(df,aes(humor,iconicity)) +
+  theme_tufte() + ggtitle("Humor ratings by iconicity") + 
+  geom_point(alpha=0.5) +
+  geom_smooth(method="lm")
+
+```
+
+Let's residualise out `log_freq` so we get a better look at the humor ~ iconicity relation; and conversely, residualise `iconicity` to look at humor ~ frequency. 
+
+(Is this at all helpful?)
+
+```{r residualising1}
+
+summary(lm(humor ~ freq_log + iconicity,df))
+
+df$residuals <- residuals(lm(humor ~ freq_log,df))
+ggplot(df,aes(humor,residuals)) +
+  theme_tufte() + ggtitle("Humor ratings, frequency residualised out") + 
+  geom_point(shape=16,alpha=0.5) +
+  geom_smooth(method="lm")
+
+df$residuals <- residuals(lm(humor ~ iconicity,df))
+ggplot(df,aes(humor,residuals)) +
+  theme_tufte() + ggtitle("Humor ratings, iconicity residualised out") + 
+  geom_point(shape=16,alpha=0.5) +
+  geom_smooth(method="lm")
+
+
+```
+
+Now look at Bill's predicted iconicity ratings. To avoid double-dipping we tease apart words for which the predictions overlap with the ratings (n=1391) and words for which predictions are newly inferred (n=3242) (encoded in `$set`). 
+
+Predicted iconicity values correlate with humor ratings even when controlling for frequency. For every point gained in predicted iconicity there's a .21 increase in humor rating.
+
+```{r iconicity_predicted}
+
+summary(lm(humor ~ freq_log + iconicity_predicted,df_pred))
+
+ggplot(df_pred,aes(iconicity_predicted,humor)) +
+  theme_tufte() + ggtitle("Humor ratings by inferred iconicity ratings") + 
+  geom_point(shape=16,alpha=0.5) +
+  geom_smooth(method="lm") +
+  facet_wrap(~set)
+```
+And here too we can residualise out `freq_log` to get a better view of the relation:
+
+```{r residualising2}
+summary(lm(humor ~ freq_log + iconicity_predicted,df_pred))
+
+df_pred$residuals <- residuals(lm(humor ~ freq_log,df_pred))
+
+ggplot(df_pred,aes(humor,residuals)) +
+  theme_tufte() + ggtitle("Humor ratings by predicted iconicity ratings (frequency residualised out)") +   geom_point(shape=16,alpha=0.5) +
+  geom_smooth(method="lm") +
+  facet_wrap(~ set)
+
+```
+
+## Stats
+LME with orthographic length as a random effect shows that although log frequency is an important predictor of word funnyness, a model including iconicity in addition to log frequency provides a significantly better fit.
+
+```{r stats}
+m0 <- lmer(humor ~ freq_log + (1|len_ortho),data=df)
+m1 <- lmer(humor ~ freq_log + iconicity + (1|len_ortho),data=df)
+m2 <- lmer(humor ~ iconicity + (1|len_ortho),data=df)
+
+m0
+m1
+anova(m0,m1)
+```
+
+Partial correlations show there is 20.6% covariance between humor and iconicity, partialing out log frequency as a mediator. There is -35.7% covariance between humor and frequency, partialing out iconicity as a mediator (the more frequent a word, the less funny). A -9.5% correlation between iconicity and frequency when partialing out humor. (Winter et al. 2017 report a negative correlation between iconicity and frequency.)
+
+```{r}
+pcor.test(x=df$humor,y=df$iconicity,z=df$freq_log)
+pcor.test(x=df$humor,y=df$freq_log,z=df$iconicity)
+pcor.test(x=df$iconicity,y=df$freq_log,z=df$humor)
+```
+
+
+## References
+
 * Dingemanse, Mark. 2011. “Ideophones and the Aesthetics of Everyday Language in a West-African Society.” The Senses and Society 6 (1): 77–85. doi:10.2752/174589311X12893982233830.
 * Engelthaler, Tomas, and Thomas T. Hills. 2017. “Humor Norms for 4,997 English Words.” Behavior Research Methods, July, 1–9. doi:10.3758/s13428-017-0930-6.
 * Fortune, G. 1962. Ideophones in Shona: An Inaugural Lecture Given in the University College of Rhodesia and Nyasaland on 28 April 1961. London / New York: Oxford University Press.
