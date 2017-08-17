@@ -1,9 +1,15 @@
 ---
 title: "Playful iconicity: relating iconicity and humor ratings for English words"
 author: "Mark Dingemanse"
-date: "`r format(Sys.Date())`"
+date: "Updated `r format(Sys.Date())`"
 output: github_document
 ---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=8, fig.height=6, fig.path='out/',
+                      echo=FALSE, warning=FALSE, message=FALSE)
+
+```
 
 People have feelings about the funniness of words. They can express these feelings in terms of word-level ratings. In a recent set of word-level norms, Engelthaler & Hills 2017 claim that these ratings are "not well predicted by existing norms". The highest correlations they find are between humor ~ frequency and humour ~ lexical decision RT. 
 
@@ -15,7 +21,7 @@ If there is indeed a link between iconicity and the subjective funnyness of word
 
 Outliers (words where ratings disagree most) help to discover other features at play. E.g. 'blonde' is in the top 10 percentile of funny words but only in the 2nd percentile of iconicity ratings. Probably related to a genre of jokes. On the other hand, some onomatopoeia are highly iconic but associated with negative rather than with funny events, e.g. 'crash', 'scratch','roar', 'clash', pointing to the importance of valence and arousal more generally.
 
-```{r preliminaries}
+```{r preliminaries, results='hide'}
 
 # Clear workspace
 rm(list=ls())
@@ -27,7 +33,7 @@ add_working_dir("in")
 add_working_dir("out")
 
 # Packages and useful functions
-list.of.packages <- c("tidyverse","GGally","ggthemes","readxl","lme4","ppcor")
+list.of.packages <- c("tidyverse","GGally","ggthemes","readxl","ggrepel","lme4","ppcor")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)>0) install.packages(new.packages)
 lapply(list.of.packages, require, character.only=T)
@@ -42,7 +48,7 @@ Data sources:
 * Perry, Lynn K. et al. “Iconicity in the Speech of Children and Adults.” Developmental Science, n/a-n/a. doi:10.1111/desc.12572.
 * Engelthaler, Tomas, and Thomas T. Hills. 2017. “Humor Norms for 4,997 English Words.” Behavior Research Methods, July, 1–9. doi:10.3758/s13428-017-0930-6.
 
-```{r data}
+```{r data, results='hide'}
 iconicity <- read_csv("https://raw.githubusercontent.com/bodowinter/iconicity_acquisition/master/data/iconicity.csv") %>%
   mutate(POS = SUBTLEX_dom_POS) %>%
   plyr::rename(c("Word" = "word","Iconicity"="iconicity","OrthoLength"="len_ortho","SUBTLEX_Rawfreq" = "freq_count"))
@@ -53,8 +59,11 @@ humor <- read_csv("https://raw.githubusercontent.com/tomasengelthaler/HumorNorms
 df <- merge(iconicity,humor,by="word") %>%
   drop_na(iconicity,humor,freq_count) %>%
   mutate(freq_log = log(freq_count))
+```
 
-# Combine humor with predicted iconicity ratings from Bill and frequency / POS data from SUBTLEX
+Combine humor with predicted iconicity ratings from Bill and frequency / POS data from SUBTLEX
+
+```{r data-continued, results='hide'}
 p.ico <- read_csv("in/ipennl.csv") %>%
   filter(language=="en") %>%
   dplyr::select(Word,Concreteness,Iconicity_PREDICTED)
@@ -77,7 +86,7 @@ df_pred <- humor %>%
 ```
 
 # Plots
-First eyeball data. Iconicity looks a pretty good predictor in addition to frequency, which was the best predictor according to Engelthaler & Hills (2017). Humor shows a positive correlation with iconicity rating, as predicted. The relation is strongest for iconicity ratings >0, indicating that some anti-iconic words may be moderately more funny (or at least not less funny).
+First eyeball data. Iconicity looks a pretty good predictor in addition to frequency, which was the best predictor according to Engelthaler & Hills (2017). Humor shows a positive correlation with iconicity rating, as predicted. The relation is clearest for iconicity ratings >0. My take on this (based on considerations noted elsewhere) is that the negative iconicity ratings do not capture one thing.
 
 ```{r plots}
 
@@ -86,20 +95,18 @@ summary(lm(humor ~ freq_log + iconicity, df))
 ggplot(df,aes(humor,freq_log)) +
   theme_tufte() + ggtitle("Humor ratings by log frequency") + 
   geom_point(alpha=0.5) +
-  geom_smooth(method="auto")
-ggsave(file="out/humor_by_iconicity.png",width=6,height=4)
+  geom_smooth(method="lm")
 
 ggplot(df,aes(humor,iconicity)) +
   theme_tufte() + ggtitle("Humor ratings by iconicity") + 
   geom_point(alpha=0.5) +
-  geom_smooth(method="loess")
-ggsave(file="out/humor_by_iconicity.png",width=6,height=4)
+  geom_smooth(method="lm")
 
 ```
 
 Let's residualise out `log_freq` so we get a better look at the humor ~ iconicity relation; and conversely, residualise `iconicity` to look at humor ~ frequency. 
 
-Is that a .07 increase in humor for every +1 in iconicity?
+(Is this at all helpful?)
 
 ```{r residualising1}
 
@@ -110,14 +117,12 @@ ggplot(df,aes(humor,residuals)) +
   theme_tufte() + ggtitle("Humor ratings, frequency residualised out") + 
   geom_point(shape=16,alpha=0.5) +
   geom_smooth(method="lm")
-ggsave(file="out/humor_residualised_logfreq.png",width=6,height=4)
 
 df$residuals <- residuals(lm(humor ~ iconicity,df))
 ggplot(df,aes(humor,residuals)) +
   theme_tufte() + ggtitle("Humor ratings, iconicity residualised out") + 
   geom_point(shape=16,alpha=0.5) +
   geom_smooth(method="lm")
-ggsave(file="out/humor_residualised_iconicity.png",width=6,height=4)
 
 
 ```
@@ -131,6 +136,7 @@ Predicted iconicity values correlate with humor ratings even when controlling fo
 summary(lm(humor ~ freq_log + iconicity_predicted,df_pred))
 
 ggplot(df_pred,aes(iconicity_predicted,humor)) +
+  theme_tufte() + ggtitle("Humor ratings by inferred iconicity ratings") + 
   geom_point(shape=16,alpha=0.5) +
   geom_smooth(method="lm") +
   facet_wrap(~set)
@@ -138,15 +144,14 @@ ggplot(df_pred,aes(iconicity_predicted,humor)) +
 And here too we can residualise out `freq_log` to get a better view of the relation:
 
 ```{r residualising2}
-
 summary(lm(humor ~ freq_log + iconicity_predicted,df_pred))
 
 df_pred$residuals <- residuals(lm(humor ~ freq_log,df_pred))
+
 ggplot(df_pred,aes(humor,residuals)) +
-  geom_point(shape=16,alpha=0.5) +
+  theme_tufte() + ggtitle("Humor ratings by predicted iconicity ratings (frequency residualised out)") +   geom_point(shape=16,alpha=0.5) +
   geom_smooth(method="lm") +
   facet_wrap(~ set)
-ggsave(file="out/humor_by_iconicity_predicted_logfreq_residualised.png",width=6,height=4)
 
 ```
 
@@ -172,36 +177,96 @@ pcor.test(x=df$iconicity,y=df$freq_log,z=df$humor)
 ```
 
 # Words
-Which words are rated as highly funny but not iconic, or vice versa? And what are the words rated high on both dimensions?
+Which words are rated as highly funny *and* highly iconic? And what are the most differently rated words?
 
-```{r words}
+Let's start by plotting the top ranked words:
+
+```{r similarity}
+
 df <- df %>% 
   mutate(humor_perc = ntile(humor,10)) %>%
-  mutate(iconicity_perc = ntile(iconicity,10))
+  mutate(iconicity_perc = ntile(iconicity,10)) %>%
+  mutate(difference = humor_perc - iconicity_perc) %>%
+  mutate(diff_abs = abs(difference)) %>%
+  mutate(diff_rank = humor_perc+iconicity_perc)
 
+ggplot(df,aes(iconicity,humor)) +
+  theme_tufte() + ggtitle("Humor and iconicity: highest rated words") +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    data=subset(df,diff_rank == 20),
+    aes(label=word),
+    size=2.5,
+    alpha=0.8,
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+
+df %>%
+  filter(diff_rank > 19) %>%
+  arrange(desc(humor)) %>%
+  dplyr::select(word,humor,iconicity) %>%
+  slice(1:20)
+
+```
+
+Many highly iconic words are also rated as highly funny. The power of iconic words to evoke colourful imagery (as in waddle, tinkle, oink, fluff, jiggle, smooch) likely plays a major role here. The distribution across the senses is remarkable.
+
+At the same time, there are also quite some cases where the two ratings don't add up:
+
+```{r difference}
+
+# difference sd
+diffabs.sd <- sd(df$diff_abs,na.rm=T)
+
+ggplot(df,aes(iconicity,humor)) +
+  theme_tufte() + ggtitle("Humor and iconicity: maximally different words") +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    data=subset(df,diff_abs > 3.5*diffabs.sd),
+    # alpha=0.5,  # (affects not just the bounding box)
+    aes(label=word),
+    size=2.5,
+    alpha=0.8,
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+
+```
+
+Among funny words not rated as iconic, there are lots of animals (dingo, panda, lobster, giraffe), some taboo words (hoe, penis), and joke-related words like pun and blonde.
+
+```{r words-1}
 # rated as funny but not iconic
 df %>% 
   filter(humor_perc > 9, iconicity_perc < 4) %>%
-  arrange(iconicity) %>%
-  dplyr::select(word,humor,humor_perc,iconicity,iconicity_perc)
+  arrange(desc(humor)) %>%
+  dplyr::select(word,humor,iconicity) %>%
+  slice(1:20)
+```
 
+Something related to valence and/or arousal plays the most important role in explaining why some  highly iconic words are not rated as funny. Negatively valenced words like 'roar', 'crash', 'clash' and 'scream' may be highly iconic but they have no positive or humorous connotations. So the image-evoking potency of iconic words is not necessary nor sufficient to explain iconicity ratings. 
+
+```{r words-2}
 # rated as iconic but not funny
 df %>% 
   filter(iconicity_perc > 9, humor_perc < 4) %>%
-  arrange(humor) %>%
-  dplyr::select(word,humor,humor_perc,iconicity,iconicity_perc) %>%
-  slice(1:20)
-
-# Which words are rated as very iconic AND very funny?
-df %>%
-  filter(iconicity_perc >9,humor_perc >9) %>%
   arrange(desc(iconicity)) %>%
-  dplyr::select(word,humor,humor_perc,iconicity,iconicity_perc)
+  dplyr::select(word,humor,iconicity) %>%
+  slice(1:20)
 ```
+
 
 # References
 * Dingemanse, Mark. 2011. “Ideophones and the Aesthetics of Everyday Language in a West-African Society.” The Senses and Society 6 (1): 77–85. doi:10.2752/174589311X12893982233830.
+* Engelthaler, Tomas, and Thomas T. Hills. 2017. “Humor Norms for 4,997 English Words.” Behavior Research Methods, July, 1–9. doi:10.3758/s13428-017-0930-6.
 * Fortune, G. 1962. Ideophones in Shona: An Inaugural Lecture Given in the University College of Rhodesia and Nyasaland on 28 April 1961. London / New York: Oxford University Press.
+* Perry, Lynn K. et al. “Iconicity in the Speech of Children and Adults.” Developmental Science, n/a-n/a. doi:10.1111/desc.12572.
 * Samarin, William J. 1970. “Inventory and Choice in Expressive Language.” Word 26: 153–69.
 * Welmers, William E. 1973. African Language Structures. Berkeley: University of California Press.
 * Winter, Bodo et al. 2017. “Which Words Are Most Iconic? Iconicity in English Sensory Words.” Interaction Studies.
+
