@@ -1,13 +1,13 @@
 ---
 title: "Playful iconicity: relating iconicity and humor ratings for English words"
 author: "Mark Dingemanse"
-
 output:
   html_document:
-    toc: true
+    keep_md: yes
+    toc: yes
     toc_float:
-      collapsed: false
-      smooth_scroll: false
+      collapsed: no
+      smooth_scroll: no
 ---
 
 People have feelings about the funniness of words. They can express these feelings in terms of word-level ratings. In a recent set of word-level norms, Engelthaler & Hills 2017 claim that these ratings are "not well predicted by existing norms". The highest correlations they find are between humor ~ frequency and humour ~ lexical decision RT. 
@@ -32,7 +32,7 @@ add_working_dir("in")
 add_working_dir("out")
 
 # Packages and useful functions
-list.of.packages <- c("tidyverse","GGally","readxl","lme4","ppcor")
+list.of.packages <- c("tidyverse","GGally","ggthemes","readxl","lme4","ppcor")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)>0) install.packages(new.packages)
 lapply(list.of.packages, require, character.only=T)
@@ -58,35 +58,107 @@ humor <- read_csv("https://raw.githubusercontent.com/tomasengelthaler/HumorNorms
 df <- merge(iconicity,humor,by="word") %>%
   drop_na(iconicity,humor,freq_count) %>%
   mutate(freq_log = log(freq_count))
+
+# Combine humor with predicted iconicity ratings from Bill and frequency / POS data from SUBTLEX
+p.ico <- read_csv("in/ipennl.csv") %>%
+  filter(language=="en") %>%
+  dplyr::select(Word,Concreteness,Iconicity_PREDICTED)
+names(p.ico) <- tolower(names(p.ico))
+
+subtlex <- read_excel(path="in/SUBTLEX-US frequency list with PoS and Zipf information.xlsx") %>%
+  plyr::rename(c("Word" = "word","FREQcount" = "freq_count","Lg10WF" = "freq_log","Dom_PoS_SUBTLEX" = "POS")) %>%
+  dplyr::select(word,freq_log,POS) %>%
+  filter(word %in% p.ico$word)
+
+df_pred <- humor %>%
+  left_join(p.ico) %>%
+  drop_na(humor,iconicity_predicted) %>%
+  left_join(df) %>%
+  dplyr::select(-POS,-freq_log) %>%
+  left_join(subtlex) %>% 
+  drop_na(freq_log,POS) %>%
+  mutate(set = ifelse(is.na(iconicity),"unrated","rated")) # indicate subsets
+
 ```
 
 # Plots
 First eyeball data. Iconicity looks a pretty good predictor in addition to frequency, which was the best predictor according to Engelthaler & Hills (2017). Humor shows a positive correlation with iconicity rating, as predicted. The relation is strongest for iconicity ratings >0, indicating that some anti-iconic words may be moderately more funny (or at least not less funny).
 
 ```{r plots}
-cor.test(df$freq_log,df$humor)
-ggplot(df,aes(freq_log,humor)) +
-  geom_point(alpha=0.5) +
-  geom_smooth(method="loess")
-ggsave(file="out/humor_by_logfreq.png",width=6,height=4)
 
-cor.test(df$iconicity,df$humor)
-ggplot(df,aes(iconicity,humor)) +
+summary(lm(humor ~ freq_log + iconicity, df))
+
+ggplot(df,aes(humor,freq_log)) +
+  theme_tufte() + ggtitle("Humor ratings by log frequency") + 
+  geom_point(alpha=0.5) +
+  geom_smooth(method="auto")
+ggsave(file="out/humor_by_iconicity.png",width=6,height=4)
+
+ggplot(df,aes(humor,iconicity)) +
+  theme_tufte() + ggtitle("Humor ratings by iconicity") + 
   geom_point(alpha=0.5) +
   geom_smooth(method="loess")
 ggsave(file="out/humor_by_iconicity.png",width=6,height=4)
 
-# The relation is strongest for positive iconicity ratings:
-ggplot(df %>% filter(iconicity > 0),aes(iconicity,humor)) +
-  geom_point(alpha=0.5) +
-  geom_smooth(method="loess")
-ggsave(file="out/humor_by_pos_iconicity.png",width=6,height=4)
+```
+
+Let's residualise out `log_freq` so we get a better look at the humor ~ iconicity relation; and conversely, residualise `iconicity` to look at humor ~ frequency. 
+
+Is that a .07 increase in humor for every +1 in iconicity?
+
+```{r residualising1}
+
+summary(lm(humor ~ freq_log + iconicity,df))
+
+df$residuals <- residuals(lm(humor ~ freq_log,df))
+ggplot(df,aes(humor,residuals)) +
+  theme_tufte() + ggtitle("Humor ratings, frequency residualised out") + 
+  geom_point(shape=16,alpha=0.5) +
+  geom_smooth(method="lm")
+ggsave(file="out/humor_residualised_logfreq.png",width=6,height=4)
+
+df$residuals <- residuals(lm(humor ~ iconicity,df))
+ggplot(df,aes(humor,residuals)) +
+  theme_tufte() + ggtitle("Humor ratings, iconicity residualised out") + 
+  geom_point(shape=16,alpha=0.5) +
+  geom_smooth(method="lm")
+ggsave(file="out/humor_residualised_iconicity.png",width=6,height=4)
+
+
+```
+
+Now look at Bill's predicted iconicity ratings. To avoid double-dipping we tease apart words for which the predictions overlap with the ratings (n=1391) and words for which predictions are newly inferred (n=3242) (encoded in `$set`). 
+
+Predicted iconicity values correlate with humor ratings even when controlling for frequency. For every point gained in predicted iconicity there's a .21 increase in humor rating.
+
+```{r iconicity_predicted}
+
+summary(lm(humor ~ freq_log + iconicity_predicted,df_pred))
+
+ggplot(df_pred,aes(iconicity_predicted,humor)) +
+  geom_point(shape=16,alpha=0.5) +
+  geom_smooth(method="lm") +
+  facet_wrap(~set)
+```
+And here too we can residualise out `freq_log` to get a better view of the relation:
+
+```{r residualising2}
+
+summary(lm(humor ~ freq_log + iconicity_predicted,df_pred))
+
+df_pred$residuals <- residuals(lm(humor ~ freq_log,df_pred))
+ggplot(df_pred,aes(humor,residuals)) +
+  geom_point(shape=16,alpha=0.5) +
+  geom_smooth(method="lm") +
+  facet_wrap(~ set)
+ggsave(file="out/humor_by_iconicity_predicted_logfreq_residualised.png",width=6,height=4)
+
 ```
 
 # Stats
 LME with orthographic length as a random effect shows that although log frequency is an important predictor of word funnyness, a model including iconicity in addition to log frequency provides a significantly better fit.
 
-```{r}
+```{r stats}
 m0 <- lmer(humor ~ freq_log + (1|len_ortho),data=df)
 m1 <- lmer(humor ~ freq_log + iconicity + (1|len_ortho),data=df)
 m2 <- lmer(humor ~ iconicity + (1|len_ortho),data=df)
@@ -107,7 +179,7 @@ pcor.test(x=df$iconicity,y=df$freq_log,z=df$humor)
 # Words
 Which words are rated as highly funny but not iconic, or vice versa? And what are the words rated high on both dimensions?
 
-```{r}
+```{r words}
 df <- df %>% 
   mutate(humor_perc = ntile(humor,10)) %>%
   mutate(iconicity_perc = ntile(iconicity,10))
