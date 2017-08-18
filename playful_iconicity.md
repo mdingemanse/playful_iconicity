@@ -1,7 +1,7 @@
 Playful iconicity: relating iconicity and humor ratings for English words
 ================
 Mark Dingemanse
-Updated 2017-08-17
+Updated 2017-08-18
 
 People have feelings about the funniness of words. They can express these feelings in terms of word-level ratings. In a recent set of word-level norms, Engelthaler & Hills 2017 claim that these ratings are "not well predicted by existing norms". The highest correlations they find are between humor ~ frequency and humour ~ lexical decision RT.
 
@@ -231,7 +231,6 @@ df %>%
     ## 13     arch 2.026316  2.500000
     ## 14   scream 1.952381  2.500000
 
-
 Plots
 -----
 
@@ -281,8 +280,6 @@ ggplot(df,aes(humor,iconicity)) +
 
 Let's residualise out `log_freq` so we get a better look at the humor ~ iconicity relation; and conversely, residualise `iconicity` to look at humor ~ frequency.
 
-(Is this at all helpful?)
-
 ``` r
 summary(lm(humor ~ freq_log + iconicity,df))
 ```
@@ -309,8 +306,8 @@ summary(lm(humor ~ freq_log + iconicity,df))
 
 ``` r
 df$residuals <- residuals(lm(humor ~ freq_log,df))
-ggplot(df,aes(humor,residuals)) +
-  theme_tufte() + ggtitle("Humor ratings, frequency residualised out") + 
+ggplot(df,aes(iconicity,residuals)) +
+  theme_tufte() + ggtitle("Iconicity, frequency residualised out") + 
   geom_point(shape=16,alpha=0.5) +
   geom_smooth(method="lm")
 ```
@@ -319,8 +316,8 @@ ggplot(df,aes(humor,residuals)) +
 
 ``` r
 df$residuals <- residuals(lm(humor ~ iconicity,df))
-ggplot(df,aes(humor,residuals)) +
-  theme_tufte() + ggtitle("Humor ratings, iconicity residualised out") + 
+ggplot(df,aes(freq_log,residuals)) +
+  theme_tufte() + ggtitle("Log frequency, iconicity residualised out") + 
   geom_point(shape=16,alpha=0.5) +
   geom_smooth(method="lm")
 ```

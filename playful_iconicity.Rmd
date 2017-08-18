@@ -191,21 +191,20 @@ ggplot(df,aes(humor,iconicity)) +
 
 Let's residualise out `log_freq` so we get a better look at the humor ~ iconicity relation; and conversely, residualise `iconicity` to look at humor ~ frequency. 
 
-(Is this at all helpful?)
 
 ```{r residualising1}
 
 summary(lm(humor ~ freq_log + iconicity,df))
 
 df$residuals <- residuals(lm(humor ~ freq_log,df))
-ggplot(df,aes(humor,residuals)) +
-  theme_tufte() + ggtitle("Humor ratings, frequency residualised out") + 
+ggplot(df,aes(iconicity,residuals)) +
+  theme_tufte() + ggtitle("Iconicity, frequency residualised out") + 
   geom_point(shape=16,alpha=0.5) +
   geom_smooth(method="lm")
 
 df$residuals <- residuals(lm(humor ~ iconicity,df))
-ggplot(df,aes(humor,residuals)) +
-  theme_tufte() + ggtitle("Humor ratings, iconicity residualised out") + 
+ggplot(df,aes(freq_log,residuals)) +
+  theme_tufte() + ggtitle("Log frequency, iconicity residualised out") + 
   geom_point(shape=16,alpha=0.5) +
   geom_smooth(method="lm")
 
