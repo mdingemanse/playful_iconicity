@@ -21,6 +21,8 @@ If there is indeed a link between iconicity and the subjective funnyness of word
 
 Outliers (words where ratings disagree most) help to discover other features at play. E.g. 'blonde' is in the top 10 percentile of funny words but only in the 2nd percentile of iconicity ratings. Probably related to a genre of jokes. On the other hand, some onomatopoeia are highly iconic but associated with negative rather than with funny events, e.g. 'crash', 'scratch','roar', 'clash', pointing to the importance of valence and arousal more generally.
 
+## Setup
+
 ```{r preliminaries, results='hide'}
 
 # Clear workspace
@@ -42,7 +44,7 @@ rm(list.of.packages,new.packages)
 `%notin%` <- function(x,y) !(x %in% y) 
 
 ```
-## Load data
+## Data
 
 Data sources:
 
@@ -122,9 +124,11 @@ df %>%
 
 ```
 
-Many highly iconic words are also rated as highly funny. The power of iconic words to evoke colourful imagery (as in waddle, tinkle, oink, fluff, jiggle, smooch) likely plays a major role here. The distribution across the senses is remarkable.
+Many highly iconic words are also rated as highly funny. The power of iconic words to evoke colourful imagery (as in *waddle, tinkle, oink, fluff, jiggle, smooch*) likely plays a major role here. Samarin (1969) connects the occurrence of laughter following the use of ideophones to their imagistic and sensory meanings. 
 
-At the same time, there are also quite some cases where the two ratings don't add up:
+The distribution across the senses is remarkable, with movement, visual phenomena, sounds, and tactile texture represented. (Given what we know about the correlation of sensory ratings with iconicity ratings (Winter et al. 2017), this suggests that sensory ratings and humor ratings will also correlate well.)
+
+But there are also quite some cases where the two ratings don't add up:
 
 ```{r difference}
 
@@ -159,7 +163,7 @@ df %>%
   slice(1:20)
 ```
 
-Something related to valence and/or arousal plays the most important role in explaining why some  highly iconic words are not rated as funny. Negatively valenced words like 'roar', 'crash', 'clash' and 'scream' may be highly iconic but they have no positive or humorous connotations. So the image-evoking potency of iconic words is not necessary nor sufficient to explain iconicity ratings. 
+Something related to valence and/or arousal plays the most important role in explaining why some  highly iconic words are not rated as funny. Negatively valenced words like 'roar', 'crash', 'clash' and 'scream' may be highly iconic but they have no positive or humorous connotations. So the image-evoking potency of iconic words does not always translate into funniness. Samarin proposed that ideophones are not in themselves humourous, but they *are* "the locus of affective meaning" (Samarin 1969:321).
 
 ```{r words-2}
 # rated as iconic but not funny
@@ -225,7 +229,8 @@ ggplot(df_pred,aes(iconicity_predicted,humor)) +
   geom_smooth(method="lm") +
   facet_wrap(~set)
 ```
-And here too we can residualise out `freq_log` to get a better view of the relation:
+
+Here too we can residualise out `freq_log` to get a better view of the relation:
 
 ```{r residualising2}
 summary(lm(humor ~ freq_log + iconicity_predicted,df_pred))
@@ -268,6 +273,7 @@ pcor.test(x=df$iconicity,y=df$freq_log,z=df$humor)
 * Fortune, G. 1962. Ideophones in Shona: An Inaugural Lecture Given in the University College of Rhodesia and Nyasaland on 28 April 1961. London / New York: Oxford University Press.
 * Perry, Lynn K. et al. “Iconicity in the Speech of Children and Adults.” Developmental Science, n/a-n/a. doi:10.1111/desc.12572.
 * Samarin, William J. 1970. “Inventory and Choice in Expressive Language.” Word 26: 153–69.
+* Samarin, William J. 1969. “The Art of Gbeya Insults.” International Journal of American Linguistics 35 (4): 323–29.
+* Samarin, William J. 1970. “Correlates of Expressive Language in African Ideophones.” Journal of African Languages.
 * Welmers, William E. 1973. African Language Structures. Berkeley: University of California Press.
 * Winter, Bodo et al. 2017. “Which Words Are Most Iconic? Iconicity in English Sensory Words.” Interaction Studies.
-
