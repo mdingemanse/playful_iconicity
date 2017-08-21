@@ -1,7 +1,7 @@
 Playful iconicity: relating iconicity and humor ratings for English words
 ================
 Mark Dingemanse
-Updated 2017-08-18
+Updated 2017-08-21
 
 People have feelings about the funniness of words. They can express these feelings in terms of word-level ratings. In a recent set of word-level norms, Engelthaler & Hills 2017 claim that these ratings are "not well predicted by existing norms". The highest correlations they find are between humor ~ frequency and humour ~ lexical decision RT.
 
@@ -89,11 +89,11 @@ Let's start by plotting the top ranked words:
 
 ``` r
 df <- df %>% 
-  mutate(humor_perc = ntile(humor,10)) %>%
-  mutate(iconicity_perc = ntile(iconicity,10)) %>%
-  mutate(difference = humor_perc - iconicity_perc) %>%
-  mutate(diff_abs = abs(difference)) %>%
-  mutate(diff_rank = humor_perc+iconicity_perc)
+  mutate(humor_perc = ntile(humor,10),
+         iconicity_perc = ntile(iconicity,10),
+         difference = humor_perc - iconicity_perc,
+         diff_abs = abs(difference),
+         diff_rank = humor_perc+iconicity_perc)
 
 ggplot(df,aes(iconicity,humor)) +
   theme_tufte() + ggtitle("Humor and iconicity: highest rated words") +
@@ -407,68 +407,7 @@ ggplot(df_pred,aes(iconicity_predicted,residuals)) +
 Stats
 -----
 
-LME with orthographic length as a random effect shows that although log frequency is an important predictor of word funnyness, a model including iconicity in addition to log frequency provides a significantly better fit.
-
-``` r
-m0 <- lmer(humor ~ freq_log + (1|len_ortho),data=df)
-m1 <- lmer(humor ~ freq_log + iconicity + (1|len_ortho),data=df)
-m2 <- lmer(humor ~ iconicity + (1|len_ortho),data=df)
-
-m0
-```
-
-    ## Linear mixed model fit by REML ['lmerMod']
-    ## Formula: humor ~ freq_log + (1 | len_ortho)
-    ##    Data: df
-    ## REML criterion at convergence: 1308.37
-    ## Random effects:
-    ##  Groups    Name        Std.Dev.
-    ##  len_ortho (Intercept) 0.05492 
-    ##  Residual              0.38068 
-    ## Number of obs: 1419, groups:  len_ortho, 9
-    ## Fixed Effects:
-    ## (Intercept)     freq_log  
-    ##     2.92803     -0.08902
-
-``` r
-m1
-```
-
-    ## Linear mixed model fit by REML ['lmerMod']
-    ## Formula: humor ~ freq_log + iconicity + (1 | len_ortho)
-    ##    Data: df
-    ## REML criterion at convergence: 1258.057
-    ## Random effects:
-    ##  Groups    Name        Std.Dev.
-    ##  len_ortho (Intercept) 0.04231 
-    ##  Residual              0.37337 
-    ## Number of obs: 1419, groups:  len_ortho, 9
-    ## Fixed Effects:
-    ## (Intercept)     freq_log    iconicity  
-    ##     2.81278     -0.08007      0.07043
-
-``` r
-anova(m0,m1)
-```
-
-    ## Data: df
-    ## Models:
-    ## m0: humor ~ freq_log + (1 | len_ortho)
-    ## m1: humor ~ freq_log + iconicity + (1 | len_ortho)
-    ##    Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)    
-    ## m0  4 1302.2 1323.2 -647.08   1294.2                             
-    ## m1  5 1245.8 1272.1 -617.92   1235.8 58.315      1  2.233e-14 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Partial correlations show there is 20.6% covariance between humor and iconicity, partialing out log frequency as a mediator. There is -35.7% covariance between humor and frequency, partialing out iconicity as a mediator (the more frequent a word, the less funny). A -9.5% correlation between iconicity and frequency when partialing out humor. (Winter et al. 2017 report a negative correlation between iconicity and frequency.)
-
-``` r
-pcor.test(x=df$humor,y=df$iconicity,z=df$freq_log)
-```
-
-    ##    estimate      p.value statistic    n gp  Method
-    ## 1 0.2062649 4.335228e-15  7.932275 1419  1 pearson
+Partial correlations show a -9.5% correlation between iconicity and frequency when partialing out humor. This is as expected: Winter et al. (2017) report a negative correlation between iconicity and frequency. Partial correlations also show -35.7% covariance between humor and frequency, controlling out iconicity as a mediator (the more frequent a word, the less funny). This replicates the finding reported by Engelthaler and Hill (2017). Finally, there is 20.6% covariance between humor and iconicity, partialing out log frequency as a mediator.
 
 ``` r
 pcor.test(x=df$humor,y=df$freq_log,z=df$iconicity)
@@ -483,6 +422,22 @@ pcor.test(x=df$iconicity,y=df$freq_log,z=df$humor)
 
     ##      estimate      p.value statistic    n gp  Method
     ## 1 -0.09460514 0.0003606165 -3.576009 1419  1 pearson
+
+``` r
+pcor.test(x=df$humor,y=df$iconicity,z=df$freq_log)
+```
+
+    ##    estimate      p.value statistic    n gp  Method
+    ## 1 0.2062649 4.335228e-15  7.932275 1419  1 pearson
+
+Discussion
+----------
+
+The negative relation between humor and frequency reported by Engelthaler and Hill (2017) is replicated for a subset of words for which we have iconicity ratings. However, controlling for this relation, there remains a strong partial correlation of 20.6% between iconicity and humor ratings — stronger than the next highest correlation reported by Engelthaler and Hill (with was for lexical decision RTs).
+
+Many highly iconic words are rated as funny, and many words rated as not iconic are rated as not funny. This sheds light on the relation between iconicity and playfulness. Across languages, iconic words display marked phonotactics, sound play and evocative imagery, all things that can make iconic words sound funny. The data analysed here suggests these aspects of iconic words indeed lead to higher funniness ratings, though only for positively valenced words.
+
+The discrepancies between humor and iconicity ratings also shed light on the various factors that go into humor ratings. Highly funny words not rated as highly iconic include animal names, taboo words and joke-related words. This shows that at least some humor ratings are made on the basis of semantics and word associations.
 
 References
 ----------
