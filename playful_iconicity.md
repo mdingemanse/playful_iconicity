@@ -407,7 +407,6 @@ ggplot(df_pred,aes(iconicity_predicted,residuals)) +
 Stats
 -----
 
-<<<<<<< HEAD
 Partial correlations show a -9.5% correlation between iconicity and frequency when partialing out humor. This is as expected: Winter et al. (2017) report a negative correlation between iconicity and frequency. Partial correlations also show -35.7% covariance between humor and frequency, controlling out iconicity as a mediator (the more frequent a word, the less funny). This replicates the finding reported by Engelthaler and Hill (2017). Finally, there is 20.6% covariance between humor and iconicity, partialing out log frequency as a mediator.
 
 ``` r
@@ -423,9 +422,6 @@ pcor.test(x=df$iconicity,y=df$freq_log,z=df$humor)
 
     ##      estimate      p.value statistic    n gp  Method
     ## 1 -0.09460514 0.0003606165 -3.576009 1419  1 pearson
-=======
-Partial correlations show a -9.5% correlation between iconicity and frequency when partialing out humor. This is as expected: Winter et al. 2017 report a negative correlation between iconicity and frequency. Partial correlations also show -35.7% covariance between humor and frequency, controlling out iconicity as a mediator (the more frequent a word, the less funny). Finally, there is 20.6% covariance between humor and iconicity, partialing out log frequency as a mediator.
->>>>>>> 29bff88e831f6952ed6a57ae081f97dbfa2f0316
 
 ``` r
 pcor.test(x=df$humor,y=df$iconicity,z=df$freq_log)
@@ -442,11 +438,6 @@ The negative relation between humor and frequency reported by Engelthaler and Hi
 Many highly iconic words are rated as funny, and many words rated as not iconic are rated as not funny. This sheds light on the relation between iconicity and playfulness. Across languages, iconic words display marked phonotactics, sound play and evocative imagery, all things that can make iconic words sound funny. The data analysed here suggests these aspects of iconic words indeed lead to higher funniness ratings, though only for positively valenced words.
 
 The discrepancies between humor and iconicity ratings also shed light on the various factors that go into humor ratings. Highly funny words not rated as highly iconic include animal names, taboo words and joke-related words. This shows that at least some humor ratings are made on the basis of semantics and word associations.
-
-Discussion
-----------
-
-The negative relation between humor and frequency reported by Engelthaler and Hill 2017 is replicated for a subset of words for which we have iconicity ratings. However, controlling for this relation, there remains a strong partial correlation of 20.6% between iconicity and humor ratings. Many highly iconic words are rated as funny, and many words rated as not iconic are also rated as not funny.
 
 References
 ----------
