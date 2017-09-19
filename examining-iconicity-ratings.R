@@ -11,7 +11,7 @@ add_working_dir("in")
 add_working_dir("out")
 
 # Packages and useful functions
-list.of.packages <- c("tidyverse","ggthemes","ggrepel","GGally","lme4","Hmisc","readxl")
+list.of.packages <- c("tidyverse","ggthemes","ggrepel","dbplyr","GGally","lme4","Hmisc","readxl","wordbankr")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)>0) install.packages(new.packages)
 lapply(list.of.packages, require, character.only=T)
@@ -213,5 +213,55 @@ d.ico %>%
   filter(language == "en",iconicity_perc < 2) %>%
   summarise(meanAoA = mean(KupermanAOA,na.rm=T))
 cor.test(d.ico$iconicity,d.ico$KupermanAOA)
+
+
+# Reduplication and iconicity ---------------------------------------------
+
+str(d.ico)
+
+redup <- grepl("^(.+)\\1$",d.ico$word)
+d.ico[redup,]$word
+
+redup <- grepl("^(.+)\\1$",ico$word)
+ico[redup,]$word
+
+ico %>%
+  mutate(redup = ifelse(grepl("^(.+)\\1$",word),"redup","not")) %>%
+  drop_na(iconicity) %>%
+  group_by(redup) %>%
+  summarise(count=n(),mean_ico = mean(iconicity,na.rm=T),mean_ico_p = mean(iconicity_predicted))
+
+ico %>%
+  mutate(redup = ifelse(grepl("^(.+)\\1$",word),"redup","not")) %>%
+  group_by(redup) %>%
+  summarise(count=n(),mean_ico_p = mean(iconicity_predicted))
+
+
+
+# wordbank and iconicity --------------------------------------------------
+
+# TO DO: figure out how to get AoA/AoP for words from Wordbank
+
+instruments <- get_instruments()
+
+english_ws_admins <- get_administration_data("English (American)", "WS")
+items_en <- get_item_data("English (American)", "WS")
+items_data <- get_instrument_data(instrument_language = "English (American)",
+                                  instrument_form = "WS",
+                                  items = items_en$item_id,
+                                  administrations = english_ws_admins)
+
+items_data %>%
+  filter(num_item_id == 1)
+
+
+items_summary <- items_data %>%
+  mutate(produces = value == "produces") %>%
+  group_by(age, data_id) %>%
+  summarise(num_words = sum(produces,na.rm=T)) %>%
+  group_by(age) %>%
+  summarise(median_num_words = median(num_words,na.rm=T))
+ggplot(items_summary,(aes(age,median_num_words))) +
+  geom_point()
 
 
