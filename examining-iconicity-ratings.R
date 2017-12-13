@@ -55,7 +55,14 @@ icotest <- left_join(ico,subtlex)
 summary(icotest$freq_log)
 summary(ico$freq_log)
 
-  
+# add modality norms
+modnorms <- read_csv("https://raw.githubusercontent.com/pablobernabeu/Modality-exclusivity-norms-747-Dutch-English-replication/master/all.csv") 
+names(modnorms) <- tolower(names(modnorms))
+# we don't need cols 17-21 (subtlex duplicates)
+mod <- modnorms %>%
+  dplyr::select(word,perceptualstrength,exclusivity,auditory,haptic,visual,concrete_brysbaertetal2014) %>%
+  plyr::rename(c("concrete_brysbaertetal2014" = "concreteness"))
+
 # Compare collected and inferred iconicity ratings ------------------------
 
 
@@ -235,6 +242,10 @@ ico %>%
   mutate(redup = ifelse(grepl("^(.+)\\1$",word),"redup","not")) %>%
   group_by(redup) %>%
   summarise(count=n(),mean_ico_p = mean(iconicity_predicted))
+
+
+# Modality norms and iconicity (Bernabeu data) ----------------------------
+
 
 
 
