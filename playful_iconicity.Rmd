@@ -128,6 +128,60 @@ Many highly iconic words are also rated as highly funny. The power of iconic wor
 
 The distribution across the senses is remarkable, with movement, visual phenomena, sounds, and tactile texture represented. (Given what we know about the correlation of sensory ratings with iconicity ratings (Winter et al. 2017), this suggests that sensory ratings and humor ratings will also correlate well.)
 
+Let's also have a quick look at the converse: words rated as low in funniness and low in iconicity.
+
+```{r similarity_2}
+
+ggplot(df,aes(iconicity,humor)) +
+  theme_tufte() + ggtitle("Humor and iconicity: lowest rated words") +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    data=subset(df,diff_rank <= 3),
+    aes(label=word),
+    size=2.5,
+    alpha=0.8,
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+
+df %>%
+  filter(diff_rank <= 3) %>%
+  arrange(desc(humor)) %>%
+  dplyr::select(word,humor,iconicity) %>%
+  slice(1:20)
+
+```
+
+Sidenote: plotting words with the smallest absolute difference across the boards is kind of messy and not very helpful.
+
+```{r similarity_across}
+
+ggplot(df,aes(iconicity,humor)) +
+  theme_tufte() + ggtitle("Humor and iconicity: congruently rated words") +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    data=subset(df,diff_abs == 0),
+    aes(label=word),
+    size=2.5,
+    alpha=0.8,
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+
+df %>%
+  filter(diff_abs == 0) %>%
+  arrange(desc(humor)) %>%
+  dplyr::select(word,humor,iconicity) %>%
+  sample_n(20)
+
+```
+
+
+
 But there are also quite some cases where the two ratings don't add up:
 
 ```{r difference}
@@ -174,7 +228,7 @@ df %>%
   slice(1:20)
 ```
 
-## Plots
+## Iconicity ~ humour: existing ratings
 First eyeball data. Iconicity looks a pretty good predictor in addition to frequency, which was the best predictor according to Engelthaler & Hills (2017). Humor shows a positive correlation with iconicity rating, as predicted. The relation is clearest for iconicity ratings >0. My take on this (based on considerations noted elsewhere) is that the negative iconicity ratings do not capture one thing.
 
 ```{r plots}
@@ -215,11 +269,13 @@ ggplot(df,aes(freq_log,residuals)) +
 
 ```
 
-Now look at Bill's predicted iconicity ratings. To avoid double-dipping we tease apart words for which the predictions overlap with the ratings (n=1391) and words for which predictions are newly inferred (n=3242) (encoded in `$set`). 
+## Iconicity ~ humour: imputed ratings
 
-Predicted iconicity values correlate with humor ratings even when controlling for frequency. For every point gained in predicted iconicity there's a .21 increase in humor rating.
+Now look at Bill's imputed iconicity ratings. To avoid double-dipping we tease apart words for which the predictions overlap with the ratings (n=1391) and words for which predictions are newly inferred (n=3242) (encoded in `$set`). 
 
-```{r iconicity_predicted}
+Imputed iconicity values correlate with humor ratings even when controlling for frequency. For every point gained in predicted iconicity there's a .21 increase in humor rating.
+
+```{r iconicity_imputed}
 
 summary(lm(humor ~ freq_log + iconicity_predicted,df_pred))
 
@@ -252,6 +308,16 @@ pcor.test(x=df$humor,y=df$freq_log,z=df$iconicity)
 pcor.test(x=df$iconicity,y=df$freq_log,z=df$humor)
 pcor.test(x=df$humor,y=df$iconicity,z=df$freq_log)
 ```
+
+We can do the same for the imputed iconicity ratings, again using only the unrated subset to avoid double dipping. Lookings like there is 30% covariance between humor and imputed iconicity, partialing out log frequency as a mediator:
+
+```{r partial_correlations_imputed}
+df_unrated <- df_pred %>%
+  filter(set == "unrated")
+pcor.test(x=df_unrated$humor,y=df_unrated$iconicity_predicted,z=df_unrated$freq_log)
+
+```
+
 
 ## Discussion
 
