@@ -538,7 +538,7 @@ pcor.test(x=df$humor,y=df$iconicity,z=df$freq_log)
     ##    estimate      p.value statistic    n gp  Method
     ## 1 0.2062649 4.335228e-15  7.932275 1419  1 pearson
 
-We can do the same for the imputed iconicity ratings, again using only the unrated subset to avoid double dipping. Lookings like there is 30% covariance between humor and imputed iconicity, partialing out log frequency as a mediator:
+We can do the same for the imputed iconicity ratings, again using only the unrated subset to avoid double dipping. Looks like there is 30% covariance between humor and imputed iconicity, partialing out log frequency as a mediator:
 
 ``` r
 df_unrated <- df_pred %>%
@@ -552,7 +552,7 @@ pcor.test(x=df_unrated$humor,y=df_unrated$iconicity_predicted,z=df_unrated$freq_
 Discussion
 ----------
 
-The negative relation between humor and frequency reported by Engelthaler and Hill (2017) is replicated for a subset of words for which we have iconicity ratings. However, controlling for this relation, there remains a strong partial correlation of 20.6% between iconicity and humor ratings — stronger than the next highest correlation reported by Engelthaler and Hill (with was for lexical decision RTs).
+The negative relation between humor and frequency reported by Engelthaler and Hill (2017) is replicated for a subset of words for which we have iconicity ratings. However, controlling for this relation, there remains a strong partial correlation of 20.6% between iconicity and humor ratings — stronger than the next highest correlation reported by Engelthaler and Hill (which was for lexical decision time).
 
 Many highly iconic words are rated as funny, and many words rated as not iconic are rated as not funny. This sheds light on the relation between iconicity and playfulness. Across languages, iconic words display marked phonotactics, sound play and evocative imagery, all things that can make iconic words sound funny. The data analysed here suggests these aspects of iconic words indeed lead to higher funniness ratings, though only for positively valenced words.
 
