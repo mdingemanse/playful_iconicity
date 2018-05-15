@@ -50,8 +50,9 @@ rm(list.of.packages,new.packages)
 
 Data sources:
 
-* Perry, Lynn K. et al. “Iconicity in the Speech of Children and Adults.” Developmental Science, n/a-n/a. doi:10.1111/desc.12572.
-* Engelthaler, Tomas, and Thomas T. Hills. 2017. “Humor Norms for 4,997 English Words.” Behavior Research Methods, July, 1–9. doi:10.3758/s13428-017-0930-6.
+* Perry, Lynn K. et al. “Iconicity in the Speech of Children and Adults.” Developmental Science, n/a-n/a. doi:10.1111/desc.12572
+* Engelthaler, Tomas, and Thomas T. Hills. 2017. “Humor Norms for 4,997 English Words.” Behavior Research Methods, July, 1–9. doi:10.3758/s13428-017-0930-6
+* Warriner, A.B., Kuperman, V., & Brysbaert, M. (2013). Norms of valence, arousal, and dominance for 13,915 English lemmas. Behavior Research Methods, 45, 1191-1207
 
 ```{r data, results='hide'}
 iconicity <- read_csv("https://raw.githubusercontent.com/bodowinter/iconicity_acquisition/master/data/iconicity.csv") %>%
@@ -60,6 +61,12 @@ iconicity <- read_csv("https://raw.githubusercontent.com/bodowinter/iconicity_ac
 
 humor <- read_csv("https://raw.githubusercontent.com/tomasengelthaler/HumorNorms/master/humor_dataset.csv") %>%
   plyr::rename(c("mean" = "humor"))
+
+valence <- read_csv("http://crr.ugent.be/papers/Ratings_Warriner_et_al.csv") %>%
+  plyr::rename(c("Word" = "word","V.Mean.Sum" = "valence","A.Mean.Sum" = "arousal","D.Mean.Sum" = "dominance")) %>%
+  dplyr::select(word,valence,arousal,dominance)
+
+# Bodo: use absolute valence measure by centering the distribtion
 
 df <- merge(iconicity,humor,by="word") %>%
   drop_na(iconicity,humor,freq_count) %>%
@@ -229,6 +236,8 @@ df %>%
   dplyr::select(word,humor,iconicity) %>%
   slice(1:20)
 ```
+
+We can actually test this idea by taking into account 
 
 ## Iconicity ~ humour: existing ratings
 First eyeball data. Iconicity looks a pretty good predictor in addition to frequency, which was the best predictor according to Engelthaler & Hills (2017). Humor shows a positive correlation with iconicity rating, as predicted. The relation is clearest for iconicity ratings >0. My take on this (based on considerations noted elsewhere) is that the negative iconicity ratings do not capture one thing.

@@ -1,7 +1,7 @@
 Playful iconicity: relating iconicity and humor ratings
 ================
 Mark Dingemanse & Bill Thompson
-(this version: 2018-03-31)
+(this version: 2018-05-15)
 
 Abstract
 --------
@@ -44,8 +44,9 @@ Data
 
 Data sources:
 
--   Perry, Lynn K. et al. “Iconicity in the Speech of Children and Adults.” Developmental Science, n/a-n/a. <doi:10.1111/desc.12572>.
--   Engelthaler, Tomas, and Thomas T. Hills. 2017. “Humor Norms for 4,997 English Words.” Behavior Research Methods, July, 1–9. <doi:10.3758/s13428-017-0930-6>.
+-   Perry, Lynn K. et al. “Iconicity in the Speech of Children and Adults.” Developmental Science, n/a-n/a. <doi:10.1111/desc.12572>
+-   Engelthaler, Tomas, and Thomas T. Hills. 2017. “Humor Norms for 4,997 English Words.” Behavior Research Methods, July, 1–9. <doi:10.3758/s13428-017-0930-6>
+-   Warriner, A.B., Kuperman, V., & Brysbaert, M. (2013). Norms of valence, arousal, and dominance for 13,915 English lemmas. Behavior Research Methods, 45, 1191-1207
 
 ``` r
 iconicity <- read_csv("https://raw.githubusercontent.com/bodowinter/iconicity_acquisition/master/data/iconicity.csv") %>%
@@ -54,6 +55,10 @@ iconicity <- read_csv("https://raw.githubusercontent.com/bodowinter/iconicity_ac
 
 humor <- read_csv("https://raw.githubusercontent.com/tomasengelthaler/HumorNorms/master/humor_dataset.csv") %>%
   plyr::rename(c("mean" = "humor"))
+
+valence <- read_csv("http://crr.ugent.be/papers/Ratings_Warriner_et_al.csv") %>%
+  plyr::rename(c("Word" = "word","V.Mean.Sum" = "valence","A.Mean.Sum" = "arousal","D.Mean.Sum" = "dominance")) %>%
+  dplyr::select(word,valence,arousal,dominance)
 
 df <- merge(iconicity,humor,by="word") %>%
   drop_na(iconicity,humor,freq_count) %>%
@@ -232,26 +237,26 @@ df %>%
 ```
 
     ##          word    humor   iconicity
+    ## 172 statement 1.833333 -1.38461538
+    ## 49     tights 2.891892  1.72727273
     ## 15    juggler 3.400000  2.60000000
-    ## 158      song 2.000000 -0.30000000
-    ## 84    harpoon 2.500000  1.10000000
-    ## 20     smooch 3.333333  3.60000000
-    ## 59  slingshot 2.739130  1.80000000
-    ## 146     cabin 2.088235  0.09090909
-    ## 48      grind 2.896552  2.00000000
-    ## 101    crayon 2.361111  0.81818182
-    ## 144    moment 2.125000  0.08333333
-    ## 13      yodel 3.441176  2.90000000
-    ## 119    branch 2.275862  0.57142857
-    ## 118     noble 2.285714  0.54545455
-    ## 78     relief 2.551724  1.38461538
     ## 73        rub 2.586207  1.50000000
-    ## 93    stapler 2.406250  1.09090909
-    ## 153       van 2.055556  0.09090909
-    ## 38       gush 3.029412  3.27272727
-    ## 36       flop 3.031250  3.14285714
+    ## 125      root 2.225806  0.57142857
+    ## 11     wiggle 3.523810  2.60000000
+    ## 135   brother 2.156250  0.40000000
+    ## 9      jiggle 3.645161  2.58333333
+    ## 3        oink 3.871795  3.61538462
+    ## 124      gold 2.228571  0.69230769
+    ## 144    moment 2.125000  0.08333333
+    ## 113    palace 2.314286  0.80000000
+    ## 76     prince 2.566667  1.30769231
+    ## 28       tang 3.172414  2.69230769
+    ## 105    barrel 2.348837  1.00000000
+    ## 45       mush 2.939394  3.07692308
+    ## 25      clang 3.200000  3.85714286
+    ## 13      yodel 3.441176  2.90000000
     ## 68        mud 2.600000  1.69230769
-    ## 54     flimsy 2.785714  1.80000000
+    ## 12      whiff 3.500000  2.91666667
 
 But there are also quite some cases where the two ratings don't add up:
 
