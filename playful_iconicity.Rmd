@@ -37,7 +37,7 @@ add_working_dir("in")
 add_working_dir("out")
 
 # Packages and useful functions
-list.of.packages <- c("tidyverse","GGally","ggthemes","readxl","ggrepel","lme4","ppcor")
+list.of.packages <- c("tidyverse","GGally","ggthemes","readxl","ggrepel","lme4","ppcor","stringr")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)>0) install.packages(new.packages)
 lapply(list.of.packages, require, character.only=T)
@@ -60,17 +60,23 @@ iconicity <- read_csv("https://raw.githubusercontent.com/bodowinter/iconicity_ac
   plyr::rename(c("Word" = "word","Iconicity"="iconicity","OrthoLength"="len_ortho","SUBTLEX_Rawfreq" = "freq_count"))
 
 humor <- read_csv("https://raw.githubusercontent.com/tomasengelthaler/HumorNorms/master/humor_dataset.csv") %>%
-  plyr::rename(c("mean" = "humor"))
+  plyr::rename(c("mean" = "humor")) %>%
+  dplyr::select(word,humor)
 
 valence <- read_csv("http://crr.ugent.be/papers/Ratings_Warriner_et_al.csv") %>%
   plyr::rename(c("Word" = "word","V.Mean.Sum" = "valence","A.Mean.Sum" = "arousal","D.Mean.Sum" = "dominance")) %>%
   dplyr::select(word,valence,arousal,dominance)
 
-# Bodo: use absolute valence measure by centering the distribtion
+# save(iconicity,humor,valence,file="ratings.Rdata")
+# if no connection:
+# load(file="ratings.Rdata")
 
 df <- merge(iconicity,humor,by="word") %>%
   drop_na(iconicity,humor,freq_count) %>%
-  mutate(freq_log = log(freq_count))
+  mutate(freq_log = log(freq_count)) %>%
+  dplyr::select(word,iconicity,POS,humor,freq_log) %>%
+  merge(valence,by="word") # add valence ratings
+
 ```
 
 Combine humor with predicted iconicity ratings from Bill and frequency / POS data from SUBTLEX
@@ -78,7 +84,7 @@ Combine humor with predicted iconicity ratings from Bill and frequency / POS dat
 ```{r data-continued, results='hide'}
 p.ico <- read_csv("in/ipennl.csv") %>%
   filter(language=="en") %>%
-  dplyr::select(Word,Concreteness,Iconicity_PREDICTED)
+  dplyr::select(Word,Iconicity_PREDICTED)
 names(p.ico) <- tolower(names(p.ico))
 
 subtlex <- read_excel(path="in/SUBTLEX-US frequency list with PoS and Zipf information.xlsx") %>%
@@ -95,6 +101,15 @@ df_pred <- humor %>%
   drop_na(freq_log,POS) %>%
   mutate(set = ifelse(is.na(iconicity),"unrated","rated")) # indicate subsets
 
+df <- df %>% 
+  mutate(humor_perc = ntile(humor,10),
+         iconicity_perc = ntile(iconicity,10),
+         valence_perc = ntile(valence,10),
+         difference = humor_perc - iconicity_perc,
+         diff_abs = abs(difference),
+         diff_rank = humor_perc+iconicity_perc)
+
+
 ```
 
 ## Words
@@ -103,13 +118,6 @@ Which words are rated as highly funny *and* highly iconic? And what are the most
 Let's start by plotting the top ranked words:
 
 ```{r similarity}
-
-df <- df %>% 
-  mutate(humor_perc = ntile(humor,10),
-         iconicity_perc = ntile(iconicity,10),
-         difference = humor_perc - iconicity_perc,
-         diff_abs = abs(difference),
-         diff_rank = humor_perc+iconicity_perc)
 
 ggplot(df,aes(iconicity,humor)) +
   theme_tufte() + ggtitle("Humor and iconicity: highest rated words") +
@@ -184,7 +192,7 @@ ggplot(df,aes(iconicity,humor)) +
 df %>%
   filter(diff_abs == 0) %>%
   arrange(desc(humor)) %>%
-  dplyr::select(word,humor,iconicity) %>%
+  dplyr::select(word,humor,iconicity,diff_abs) %>%
   sample_n(20)
 
 ```
@@ -226,18 +234,36 @@ df %>%
   slice(1:20)
 ```
 
-Something related to valence and/or arousal plays the most important role in explaining why some  highly iconic words are not rated as funny. Negatively valenced words like 'roar', 'crash', 'clash' and 'scream' may be highly iconic but they have no positive or humorous connotations. So the image-evoking potency of iconic words does not always translate into funniness. Samarin proposed that ideophones are not in themselves humourous, but they *are* "the locus of affective meaning" (Samarin 1969:321).
+How about words rated as iconic but not rated as funny?
 
 ```{r words-2}
 # rated as iconic but not funny
 df %>% 
-  filter(iconicity_perc > 9, humor_perc < 4) %>%
+  filter(iconicity_perc > 9, humor_perc < 3) %>%
   arrange(desc(iconicity)) %>%
-  dplyr::select(word,humor,iconicity) %>%
+  dplyr::select(word,humor,iconicity,valence_perc) %>%
   slice(1:20)
 ```
 
-We can actually test this idea by taking into account 
+Valence is one reason for some iconic words not being rated as funny. Words like 'roar', 'crash', 'clash' and 'scream' (all in the lowest percentiles of valence) may be highly iconic but they have no positive or humorous connotations. So the image-evoking potency of iconic words does not always translate into funniness. Samarin proposed that ideophones are not in themselves humourous, but they *are* "the locus of affective meaning" (Samarin 1969:321).
+
+## Explorations that may or may not be worth reporting
+The iconicity / humour relation shows up reliably across word classes; most pronounced in verbs.
+
+```{r}
+
+df %>%
+  filter(POS %in% c("Adjective","Noun","Verb")) %>%
+  ggplot(aes(iconicity,humor,color=POS)) +
+  theme_tufte() + ggtitle("Humor and iconicity by POS") +
+  geom_point(alpha=0.5) +
+  geom_smooth(method="lm") +
+  facet_wrap(~ POS)
+
+
+
+```
+
 
 ## Iconicity ~ humour: existing ratings
 First eyeball data. Iconicity looks a pretty good predictor in addition to frequency, which was the best predictor according to Engelthaler & Hills (2017). Humor shows a positive correlation with iconicity rating, as predicted. The relation is clearest for iconicity ratings >0. My take on this (based on considerations noted elsewhere) is that the negative iconicity ratings do not capture one thing.
