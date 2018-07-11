@@ -1,7 +1,7 @@
 Playful iconicity: relating iconicity and humor ratings
 ================
 Mark Dingemanse & Bill Thompson
-(this version: 2018-05-15)
+(this version: 2018-07-11)
 
 Abstract
 --------
@@ -30,7 +30,7 @@ add_working_dir("in")
 add_working_dir("out")
 
 # Packages and useful functions
-list.of.packages <- c("tidyverse","GGally","ggthemes","readxl","ggrepel","lme4","ppcor")
+list.of.packages <- c("tidyverse","GGally","ggthemes","readxl","ggrepel","ppcor","stringr")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)>0) install.packages(new.packages)
 lapply(list.of.packages, require, character.only=T)
@@ -48,44 +48,40 @@ Data sources:
 -   Engelthaler, Tomas, and Thomas T. Hills. 2017. “Humor Norms for 4,997 English Words.” Behavior Research Methods, July, 1–9. <doi:10.3758/s13428-017-0930-6>
 -   Warriner, A.B., Kuperman, V., & Brysbaert, M. (2013). Norms of valence, arousal, and dominance for 13,915 English lemmas. Behavior Research Methods, 45, 1191-1207
 
-``` r
-iconicity <- read_csv("https://raw.githubusercontent.com/bodowinter/iconicity_acquisition/master/data/iconicity.csv") %>%
-  mutate(POS = SUBTLEX_dom_POS) %>%
-  plyr::rename(c("Word" = "word","Iconicity"="iconicity","OrthoLength"="len_ortho","SUBTLEX_Rawfreq" = "freq_count"))
-
-humor <- read_csv("https://raw.githubusercontent.com/tomasengelthaler/HumorNorms/master/humor_dataset.csv") %>%
-  plyr::rename(c("mean" = "humor"))
-
-valence <- read_csv("http://crr.ugent.be/papers/Ratings_Warriner_et_al.csv") %>%
-  plyr::rename(c("Word" = "word","V.Mean.Sum" = "valence","A.Mean.Sum" = "arousal","D.Mean.Sum" = "dominance")) %>%
-  dplyr::select(word,valence,arousal,dominance)
-
-df <- merge(iconicity,humor,by="word") %>%
-  drop_na(iconicity,humor,freq_count) %>%
-  mutate(freq_log = log(freq_count))
-```
-
-Combine humor with predicted iconicity ratings from Bill and frequency / POS data from SUBTLEX
+In `norms`, available ratings are combined with imputed norms and with frequency / POS data from SUBTLEX
 
 ``` r
-p.ico <- read_csv("in/ipennl.csv") %>%
-  filter(language=="en") %>%
-  dplyr::select(Word,Concreteness,Iconicity_PREDICTED)
-names(p.ico) <- tolower(names(p.ico))
+norms <- read_csv("in/combined-experimental-norms-with-humour-iconicity-aversion-taboo-predictions.csv")
 
 subtlex <- read_excel(path="in/SUBTLEX-US frequency list with PoS and Zipf information.xlsx") %>%
   plyr::rename(c("Word" = "word","FREQcount" = "freq_count","Lg10WF" = "freq_log","Dom_PoS_SUBTLEX" = "POS")) %>%
   dplyr::select(word,freq_log,POS) %>%
-  filter(word %in% p.ico$word)
+  filter(word %in% norms$word)
 
-df_pred <- humor %>%
-  left_join(p.ico) %>%
-  drop_na(humor,iconicity_predicted) %>%
-  left_join(df) %>%
-  dplyr::select(-POS,-freq_log) %>%
-  left_join(subtlex) %>% 
+# which words are in the norms, but not in subtlex? some pretty colourful ones, but
+# not too many — we'll exclude them so we have frequency data for every word
+unique(norms$word)[unique(norms$word) %notin% unique(subtlex$word)]
+
+words <- norms %>%
+  left_join(subtlex) %>%
   drop_na(freq_log,POS) %>%
-  mutate(set = ifelse(is.na(iconicity),"unrated","rated")) # indicate subsets
+  mutate(set = ifelse(is.na(iconicity), "unrated", "rated")) # indicate subsets
+
+words <- words %>%
+  mutate(humour_perc = ntile(humour,10),
+         iconicity_perc = ntile(iconicity,10),
+         valence_perc = ntile(valence,10),
+         difference = humour_perc - iconicity_perc,
+         diff_abs = abs(difference),
+         diff_rank = humour_perc+iconicity_perc,
+         ico_imputed_perc = ntile(iconicity_imputed,10),
+         hum_imputed_perc = ntile(humour_imputed,10),
+         diff_imputed_ico = humour_perc - ico_imputed_perc,
+         diff_abs_imputed_ico = abs(diff_imputed_ico),
+         diff_rank_imputed_ico = humour_perc + ico_imputed_perc,
+         diff_imputed = hum_imputed_perc - ico_imputed_perc,
+         diff_abs_impute = abs(diff_imputed),
+         diff_rank_imputed = hum_imputed_perc + ico_imputed_perc)
 ```
 
 Words
@@ -96,18 +92,11 @@ Which words are rated as highly funny *and* highly iconic? And what are the most
 Let's start by plotting the top ranked words:
 
 ``` r
-df <- df %>% 
-  mutate(humor_perc = ntile(humor,10),
-         iconicity_perc = ntile(iconicity,10),
-         difference = humor_perc - iconicity_perc,
-         diff_abs = abs(difference),
-         diff_rank = humor_perc+iconicity_perc)
-
-ggplot(df,aes(iconicity,humor)) +
-  theme_tufte() + ggtitle("Humor and iconicity: highest rated words") +
+ggplot(words,aes(iconicity,humour)) +
+  theme_tufte() + ggtitle("Humour and iconicity: highest rated words") +
   geom_point(alpha=0.5,na.rm=T) +
   geom_label_repel(
-    data=subset(df,diff_rank == 20),
+    data=subset(words,diff_rank == 20),
     aes(label=word),
     size=2.5,
     alpha=0.8,
@@ -121,15 +110,15 @@ ggplot(df,aes(iconicity,humor)) +
 ![](out/similarity-1.png)
 
 ``` r
-df %>%
+words %>%
   filter(diff_rank > 19) %>%
-  arrange(desc(humor)) %>%
-  dplyr::select(word,humor,iconicity) %>%
+  arrange(desc(humour)) %>%
+  dplyr::select(word,humour,iconicity) %>%
   slice(1:20)
 ```
 
     ## # A tibble: 20 x 3
-    ##       word    humor iconicity
+    ##       word   humour iconicity
     ##      <chr>    <dbl>     <dbl>
     ##  1  waddle 4.045455  3.100000
     ##  2  tinkle 3.962963  3.000000
@@ -140,17 +129,17 @@ df %>%
     ##  7     moo 3.700000  3.882353
     ##  8   yahoo 3.689655  2.769231
     ##  9  jiggle 3.645161  2.583333
-    ## 10     coo 3.551724  2.500000
-    ## 11  wiggle 3.523810  2.600000
-    ## 12   whiff 3.500000  2.916667
-    ## 13   yodel 3.441176  2.900000
-    ## 14  squawk 3.418605  3.461538
-    ## 15 juggler 3.400000  2.600000
-    ## 16  giggle 3.391304  3.000000
-    ## 17  bubbly 3.352941  2.818182
+    ## 10  wiggle 3.523810  2.600000
+    ## 11   whiff 3.500000  2.916667
+    ## 12   yodel 3.441176  2.900000
+    ## 13  squawk 3.418605  3.461538
+    ## 14 juggler 3.400000  2.600000
+    ## 15  giggle 3.391304  3.000000
+    ## 16  bubbly 3.352941  2.818182
+    ## 17 squeeze 3.344828  2.538462
     ## 18   clunk 3.344828  3.928571
-    ## 19 squeeze 3.344828  2.538462
-    ## 20  smooch 3.333333  3.600000
+    ## 19  smooch 3.333333  3.600000
+    ## 20   prick 3.325000  2.642857
 
 Many highly iconic words are also rated as highly funny. The power of iconic words to evoke colourful imagery (as in *waddle, tinkle, oink, fluff, jiggle, smooch*) likely plays a major role here. Samarin (1969) connects the occurrence of laughter following the use of ideophones to their imagistic and sensory meanings.
 
@@ -159,11 +148,11 @@ The distribution across the senses is remarkable, with movement, visual phenomen
 Let's also have a quick look at the converse: words rated as low in funniness and low in iconicity.
 
 ``` r
-ggplot(df,aes(iconicity,humor)) +
-  theme_tufte() + ggtitle("Humor and iconicity: lowest rated words") +
+ggplot(words,aes(iconicity,humour)) +
+  theme_tufte() + ggtitle("Humour and iconicity: lowest rated words") +
   geom_point(alpha=0.5,na.rm=T) +
   geom_label_repel(
-    data=subset(df,diff_rank <= 3),
+    data=subset(words,diff_rank <= 3),
     aes(label=word),
     size=2.5,
     alpha=0.8,
@@ -177,45 +166,45 @@ ggplot(df,aes(iconicity,humor)) +
 ![](out/similarity_2-1.png)
 
 ``` r
-df %>%
+words %>%
   filter(diff_rank <= 3) %>%
-  arrange(desc(humor)) %>%
-  dplyr::select(word,humor,iconicity) %>%
+  arrange(desc(humour)) %>%
+  dplyr::select(word,humour,iconicity) %>%
   slice(1:20)
 ```
 
     ## # A tibble: 20 x 3
-    ##        word    humor  iconicity
+    ##        word   humour  iconicity
     ##       <chr>    <dbl>      <dbl>
-    ##  1    proxy 2.030303 -0.8181818
-    ##  2    quota 2.030303 -0.9166667
-    ##  3   spider 2.029412 -0.5454545
-    ##  4    cloth 2.028571 -0.7000000
-    ##  5  million 2.028571 -0.6923077
-    ##  6     coat 2.025641 -0.8000000
-    ##  7    mural 2.021277 -1.0000000
-    ##  8 lacrosse 2.000000 -0.5454545
-    ##  9     menu 2.000000 -1.3636364
-    ## 10      oak 2.000000 -0.6363636
-    ## 11    whole 2.000000 -0.7692308
-    ## 12    choir 1.972222 -0.6363636
-    ## 13     army 1.969697 -0.5454545
-    ## 14    title 1.969697 -0.6923077
-    ## 15  trouble 1.969697 -0.5000000
-    ## 16     dusk 1.931034 -0.9090909
-    ## 17   window 1.918919 -0.8333333
-    ## 18   silent 1.911765 -2.1666667
-    ## 19     case 1.900000 -0.4166667
-    ## 20   coffin 1.891892 -0.6000000
+    ##  1   planet 2.064516 -0.6153846
+    ##  2    share 2.058824 -0.4444444
+    ##  3  account 2.052632 -0.4285714
+    ##  4   system 2.037037 -0.5000000
+    ##  5    quota 2.030303 -0.9166667
+    ##  6    proxy 2.030303 -0.8181818
+    ##  7   spider 2.029412 -0.5454545
+    ##  8  million 2.028571 -0.6923077
+    ##  9    cloth 2.028571 -0.7000000
+    ## 10     coat 2.025641 -0.8000000
+    ## 11    mural 2.021277 -1.0000000
+    ## 12    whole 2.000000 -0.7692308
+    ## 13     menu 2.000000 -1.3636364
+    ## 14      oak 2.000000 -0.6363636
+    ## 15 lacrosse 2.000000 -0.5454545
+    ## 16    choir 1.972222 -0.6363636
+    ## 17  trouble 1.969697 -0.5000000
+    ## 18     army 1.969697 -0.5454545
+    ## 19    title 1.969697 -0.6923077
+    ## 20     dusk 1.931034 -0.9090909
 
 Sidenote: plotting words with the smallest absolute difference across the boards is kind of messy and not very helpful.
 
 ``` r
-ggplot(df,aes(iconicity,humor)) +
+ggplot(words,aes(iconicity,humour)) +
   theme_tufte() + ggtitle("Humor and iconicity: congruently rated words") +
   geom_point(alpha=0.5,na.rm=T) +
   geom_label_repel(
-    data=subset(df,diff_abs == 0),
+    data=subset(words,diff_abs == 0),
     aes(label=word),
     size=2.5,
     alpha=0.8,
@@ -229,46 +218,48 @@ ggplot(df,aes(iconicity,humor)) +
 ![](out/similarity_across-1.png)
 
 ``` r
-df %>%
+words %>%
   filter(diff_abs == 0) %>%
-  arrange(desc(humor)) %>%
-  dplyr::select(word,humor,iconicity) %>%
+  arrange(desc(humour)) %>%
+  dplyr::select(word,humour,iconicity,diff_abs) %>%
   sample_n(20)
 ```
 
-    ##          word    humor   iconicity
-    ## 172 statement 1.833333 -1.38461538
-    ## 49     tights 2.891892  1.72727273
-    ## 15    juggler 3.400000  2.60000000
-    ## 73        rub 2.586207  1.50000000
-    ## 125      root 2.225806  0.57142857
-    ## 11     wiggle 3.523810  2.60000000
-    ## 135   brother 2.156250  0.40000000
-    ## 9      jiggle 3.645161  2.58333333
-    ## 3        oink 3.871795  3.61538462
-    ## 124      gold 2.228571  0.69230769
-    ## 144    moment 2.125000  0.08333333
-    ## 113    palace 2.314286  0.80000000
-    ## 76     prince 2.566667  1.30769231
-    ## 28       tang 3.172414  2.69230769
-    ## 105    barrel 2.348837  1.00000000
-    ## 45       mush 2.939394  3.07692308
-    ## 25      clang 3.200000  3.85714286
-    ## 13      yodel 3.441176  2.90000000
-    ## 68        mud 2.600000  1.69230769
-    ## 12      whiff 3.500000  2.91666667
+    ## # A tibble: 20 x 4
+    ##       word   humour   iconicity diff_abs
+    ##      <chr>    <dbl>       <dbl>    <int>
+    ##  1   dough 2.208333  0.50000000        0
+    ##  2     lie 1.757576 -0.63636364        0
+    ##  3   sleep 2.296296  0.76923077        0
+    ##  4    bull 2.589744  1.40000000        0
+    ##  5    walk 2.322581  0.72727273        0
+    ##  6    tang 3.172414  2.69230769        0
+    ##  7  coffin 1.891892 -0.60000000        0
+    ##  8  school 2.040000 -0.21428571        0
+    ##  9     moo 3.700000  3.88235294        0
+    ## 10   cabin 2.088235  0.09090909        0
+    ## 11   clang 3.200000  3.85714286        0
+    ## 12    grub 2.875000  1.84615385        0
+    ## 13   chirp 3.000000  4.14285714        0
+    ## 14     ant 2.275000  0.60000000        0
+    ## 15   stray 2.324324  0.70000000        0
+    ## 16    pill 2.166667  0.30000000        0
+    ## 17    hold 2.441176  0.84615385        0
+    ## 18 harpoon 2.500000  1.10000000        0
+    ## 19  jacket 2.193548  0.50000000        0
+    ## 20    skin 1.973684 -0.08333333        0
 
 But there are also quite some cases where the two ratings don't add up:
 
 ``` r
 # difference sd
-diffabs.sd <- sd(df$diff_abs,na.rm=T)
+diffabs.sd <- sd(words$diff_abs,na.rm=T)
 
-ggplot(df,aes(iconicity,humor)) +
-  theme_tufte() + ggtitle("Humor and iconicity: maximally different words") +
+ggplot(words,aes(iconicity,humour)) +
+  theme_tufte() + ggtitle("Humour and iconicity: maximally different words") +
   geom_point(alpha=0.5,na.rm=T) +
   geom_label_repel(
-    data=subset(df,diff_abs > 3.5*diffabs.sd),
+    data=subset(words,diff_abs > 3.5*diffabs.sd),
     # alpha=0.5,  # (affects not just the bounding box)
     aes(label=word),
     size=2.5,
@@ -282,69 +273,83 @@ ggplot(df,aes(iconicity,humor)) +
 
 ![](out/difference-1.png)
 
-Among funny words not rated as iconic, there are lots of animals (dingo, panda, lobster, giraffe), some taboo words (hoe, penis), and joke-related words like pun and blonde.
+Among funny words not rated as iconic, there are lots of animals (dingo, hippo, chipmunk, turkey, giraffe), some taboo words (buttocks, penis, hoe), and joke-related words like pun and blonde.
 
 ``` r
 # rated as funny but not iconic
-df %>% 
-  filter(humor_perc > 9, iconicity_perc < 4) %>%
-  arrange(desc(humor)) %>%
-  dplyr::select(word,humor,iconicity) %>%
+words %>% 
+  filter(humour_perc > 9, iconicity_perc < 4) %>%
+  arrange(desc(humour)) %>%
+  dplyr::select(word,humour,iconicity) %>%
   slice(1:20)
 ```
 
     ## # A tibble: 20 x 3
-    ##        word    humor   iconicity
+    ##        word   humour   iconicity
     ##       <chr>    <dbl>       <dbl>
     ##  1    dingo 3.682927 -0.50000000
-    ##  2      hoe 3.600000 -1.45454545
-    ##  3    penis 3.567568 -0.20000000
-    ##  4   gander 3.500000 -0.91666667
-    ##  5    deuce 3.475000 -0.73333333
-    ##  6    hippo 3.366667  0.00000000
-    ##  7    chimp 3.307692 -0.09090909
-    ##  8 chipmunk 3.230769  0.10000000
-    ##  9   turkey 3.214286  0.06666667
-    ## 10      pun 3.210526 -0.37500000
-    ## 11      bra 3.166667  0.00000000
-    ## 12   tongue 3.166667 -1.00000000
-    ## 13   blonde 3.121212 -0.16666667
-    ## 14  giraffe 3.096774 -1.19047619
-    ## 15   magpie 3.066667 -0.91666667
-    ## 16   beaver 3.064516  0.20000000
-    ## 17     lark 3.025641 -0.90000000
-    ## 18  lobster 3.000000 -0.63636364
-    ## 19 trombone 3.000000 -0.63636364
-    ## 20   walrus 3.000000  0.18181818
+    ##  2 buttocks 3.625000  0.25000000
+    ##  3      hoe 3.600000 -1.45454545
+    ##  4    penis 3.567568 -0.20000000
+    ##  5   gander 3.500000 -0.91666667
+    ##  6    deuce 3.475000 -0.73333333
+    ##  7    belly 3.379310  0.25000000
+    ##  8    hippo 3.366667  0.00000000
+    ##  9    chimp 3.307692 -0.09090909
+    ## 10 chipmunk 3.230769  0.10000000
+    ## 11   turkey 3.214286  0.06666667
+    ## 12      pun 3.210526 -0.37500000
+    ## 13   tongue 3.166667 -1.00000000
+    ## 14      bra 3.166667  0.00000000
+    ## 15   blonde 3.121212 -0.16666667
+    ## 16  giraffe 3.096774 -1.19047619
+    ## 17   magpie 3.066667 -0.91666667
+    ## 18   beaver 3.064516  0.20000000
+    ## 19     lark 3.025641 -0.90000000
+    ## 20 trombone 3.000000 -0.63636364
 
-Something related to valence and/or arousal plays the most important role in explaining why some highly iconic words are not rated as funny. Negatively valenced words like 'roar', 'crash', 'clash' and 'scream' may be highly iconic but they have no positive or humorous connotations. So the image-evoking potency of iconic words does not always translate into funniness. Samarin proposed that ideophones are not in themselves humourous, but they *are* "the locus of affective meaning" (Samarin 1969:321).
+How about words rated as iconic but not rated as funny?
 
 ``` r
 # rated as iconic but not funny
-df %>% 
-  filter(iconicity_perc > 9, humor_perc < 4) %>%
-  arrange(desc(iconicity)) %>%
-  dplyr::select(word,humor,iconicity) %>%
+words %>% 
+  filter(iconicity_perc > 9, humour_perc < 3) %>%
+  arrange(valence) %>%
+  dplyr::select(word,humour,iconicity,humour_perc,iconicity_perc,valence_perc) %>%
   slice(1:20)
 ```
 
-    ## # A tibble: 14 x 3
-    ##        word    humor iconicity
-    ##       <chr>    <dbl>     <dbl>
-    ##  1    click 2.135135  4.461538
-    ##  2     roar 2.031250  3.923077
-    ##  3    crash 1.731707  3.769231
-    ##  4  scratch 1.800000  3.285714
-    ##  5    swift 2.135135  3.230769
-    ##  6 sunshine 2.064516  3.090909
-    ##  7      low 1.575758  2.916667
-    ##  8    break 2.034483  2.900000
-    ##  9    clash 2.086957  2.666667
-    ## 10    shoot 1.838710  2.600000
-    ## 11 airplane 2.057143  2.545455
-    ## 12    dread 1.583333  2.545455
-    ## 13     arch 2.026316  2.500000
-    ## 14   scream 1.952381  2.500000
+    ## # A tibble: 9 x 6
+    ##       word   humour iconicity humour_perc iconicity_perc valence_perc
+    ##      <chr>    <dbl>     <dbl>       <int>          <int>        <int>
+    ## 1    crash 1.731707  3.769231           1             10            1
+    ## 2    dread 1.583333  2.545455           1             10            1
+    ## 3    shoot 1.838710  2.600000           1             10            2
+    ## 4      low 1.575758  2.916667           1             10            3
+    ## 5  scratch 1.800000  3.285714           1             10            5
+    ## 6    break 2.034483  2.900000           2             10            5
+    ## 7 airplane 2.057143  2.545455           2             10            6
+    ## 8     roar 2.031250  3.923077           2             10            6
+    ## 9 sunshine 2.064516  3.090909           2             10           10
+
+Valence is one reason for some iconic words not being rated as funny. Words like 'crash', 'dread', 'scratch' and 'shoot' (all in the lowest percentiles of valence) may be highly iconic but they have no positive or humorous connotations. So the image-evoking potency of iconic words does not always translate into funniness. Samarin proposed that ideophones are not in themselves humourous, but they *are* "the locus of affective meaning" (Samarin 1969:321).
+
+Explorations that may or may not be worth reporting
+---------------------------------------------------
+
+The iconicity / humour relation shows up reliably across word classes; most pronounced in verbs.
+
+``` r
+words %>%
+  filter(POS %in% c("Adjective","Noun","Verb")) %>%
+  ggplot(aes(iconicity,humour,color=POS)) +
+  theme_tufte() + ggtitle("Humour and iconicity by POS") +
+  geom_point(alpha=0.5) +
+  geom_smooth(method="lm") +
+  facet_wrap(~ POS)
+```
+
+![](out/explorations-1.png)
 
 Iconicity ~ humour: existing ratings
 ------------------------------------
@@ -352,32 +357,33 @@ Iconicity ~ humour: existing ratings
 First eyeball data. Iconicity looks a pretty good predictor in addition to frequency, which was the best predictor according to Engelthaler & Hills (2017). Humor shows a positive correlation with iconicity rating, as predicted. The relation is clearest for iconicity ratings &gt;0. My take on this (based on considerations noted elsewhere) is that the negative iconicity ratings do not capture one thing.
 
 ``` r
-summary(lm(humor ~ freq_log + iconicity, df))
+summary(lm(humour ~ freq_log + iconicity, words))
 ```
 
     ## 
     ## Call:
-    ## lm(formula = humor ~ freq_log + iconicity, data = df)
+    ## lm(formula = humour ~ freq_log + iconicity, data = words)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -1.25741 -0.23478 -0.03009  0.21646  1.43346 
+    ## -1.25767 -0.23487 -0.02947  0.21634  1.43344 
     ## 
     ## Coefficients:
-    ##              Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  2.808262   0.039394  71.286  < 2e-16 ***
-    ## freq_log    -0.078124   0.005454 -14.323  < 2e-16 ***
-    ## iconicity    0.072498   0.009140   7.932 4.34e-15 ***
+    ##             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)  2.80998    0.03953  71.077  < 2e-16 ***
+    ## freq_log    -0.18037    0.01260 -14.313  < 2e-16 ***
+    ## iconicity    0.07256    0.00914   7.939 4.12e-15 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Residual standard error: 0.3748 on 1416 degrees of freedom
-    ## Multiple R-squared:  0.1846, Adjusted R-squared:  0.1835 
-    ## F-statistic: 160.3 on 2 and 1416 DF,  p-value: < 2.2e-16
+    ##   (68824 observations deleted due to missingness)
+    ## Multiple R-squared:  0.1845, Adjusted R-squared:  0.1833 
+    ## F-statistic: 160.2 on 2 and 1416 DF,  p-value: < 2.2e-16
 
 ``` r
-ggplot(df,aes(humor,freq_log)) +
-  theme_tufte() + ggtitle("Humor ratings by log frequency") + 
+ggplot(words,aes(humour,freq_log)) +
+  theme_tufte() + ggtitle("Humour ratings by log frequency") + 
   geom_point(alpha=0.5) +
   geom_smooth(method="lm")
 ```
@@ -385,43 +391,45 @@ ggplot(df,aes(humor,freq_log)) +
 ![](out/plots-1.png)
 
 ``` r
-ggplot(df,aes(humor,iconicity)) +
-  theme_tufte() + ggtitle("Humor ratings by iconicity") + 
+ggplot(words,aes(humour,iconicity)) +
+  theme_tufte() + ggtitle("Humour ratings by iconicity") + 
   geom_point(alpha=0.5) +
   geom_smooth(method="lm")
 ```
 
 ![](out/plots-2.png)
 
-Let's residualise out `log_freq` so we get a better look at the humor ~ iconicity relation; and conversely, residualise `iconicity` to look at humor ~ frequency.
+Let's residualise out `freq_log` so we get a better look at the humor ~ iconicity relation; and conversely, residualise `iconicity` to look at humor ~ frequency.
 
 ``` r
-summary(lm(humor ~ freq_log + iconicity,df))
+summary(lm(humour ~ freq_log + iconicity,words))
 ```
 
     ## 
     ## Call:
-    ## lm(formula = humor ~ freq_log + iconicity, data = df)
+    ## lm(formula = humour ~ freq_log + iconicity, data = words)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -1.25741 -0.23478 -0.03009  0.21646  1.43346 
+    ## -1.25767 -0.23487 -0.02947  0.21634  1.43344 
     ## 
     ## Coefficients:
-    ##              Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  2.808262   0.039394  71.286  < 2e-16 ***
-    ## freq_log    -0.078124   0.005454 -14.323  < 2e-16 ***
-    ## iconicity    0.072498   0.009140   7.932 4.34e-15 ***
+    ##             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)  2.80998    0.03953  71.077  < 2e-16 ***
+    ## freq_log    -0.18037    0.01260 -14.313  < 2e-16 ***
+    ## iconicity    0.07256    0.00914   7.939 4.12e-15 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Residual standard error: 0.3748 on 1416 degrees of freedom
-    ## Multiple R-squared:  0.1846, Adjusted R-squared:  0.1835 
-    ## F-statistic: 160.3 on 2 and 1416 DF,  p-value: < 2.2e-16
+    ##   (68824 observations deleted due to missingness)
+    ## Multiple R-squared:  0.1845, Adjusted R-squared:  0.1833 
+    ## F-statistic: 160.2 on 2 and 1416 DF,  p-value: < 2.2e-16
 
 ``` r
-df$residuals <- residuals(lm(humor ~ freq_log,df))
-ggplot(df,aes(iconicity,residuals)) +
+words$residuals_frequency <- NA
+words[which(!is.na(words$freq_log) & !is.na(words$humour)),]$residuals_frequency <- residuals(lm(humour ~ freq_log,words))
+ggplot(words,aes(iconicity,residuals_frequency)) +
   theme_tufte() + ggtitle("Iconicity, frequency residualised out") + 
   geom_point(shape=16,alpha=0.5) +
   geom_smooth(method="lm")
@@ -430,8 +438,9 @@ ggplot(df,aes(iconicity,residuals)) +
 ![](out/residualising1-1.png)
 
 ``` r
-df$residuals <- residuals(lm(humor ~ iconicity,df))
-ggplot(df,aes(freq_log,residuals)) +
+words$residuals_iconicity <- NA
+words[which(!is.na(words$iconicity) & !is.na(words$humour)),]$residuals_iconicity <- residuals(lm(humour ~ iconicity,words))
+ggplot(words,aes(freq_log,residuals_iconicity)) +
   theme_tufte() + ggtitle("Log frequency, iconicity residualised out") + 
   geom_point(shape=16,alpha=0.5) +
   geom_smooth(method="lm")
@@ -442,37 +451,53 @@ ggplot(df,aes(freq_log,residuals)) +
 Iconicity ~ humour: imputed ratings
 -----------------------------------
 
-Now look at Bill's imputed iconicity ratings. To avoid double-dipping we tease apart words for which the predictions overlap with the ratings (n=1391) and words for which predictions are newly inferred (n=3242) (encoded in `$set`).
+Now look at our imputed iconicity ratings. To avoid double-dipping we tease apart words for which the predictions overlap with the iconicity ratings (n=1419) and words for which predictions are newly inferred (n=3577) (encoded in `$set`).
 
-Imputed iconicity values correlate with humor ratings even when controlling for frequency. For every point gained in predicted iconicity there's a .21 increase in humor rating.
+Imputed iconicity values correlate with humor ratings, controlling for frequency. For every point gained in predicted iconicity there's a .22 increase in humor rating.
 
 ``` r
-summary(lm(humor ~ freq_log + iconicity_predicted,df_pred))
+words %>% filter(!is.na(humour)) %>%
+  group_by(set) %>%
+  summarise(n = n())
+```
+
+    ## # A tibble: 2 x 2
+    ##       set     n
+    ##     <chr> <int>
+    ## 1   rated  1419
+    ## 2 unrated  3577
+
+``` r
+# create a separate df with only the unrated words with imputed iconicity ratings
+words_imputed <- words %>%
+  filter(!is.na(humour) & set == "unrated")
+
+summary(lm(humour ~ freq_log + iconicity_imputed,words_imputed))
 ```
 
     ## 
     ## Call:
-    ## lm(formula = humor ~ freq_log + iconicity_predicted, data = df_pred)
+    ## lm(formula = humour ~ freq_log + iconicity_imputed, data = words_imputed)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -1.18031 -0.25035 -0.03078  0.21508  1.93199 
+    ## -1.18636 -0.27246 -0.04259  0.22983  1.71218 
     ## 
     ## Coefficients:
-    ##                      Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)          2.537225   0.020666  122.78   <2e-16 ***
-    ## freq_log            -0.130162   0.007588  -17.15   <2e-16 ***
-    ## iconicity_predicted  0.212588   0.010150   20.95   <2e-16 ***
+    ##                   Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)        2.63279    0.02594  101.49   <2e-16 ***
+    ## freq_log          -0.16064    0.01105  -14.54   <2e-16 ***
+    ## iconicity_imputed  0.22436    0.01098   20.44   <2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 0.3849 on 4629 degrees of freedom
-    ## Multiple R-squared:  0.1409, Adjusted R-squared:  0.1405 
-    ## F-statistic: 379.6 on 2 and 4629 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 0.4091 on 3574 degrees of freedom
+    ## Multiple R-squared:  0.1547, Adjusted R-squared:  0.1542 
+    ## F-statistic: 326.9 on 2 and 3574 DF,  p-value: < 2.2e-16
 
 ``` r
-ggplot(df_pred,aes(iconicity_predicted,humor)) +
-  theme_tufte() + ggtitle("Humor ratings by inferred iconicity ratings") + 
+ggplot(words_imputed,aes(iconicity_imputed,humour)) +
+  theme_tufte() + ggtitle("Humour ratings by imputed iconicity ratings") + 
   geom_point(shape=16,alpha=0.5) +
   geom_smooth(method="lm") +
   facet_wrap(~set)
@@ -480,79 +505,295 @@ ggplot(df_pred,aes(iconicity_predicted,humor)) +
 
 ![](out/iconicity_imputed-1.png)
 
-Here too we can residualise out `freq_log` to get a better view of the relation:
+Let's have a closer look at the words in this new set. Again, we're looking only at the words for which we didn't have iconicity ratings in the first place to avoid double-dipping.
+
+Many of the words rated as highly funny that our method identifies as high in imputed iconicity are imitative forms like swish, chug, gobble, smack, blip, whack, oomph, chuckle, wriggle.
 
 ``` r
-summary(lm(humor ~ freq_log + iconicity_predicted,df_pred))
+ggplot(words_imputed,aes(iconicity_imputed,humour)) +
+  theme_tufte() + ggtitle("Humour and iconicity: highest rated words") +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    data=subset(words_imputed,diff_rank_imputed_ico == 20) %>% arrange(desc(iconicity_imputed)) %>% slice(1:40),
+    aes(label=word),
+    size=2.5,
+    alpha=0.8,
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
 ```
 
-    ## 
-    ## Call:
-    ## lm(formula = humor ~ freq_log + iconicity_predicted, data = df_pred)
-    ## 
-    ## Residuals:
-    ##      Min       1Q   Median       3Q      Max 
-    ## -1.18031 -0.25035 -0.03078  0.21508  1.93199 
-    ## 
-    ## Coefficients:
-    ##                      Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)          2.537225   0.020666  122.78   <2e-16 ***
-    ## freq_log            -0.130162   0.007588  -17.15   <2e-16 ***
-    ## iconicity_predicted  0.212588   0.010150   20.95   <2e-16 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 0.3849 on 4629 degrees of freedom
-    ## Multiple R-squared:  0.1409, Adjusted R-squared:  0.1405 
-    ## F-statistic: 379.6 on 2 and 4629 DF,  p-value: < 2.2e-16
+![](out/iconicity_imputed_words_1-1.png)
 
 ``` r
-df_pred$residuals <- residuals(lm(humor ~ freq_log,df_pred))
-
-ggplot(df_pred,aes(iconicity_predicted,residuals)) +
-  theme_tufte() + ggtitle("Humor ratings by predicted iconicity ratings (frequency residualised out)") +   geom_point(shape=16,alpha=0.5) +
-  geom_smooth(method="lm") +
-  facet_wrap(~ set)
+words_imputed %>%
+  filter(diff_rank_imputed_ico > 19) %>%
+  arrange(desc(iconicity_imputed)) %>%
+  dplyr::select(word,humour,iconicity_imputed) %>%
+  slice(1:20)
 ```
 
-![](out/residualising2-1.png)
+    ## # A tibble: 20 x 3
+    ##       word   humour iconicity_imputed
+    ##      <chr>    <dbl>             <dbl>
+    ##  1   swish 3.172414          3.753121
+    ##  2    chug 3.733333          3.751669
+    ##  3     bop 3.577778          3.629748
+    ##  4  gobble 3.645161          3.319210
+    ##  5   smack 3.117647          3.267757
+    ##  6    blip 3.055556          2.872613
+    ##  7   whack 3.545455          2.871249
+    ##  8   oomph 3.933333          2.778939
+    ##  9    poke 3.275000          2.763418
+    ## 10  wallop 3.666667          2.592597
+    ## 11    funk 3.750000          2.568374
+    ## 12 chuckle 3.685714          2.511191
+    ## 13 quickie 3.685714          2.465730
+    ## 14 wriggle 3.441176          2.458105
+    ## 15  quiver 3.096774          2.427625
+    ## 16   scamp 3.107143          2.397420
+    ## 17    burp 3.264706          2.366497
+    ## 18   hooky 3.413793          2.225164
+    ## 19  oodles 3.840000          2.206217
+    ## 20  weasel 3.687500          2.201631
+
+On the lower side of the rankings, many of the words low in humour ratings and low in imputed iconicity are non-imitative forms like subject, ransom, libel, conduct, clothing, request and author. Our imputed iconicity measure is clearly picking up something related to what people do when they rate words for iconicity.
+
+``` r
+ggplot(words_imputed,aes(iconicity_imputed,humour)) +
+  theme_tufte() + ggtitle("Humour and imputed iconicity: lowest rated words") +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    data=subset(words_imputed,diff_rank_imputed_ico <= 2) %>% arrange(desc(iconicity_imputed)) %>% slice(1:40),
+    aes(label=word),
+    size=2.5,
+    alpha=0.8,
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+```
+
+![](out/iconicity_imputed_words_2-1.png)
+
+``` r
+words_imputed %>%
+  filter(diff_rank_imputed_ico <= 2) %>%
+  arrange(-desc(iconicity_imputed)) %>%
+  dplyr::select(word,humour,iconicity_imputed) %>%
+  slice(1:20)
+```
+
+    ## # A tibble: 20 x 3
+    ##         word   humour iconicity_imputed
+    ##        <chr>    <dbl>             <dbl>
+    ##  1   subject 1.794118        -1.2291900
+    ##  2    ransom 1.891892        -0.9377655
+    ##  3     libel 1.821429        -0.8756799
+    ##  4     bible 1.862069        -0.8363551
+    ##  5     siege 1.827586        -0.8149955
+    ##  6   hospice 1.703704        -0.8021329
+    ##  7   conduct 1.897436        -0.7077795
+    ##  8   arsenic 1.551020        -0.7011770
+    ##  9  clothing 1.921053        -0.6365016
+    ## 10     negro 1.791667        -0.6266399
+    ## 11    mosque 1.777778        -0.5918647
+    ## 12   typhoid 1.709677        -0.5678349
+    ## 13   request 1.818182        -0.5244449
+    ## 14   expense 1.916667        -0.4940790
+    ## 15    author 1.666667        -0.4564817
+    ## 16    length 1.916667        -0.4260772
+    ## 17   anthrax 1.764706        -0.4255076
+    ## 18   mandate 1.818182        -0.4058705
+    ## 19 plaintiff 1.878049        -0.3867146
+    ## 20   hostage 1.710526        -0.3810785
+
+The intersection of imputed ratings
+-----------------------------------
+
+Now let's look at the "unknown unknown": the intersection of imputed ratings for humour and for iconicity. Since we have these for 63721 words not rated before, this is venturing quite far out of the comfort of human-collected ratings.
+
+``` r
+words_imputed_intersection <- words %>%
+  filter(is.na(humour) & is.na(iconicity)) %>%
+  filter(!is.na(humour_imputed) & !is.na(iconicity_imputed))
+words_imputed_intersection %>%
+  summarise(n=n())
+```
+
+    ## # A tibble: 1 x 1
+    ##       n
+    ##   <int>
+    ## 1 63721
+
+``` r
+ggplot(words_imputed_intersection,aes(iconicity_imputed,humour_imputed)) +
+  theme_tufte() + ggtitle("Imputed humour and imputed iconicity") +
+  geom_point(alpha=0.5,na.rm=T)
+```
+
+![](out/imputed_intersection-1.png)
+
+As above, let's look at the top and bottom ends of the intersection.
+
+On the top end, we find highly imitative words like whoosh, whirr, whizzle, squeaks, chomp, slackety, boing, etc.
+
+**Open question / to do:** What can we say about the quality of the imputed humour ratings? Would be great if we could link that to a measure of entropy as Westbury et al. 2017 do for nonwords. That would give us a measure independent of word2vec data that can serve as a cross-check for the imputed humour ratings. I think it's highly likely to work.
+
+``` r
+ggplot(words_imputed_intersection,aes(iconicity_imputed,humour_imputed)) +
+  theme_tufte() + ggtitle("Humour and iconicity: highest rated words") +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    data=subset(words_imputed_intersection,diff_rank_imputed > 19) %>% arrange(desc(iconicity_imputed)) %>% slice(1:40),
+    aes(label=word),
+    size=2.5,
+    alpha=0.8,
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+```
+
+![](out/intersection_imputed_words_1-1.png)
+
+``` r
+words_imputed_intersection %>%
+  filter(diff_rank_imputed > 19) %>%
+  arrange(desc(iconicity_imputed)) %>%
+  dplyr::select(word,humour_imputed,iconicity_imputed) %>%
+  slice(1:20)
+```
+
+    ## # A tibble: 20 x 3
+    ##        word humour_imputed iconicity_imputed
+    ##       <chr>          <dbl>             <dbl>
+    ##  1   whoosh       2.905735          4.280172
+    ##  2    whirr       2.945714          4.242872
+    ##  3      brr       2.988076          4.065481
+    ##  4    chomp       3.157756          3.813039
+    ##  5     whir       3.068760          3.806808
+    ##  6   swoosh       2.983470          3.802145
+    ##  7     brrr       3.023402          3.774931
+    ##  8     zaps       3.136237          3.774506
+    ##  9  squeaks       3.236797          3.769440
+    ## 10 squelchy       2.902890          3.706240
+    ## 11    gulps       2.918545          3.667204
+    ## 12 smacking       2.886123          3.665312
+    ## 13   clanks       2.824783          3.584415
+    ## 14     whoo       3.101658          3.560813
+    ## 15     clop       3.624225          3.552962
+    ## 16    yowls       3.007058          3.527649
+    ## 17 clackety       3.336467          3.517783
+    ## 18    buzzy       3.088766          3.494994
+    ## 19  whizzle       3.485750          3.484934
+    ## 20 screechy       3.128866          3.472191
+
+On the lower side of the rankings, many of the words low in humour ratings and low in imputed iconicity are non-imitative forms like subject, ransom, libel, conduct, clothing, request and author. Our imputed iconicity measure is clearly picking up something related to what people do when they rate words for iconicity.
+
+``` r
+ggplot(words_imputed_intersection,aes(iconicity_imputed,humour_imputed)) +
+  theme_tufte() + ggtitle("Humour and imputed iconicity: lowest rated words") +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    data=subset(words_imputed_intersection,diff_rank_imputed <= 2) %>% arrange(desc(iconicity_imputed)) %>% slice(1:40),
+    aes(label=word),
+    size=2.5,
+    alpha=0.8,
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+```
+
+![](out/intersection_imputed_words_2-1.png)
+
+``` r
+words_imputed_intersection %>%
+  filter(diff_rank_imputed <= 2) %>%
+  arrange(-desc(iconicity_imputed)) %>%
+  dplyr::select(word,humour_imputed,iconicity_imputed) %>%
+  slice(1:20)
+```
+
+    ## # A tibble: 20 x 3
+    ##            word humour_imputed iconicity_imputed
+    ##           <chr>          <dbl>             <dbl>
+    ##  1          apr       1.817228         -1.490223
+    ##  2          dei       2.021663         -1.463575
+    ##  3    covenants       1.917819         -1.386876
+    ##  4 palestinians       1.855983         -1.381957
+    ##  5     covenant       1.949790         -1.340520
+    ##  6     clothier       1.961125         -1.337835
+    ##  7  palestinian       1.656509         -1.263986
+    ##  8      variant       1.862685         -1.256117
+    ##  9 mitochondria       1.909340         -1.249674
+    ## 10     israelis       1.922933         -1.245422
+    ## 11         serb       2.017302         -1.216935
+    ## 12    sufferers       1.629080         -1.209489
+    ## 13       herein       2.021290         -1.198094
+    ## 14      isotope       1.758388         -1.184239
+    ## 15     duration       1.910982         -1.175651
+    ## 16       ciudad       1.953961         -1.170954
+    ## 17    appellant       1.934171         -1.167905
+    ## 18    palestine       1.988103         -1.161564
+    ## 19   alexandria       2.005226         -1.131837
+    ## 20  infantrymen       1.976268         -1.108527
 
 Stats
 -----
 
-Partial correlations show a -9.5% correlation between iconicity and frequency when partialing out humor. This is as expected: Winter et al. (2017) report a negative correlation between iconicity and frequency. Partial correlations also show -35.7% covariance between humor and frequency, controlling out iconicity as a mediator (the more frequent a word, the less funny). This replicates the finding reported by Engelthaler and Hill (2017). Finally, there is 20.6% covariance between humor and iconicity, partialing out log frequency as a mediator.
+Partial correlations show a -9.4% correlation between iconicity and frequency when partialing out humour. This is as expected: Winter et al. (2017) report a negative correlation between iconicity and frequency. Partial correlations also show -35.6% covariance between humour and frequency, controlling out iconicity as a mediator (the more frequent a word, the less funny). This replicates the finding reported by Engelthaler and Hill (2017). Finally, there is 20.6% covariance between humour and iconicity, partialing out log frequency as a mediator.
 
 ``` r
-pcor.test(x=df$humor,y=df$freq_log,z=df$iconicity)
-```
+words_intersection <- words[complete.cases(words %>% dplyr::select(word,humour,freq_log,iconicity)),]
 
-    ##    estimate      p.value statistic    n gp  Method
-    ## 1 -0.355736 1.480235e-43 -14.32319 1419  1 pearson
-
-``` r
-pcor.test(x=df$iconicity,y=df$freq_log,z=df$humor)
+pcor.test(x=words_intersection$iconicity,y=words_intersection$freq_log,z=words_intersection$humour)
 ```
 
     ##      estimate      p.value statistic    n gp  Method
-    ## 1 -0.09460514 0.0003606165 -3.576009 1419  1 pearson
+    ## 1 -0.09429068 0.0003773552 -3.564016 1419  1 pearson
 
 ``` r
-pcor.test(x=df$humor,y=df$iconicity,z=df$freq_log)
+pcor.test(x=words_intersection$humour,y=words_intersection$freq_log,z=words_intersection$iconicity)
+```
+
+    ##     estimate      p.value statistic    n gp  Method
+    ## 1 -0.3555085 1.688727e-43 -14.31271 1419  1 pearson
+
+``` r
+pcor.test(x=words_intersection$humour,y=words_intersection$iconicity,z=words_intersection$freq_log)
 ```
 
     ##    estimate      p.value statistic    n gp  Method
-    ## 1 0.2062649 4.335228e-15  7.932275 1419  1 pearson
+    ## 1 0.2064276 4.122044e-15  7.938811 1419  1 pearson
 
-We can do the same for the imputed iconicity ratings, again using only the unrated subset to avoid double dipping. Looks like there is 30% covariance between humor and imputed iconicity, partialing out log frequency as a mediator:
+We can do the same for the imputed iconicity ratings, again using only the unrated subset to avoid double dipping. Looks like there is 32.3% covariance between humor and imputed iconicity, partialing out log frequency as a mediator:
 
 ``` r
-df_unrated <- df_pred %>%
-  filter(set == "unrated")
-pcor.test(x=df_unrated$humor,y=df_unrated$iconicity_predicted,z=df_unrated$freq_log)
+pcor.test(x=words_imputed$humour,y=words_imputed$iconicity_imputed,z=words_imputed$freq_log)
 ```
 
     ##    estimate      p.value statistic    n gp  Method
-    ## 1 0.3018317 3.172601e-69  18.01548 3241  1 pearson
+    ## 1 0.3234563 7.050977e-88  20.43573 3577  1 pearson
+
+Finally, we can do this for the intersection of imputed ratings, using only the unrated portion of the data. We find 42.8% covariance between imputed humour and imputed iconicity, partialing out log frequency.
+
+``` r
+words.imp <- words_imputed_intersection %>%
+  dplyr::select(word, humour_imputed, iconicity_imputed, freq_log) %>%
+  drop_na()
+
+pcor.test(x=words.imp$humour_imputed,y=words.imp$iconicity_imputed,z=words.imp$freq_log)
+```
+
+    ##    estimate p.value statistic     n gp  Method
+    ## 1 0.4275994       0  119.4029 63721  1 pearson
 
 Discussion
 ----------
@@ -562,6 +803,8 @@ The negative relation between humor and frequency reported by Engelthaler and Hi
 Many highly iconic words are rated as funny, and many words rated as not iconic are rated as not funny. This sheds light on the relation between iconicity and playfulness. Across languages, iconic words display marked phonotactics, sound play and evocative imagery, all things that can make iconic words sound funny. The data analysed here suggests these aspects of iconic words indeed lead to higher funniness ratings, though only for positively valenced words.
 
 The discrepancies between humor and iconicity ratings also shed light on the various factors that go into humor ratings. Highly funny words not rated as highly iconic include animal names, taboo words and joke-related words. This shows that at least some humor ratings are made on the basis of semantics and word associations.
+
+The basic correlations hold up well in sections of data for which we imputed ratings, demonstrating the robustness of the method for ratings imputation used here, and suggesting that this method can feasibly be used to increase the intersection of ratings in large lexical datasets.
 
 References
 ----------
