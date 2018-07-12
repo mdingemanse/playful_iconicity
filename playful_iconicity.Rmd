@@ -1,5 +1,5 @@
 ---
-title: "Playful iconicity: relating iconicity and humor ratings"
+title: "The relation between iconicity and humour: an analysis using collected and imputed lexical norms"
 author: "Mark Dingemanse & Bill Thompson"
 date: "(this version: `r format(Sys.Date())`)"
 output: github_document
@@ -15,11 +15,11 @@ knitr::opts_chunk$set(fig.width=8, fig.height=6, fig.path='out/',
 
 Iconic words are widespread in natural languages (Nuckolls 1999; Perniss, Thompson, and Vigliocco 2010), and iconic methods of communication are common in everyday interaction (Clark 2016). Scholars working on iconic words have long drawn attention to their expressive and playful nature, but empirical studies of when and why some words appear more playful than others are rare. Here we study the intersection of iconicity and playfulness using databases of humour ratings (Engelthaler and Hills 2017) and iconicity ratings (Perry et al. 2017) that have recently become available. We combine correlational evidence and linguistic analysis to understand what makes people rate words as playful and iconic. We also introduce and benchmark a method for imputing iconicity ratings using word embeddings. The method is applicable more generally to the task of increasing the intersection between iconicity ratings and other norm sets.
 
-Ideophones are iconic words with sensory meanings found in many of the world’s languages (Nuckolls 1999). Their marked phonology has been connected to playful and expressive functions of language (Samarin 1970; Zwicky and Pullum 1987), and they have been defined —only partly tongue-in-cheek— as “those words with are such fun to use” (Welmers 1973). In an independent strand of research, people have recently started to investigate the perceived humour of word forms. For nonwords, humour ratings appear to correlate with a measure of entropy which may be linked to phonological markedness (Westbury et al. 2016). For existing English words, a new set of humour norms finds that the strongest correlates are with frequency and lexical decision time (Engelthaler and Hills 2017). Neither of these studies consider a link to iconicity, so the newly available ratings enable us, for the first time, to empirically test intuitions about the playfulness of iconic words. 
+Ideophones are iconic words with sensory meanings found in many of the world’s languages (Nuckolls 1999). Their marked phonology has been connected to playful and expressive functions of language (Samarin 1970; Zwicky and Pullum 1987), and they have been defined —only partly tongue-in-cheek— as “those words with are such fun to use” (Welmers 1973). In an independent strand of research, people have recently started to investigate the perceived humour of word forms. For nonwords, humour ratings appear to correlate with a measure of entropy which may be linked to phonological markedness (Westbury et al. 2016). For existing English words, a new set of humour norms finds that the strongest correlates are with frequency and lexical decision time (Engelthaler and Hills 2017). Neither of these studies consider a link to iconicity, so the newly available and imputed ratings enable us, for the first time, to empirically test intuitions about the playfulness of iconic words. 
 
 Here we test the prediction that iconicity ratings will be positively correlated with humor ratings, controlling for frequency. We find that iconicity and humour are related with good accuracy across the entire range of judgments: many highly iconic words are rated as highly funny (‘tinkle’, ‘oink’, ‘waddle’), and many words rated as not iconic are rated as not funny (‘tray’, ‘spider’, ‘wait’). Using an independent set of data, we also find that imputed iconicity values correlate with humour ratings at the same level as actual iconicity ratings, controlling for frequency. This demonstrates the utility of our imputation method for generalising beyond relatively small sets of seed words (Thompson and Lupyan under review). Areas where the ratings deviate bring to light other mediating factors. For instance, “blonde” is rated as highly funny but not iconic; its humour rating is likely derived from co-occurrence relations (e.g. appearance in a genre of jokes) rather than from its formal characteristics. On the other hand, highly iconic words like ‘crash’, ‘scratch’ and ‘roar’ are low in humour ratings, likely because they are associated with negative events, pointing to valence and arousal as potential mediating variables.
 
-Playfulness and iconicity are pervasive features of language, and their investigation can shed light on fundamental topics in language development (Cook 2000) and language use (Jakobson and Waugh 1979). This study makes four substantive contributions to experimental work on iconicity. Empirically, it (i) puts the playfulness of iconic words on firm empirical footing and (ii) illuminates what makes people rate words as funny and/or iconic by examining associations and dissociations between sets of ratings. Methodologically, it (iii) introduces and benchmarks a method for imputing iconicity ratings and (iv) examines strengths and limitations of iconicity ratings, both collected & imputed. 
+Playfulness and iconicity are pervasive features of language, and their investigation can shed light on fundamental topics in language development (Cook 2000) and language use (Jakobson and Waugh 1979). This study makes four substantive contributions to experimental work on iconicity. Empirically, it (i) puts the playfulness of iconic words on firm empirical footing and (ii) illuminates what makes people rate words as funny and/or iconic by examining associations and dissociations between sets of ratings. Methodologically, it (iii) introduces and benchmarks a method for imputing leixcal ratings and (iv) examines strengths and limitations of iconicity ratings, both collected & imputed. 
 
 Explaining iconic words has been declared a risky enterprise: “linguists … cannot handle them. If they handle them carelessly, they will run into problems” (Gomi 1989). Likewise, explaining humour has been compared to dissecting an animal: you understand it better, but it dies in the process. If our study helps to explain the relation between humour and iconicity, at least we have killed two birds with one stone.
 
@@ -410,6 +410,14 @@ words_imputed_intersection %>%
   arrange(desc(iconicity_imputed)) %>%
   dplyr::select(word,humour_imputed,iconicity_imputed) %>%
   slice(1:20)
+
+words_imputed_intersection %>%
+  filter(diff_rank_imputed > 19) %>%
+  arrange(desc(humour_imputed)) %>%
+  dplyr::select(word,humour_imputed,iconicity_imputed) %>%
+  slice(1:20)
+
+
 ```
 
 On the lower side of the rankings, many of the words low in humour ratings and low in imputed iconicity are non-imitative forms like subject, ransom, libel, conduct, clothing, request and author. Our imputed iconicity measure is clearly picking up something related to what people do when they rate words for iconicity.
