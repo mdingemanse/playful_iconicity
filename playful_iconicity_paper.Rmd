@@ -1,0 +1,1138 @@
+---
+title: "The relation between iconicity and humour: an analysis using collected and imputed lexical norms"
+author: "Mark Dingemanse & Bill Thompson"
+date: "(this version: `r format(Sys.Date())`)"
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=8, fig.height=6, fig.path='out/',
+                      echo=TRUE, warning=FALSE, message=FALSE)
+options(knitr.kable.NA = '') # set NA values in knitr tables as blank
+
+```
+
+## Abstract 
+
+Explaining iconic words has been declared a risky enterprise: “linguists … cannot handle them. If they handle them carelessly, they will run into problems” (Gomi 1989). Likewise, explaining humour has been compared to dissecting an animal: you understand it better, but it dies in the process. If this study helps to explain the relation between humour and iconicity, at least we have killed two birds with one stone.
+
+## Setup
+
+```{r preliminaries, results='hide'}
+
+# Packages and useful functions
+list.of.packages <- c("knitr","stringr","tidyverse","GGally","ggthemes","readxl","ggrepel","ppcor","stringr","car","lme4","mgcv","cowplot","flextable")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)>0) install.packages(new.packages)
+lapply(list.of.packages, require, character.only=T)
+rm(list.of.packages,new.packages)
+
+`%notin%` <- function(x,y) !(x %in% y) 
+
+# with thanks to Bodo Winter:
+mean.na <- function(x) mean(x, na.rm = T)
+sd.na <- function(x) sd(x, na.rm = T)
+
+```
+## Data
+
+Primary data sources:
+
+* Perry, Lynn K. et al. Iconicity in the Speech of Children and Adults. Developmental Science. doi:10.1111/desc.12572
+* Engelthaler, Tomas, and Thomas T. Hills. 2017. Humor Norms for 4,997 English Words. Behavior Research Methods, July, 1-9. doi:10.3758/s13428-017-0930-6
+
+Secondary data sources:
+
+* Brysbaert, M., & New, B. (2009). Moving beyond Kucera and Francis: A critical evaluation of current word frequency norms and the introduction of a new and improved word frequency measure for American English. Behavior Research Methods, 41(4), 977-990. doi: 10.3758/BRM.41.4.977
+* Keuleers, E., Lacey, P., Rastle, K., & Brysbaert, M. (2012). The British Lexicon Project: Lexical decision data for 28,730 monosyllabic and disyllabic English words. Behavior Research Methods, 44(1), 287-304. doi: 10.3758/s13428-011-0118-4
+* Kuperman, V., Stadthagen-Gonzalez, H., & Brysbaert, M. (2012). Age-of-acquisition ratings for 30,000 English words. Behavior Research Methods, 44(4), 978-990. doi: 10.3758/s13428-012-0210-4
+* Vaden, K.I., Halpin, H.R., Hickok, G.S. (2009). Irvine Phonotactic Online Dictionary, Version 2.0. [Data file]. Available from http://www.iphod.com.
+* Warriner, A.B., Kuperman, V., & Brysbaert, M. (2013). Norms of valence, arousal, and dominance for 13,915 English lemmas. Behavior Research Methods, 45, 1191-1207
+
+In ``norms``, available ratings are combined with imputed norms, frequency / POS data from SUBTLEX.
+
+```{r data, results='hide'}
+
+norms <- read_csv("in/combined-experimental-norms-with-humour-iconicity-aversion-taboo-predictions-logletterfreq.csv") %>%
+  dplyr::select(-X1)
+
+subtlex <- read_excel(path="in/SUBTLEX-US frequency list with PoS and Zipf information.xlsx") %>%
+  plyr::rename(c("Word" = "word","FREQcount" = "freq_count","Lg10WF" = "logfreq","Dom_PoS_SUBTLEX" = "POS")) %>%
+  dplyr::select(word,logfreq,POS) %>%
+  filter(word %in% norms$word)
+
+# which words are in the norms, but not in subtlex? some pretty colourful ones, but
+# not too many (62) - we'll exclude them so we have frequency data for every word
+unique(norms$word)[unique(norms$word) %notin% unique(subtlex$word)]
+
+words <- norms %>%
+  left_join(subtlex) %>%
+  drop_na(logfreq,POS) %>%
+  mutate(set = ifelse(is.na(iconicity), "unrated", "rated")) # indicate subsets
+
+# we add RT data from Keuleers et al. 2012
+RT <- read_tsv("in/blp-items.txt") %>%
+  plyr::rename(c("spelling" = "word")) %>%
+  dplyr::select(word,rt)
+
+words <- words %>%
+  left_join(RT)
+
+# we also add AoA data from Kuperman et al. 2012
+aoa <- read_csv("in/kuperman_2014_AOA.csv") %>% 
+  plyr::rename(c("Word" = "word", "Rating.Mean" = "aoa"))
+
+words <- words %>% 
+  left_join(aoa)
+
+# center variables for use in models
+words <- words %>%
+  mutate(humour_z = (humour - mean.na(humour)) / sd.na(humour),
+         iconicity_z = (iconicity - mean.na(iconicity)) / sd.na(iconicity))
+
+
+```
+
+We further add a range of phonological measures from IPhOD. This source contains homographs (e.g. for 'the' it includes DH.AH0, DH.AH1, and DH.IY, where the first two differ only in stress pattern). However, frequencies are given only at the level of orthographic forms so homographs do not differ in frequency, one of the key measures we are interested in. To avoid duplication of data we keep only the first of multiple homographs in IPhOD, accepting some loss of precision about possible pronunciations.
+
+From IPhOD, we use phonotactic probability and phonological density measures. Since we have no stress-related hypotheses we work with unstressed calculations. We work with values unweighted for frequency because we include frequency as a fixed effect in later analyses
+
+```{r data_2, results='hide'}
+iphod.raw <- read_delim("in/IPhOD2_Words.txt",delim="\t") %>%
+  plyr::rename(c("Word" = "word")) 
+# have a peek at homographs
+iphod.raw %>% 
+  filter(word %in% iphod.raw[duplicated(iphod.raw$word),]$word) %>% 
+  arrange(desc(SFreq)) %>% 
+  dplyr::select(word,StTrn,SFreq) %>% 
+  slice(1:20)
+# keep only unique orthographic words and the most informative non-redundant columns: number of syllables (NSyll), number of phonemes (NPhon), transciption (UnTrn), phonological neighbourhood density (unsDENS), average biphone probability (unsBPAV), average positional probability (unsPOSPAV)
+iphod <- iphod.raw[!duplicated(iphod.raw$word),] %>%
+  dplyr::select(word,NSyll,UnTrn,NPhon,unsDENS,unsBPAV,unsTPAV,unsPOSPAV,unsLCPOSPAV)
+
+# merge with main df and add phoneme density as a simple summary measure of complexity
+words <- words %>% 
+  left_join(iphod) %>%
+  mutate(phondens = NPhon / NSyll)
+
+```
+
+Finally we add
+
+```{r data_prep}
+
+# add frequency residuals so we can present plots with frequency residualised out 
+# (but see Wurm & Fisicaro, 2014 for details and caveats on using residualised measures in regression analyses)
+
+words$humour_resid <- NA
+words[which(!is.na(words$logfreq) & !is.na(words$humour)),]$humour_resid <- residuals(lm(humour ~ logfreq,words))
+
+words$humour_imputed_resid <- NA
+words[which(!is.na(words$logfreq) & !is.na(words$humour_imputed)),]$humour_imputed_resid <- residuals(lm(humour_imputed ~ logfreq,words))
+
+
+# add some useful summary variables, mainly for easy plotting
+words <- words %>%
+  mutate(humour_perc = ntile(humour,10),
+         humour_resid_perc = ntile(humour_resid,10),
+         iconicity_perc = ntile(iconicity,10),
+         valence_perc = ntile(valence,10),
+         logfreq_perc = ntile(logfreq,10),
+         difference = humour_perc - iconicity_perc,
+         diff_abs = abs(difference),
+         diff_rank = humour_perc + iconicity_perc,
+         difference_resid = humour_resid_perc - iconicity_perc,
+         diff_abs_resid = abs(difference_resid),
+         diff_rank_resid = humour_resid_perc + iconicity_perc,
+         ico_imputed_perc = ntile(iconicity_imputed,10),
+         hum_imputed_perc = ntile(humour_imputed,10),
+         hum_imputed_resid_perc = ntile(humour_imputed_resid,10),
+         diff_imputed_ico = humour_perc - ico_imputed_perc,
+         diff_abs_imputed_ico = abs(diff_imputed_ico),
+         diff_rank_imputed_ico = humour_perc + ico_imputed_perc,
+         diff_imputed_ico_resid = humour_resid_perc - ico_imputed_perc,
+         diff_abs_imputed_ico_resid = abs(diff_imputed_ico_resid),
+         diff_rank_imputed_ico_resid = humour_resid_perc + ico_imputed_perc,
+         diff_imputed = hum_imputed_perc - ico_imputed_perc,
+         diff_abs_imputed = abs(diff_imputed),
+         diff_rank_imputed = hum_imputed_perc + ico_imputed_perc,
+         diff_imputed_resid = hum_imputed_resid_perc - ico_imputed_perc,
+         diff_abs_imputed_resid = abs(diff_imputed_resid),
+         diff_rank_imputed_resid = hum_imputed_resid_perc + ico_imputed_perc,
+         logletterfreq_perc = ntile(logletterfreq,10),
+         aoa_perc = ntile(aoa,10),
+         dens_perc = ntile(unsDENS,10),
+         biphone_perc = ntile(unsBPAV,10),
+         triphone_perc = ntile(unsTPAV,10),
+         posprob_perc = ntile(unsPOSPAV,10))
+
+```
+
+### Descriptive data
+
+We have 4996 words rated for funniness, 2945 rated for iconicity, and 1419 in the intersection.
+
+We have imputed data for a total of 70.245 words, and we're venturing outside the realm of rated words for 63.723 of them. 
+
+```{r prelim_desc}
+
+words %>% 
+  drop_na(humour) %>%
+  summarise(count=n())
+
+words %>% 
+  drop_na(iconicity) %>%
+  summarise(count=n())
+
+# core intersection
+words %>% 
+  drop_na(iconicity,humour) %>%
+  summarise(count=n())
+
+# all words with imputed data
+words %>%
+  drop_na(iconicity_imputed,humour_imputed) %>%
+  summarise(count=n())
+
+# unknown unknowns
+words %>%
+  filter(is.na(humour) & is.na(iconicity) ) %>%
+  summarise(count=n())
+
+```
+
+## Main analyses
+
+### 0. Reproducing prior results for frequency and RT
+Engelthaler & Hills report frequency as the strongest correlate with humour (less frequent words are rated as more funny), and lexical decision RT as the second strongest (words with slower RTs are rated as more funny). By way of sanity check let's replicate their analysis.
+
+Raw correlations hover around 28%, as reported (without corrections or controls) in their paper. A linear model with humour as dependent variable and frequency and RT as predictors shows a role for both, though frequency accounts for a much larger portion of the variance (15%) than rt (0.6%).
+
+```{r frequency_1}
+
+# raw correlations at ~28% as reported (without corrections or controls) in E&T
+cor.test(words$humour,words$logfreq)
+cor.test(words$humour,words$rt)
+
+# to what extent do frequency and RT predict funniness?
+m0 <- lm(humour ~ logfreq + rt, words)
+summary(m0)
+summary.aov(m0)
+anova(m0)
+
+# model validation
+plot(fitted(m0),
+     residuals(m0))   # no obvious nonlinearity
+qqnorm(residuals(m0)) # looks OK
+qqline(residuals(m0)) # looks OK, slight right skew
+vif(m0)               # below 2 so no indication of multicollinearity
+
+m0.table <- m0 %>%
+  anova() %>%
+  mutate(predictor = row.names(.),
+         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+  dplyr::select(c(predictor,1:5,7))
+kable(m0.table,digits=3)
+
+```
+
+### 1. Known knowns
+
+If frequency and RT explain some of the variance in humour ratings, how much is left for iconicity? We'll do this analysis on the core set of 1419 words for which we have humour and iconicity ratings.
+
+Turns out that the magnitude estimate of iconicity is about half that of frequency, and with positive sign instead of a negative one (higher humour ratings go with higher iconicity ratings). The effect of iconicity ratings is much larger than RT, the second most important correlate reported by Engelthaler & Hill.
+
+```{r lm_1}
+
+words.setC <- words %>%
+  drop_na(humour,iconicity,rt,logfreq)
+
+m1.1 <- lm(humour ~ logfreq + rt, words.setC)
+summary(m1.1)
+anova(m1.1)
+
+m1.1.table <- m1.1 %>%
+  anova() %>%
+  mutate(predictor = row.names(.),
+         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+  dplyr::select(c(predictor,1:2,4:5,7))
+kable(m1.1.table,digits=3)
+
+m1.2 <- lm(humour ~ logfreq + rt + iconicity, words.setC)
+plot(fitted(m1.2),residuals(m1.2))  # no obvious linearity
+qqnorm(residuals(m1.2))
+qqline(residuals(m1.2))           # looks OK, slight right skew or light tailed as above
+vif(m1.2)                         # all below 2 so no indications of multicollinearity
+
+summary(m1.2)
+anova(m1.1,m1.2)
+anova(m1.2)
+
+m1.2.table <- m1.2 %>%
+  anova() %>%
+  mutate(predictor = row.names(.),
+         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+  dplyr::select(c(predictor,1:2,4:5,7))
+kable(m1.2.table,digits=3)
+
+```
+
+Partial correlations show 20.6% covariance between humour and iconicity, partialing out log frequency as a mediator. This shows the effects of iconicity and humour are not reducible to frequency alone. (Partial correlations also show -35.6% covariance between humour and frequency, controlling out iconicity as a mediator (the more frequent a word, the less funny), replicating the finding reported by Engelthaler and Hill (2017); and a -9.4% correlation between iconicity and frequency when partialing out humour, as expected and reported elsewhere (e.g., Winter et al. 2017).)
+
+
+```{r partial_correlations}
+
+pcor.test(x=words.setC$humour,y=words.setC$iconicity,z=words.setC$logfreq)
+
+# the other two:
+pcor.test(x=words.setC$humour,y=words.setC$logfreq,z=words.setC$iconicity)
+pcor.test(x=words.setC$iconicity,y=words.setC$logfreq,z=words.setC$humour)
+
+```
+
+
+```{r logletterfreq}
+
+m1.3 <- lm(humour ~ logfreq + rt + logletterfreq + iconicity, words.setC)
+plot(fitted(m1.3),residuals(m1.3))  # no obvious linearity
+qqnorm(residuals(m1.3))
+qqline(residuals(m1.3))           # looks OK, slight right skew or light tailed as above
+vif(m1.3)                         # all below 2 so no indications of multicollinearity
+
+summary(m1.3)
+anova(m1.2,m1.3)
+anova(m1.3)
+
+m1.3.table <- m1.3 %>%
+  anova() %>%
+  mutate(predictor = row.names(.),
+         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+  dplyr::select(c(predictor,1:2,4:5,7))
+kable(m1.3.table,digits=3)
+
+m1.4 <- lm(humour ~ logfreq + rt + logletterfreq, words.setC)
+plot(fitted(m1.4),residuals(m1.4))
+qqnorm(residuals(m1.4))
+qqline(residuals(m1.4))
+vif(m1.4)
+
+summary(m1.4)
+anova(m1.4,m1.3)
+anova(m1.4)
+
+m1.4.table <- m1.4 %>%
+  anova() %>%
+  mutate(predictor = row.names(.),
+         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+  dplyr::select(c(predictor,1:2,4:5,7))
+kable(m1.4.table,digits=3)
+
+#partial correlations 
+
+pcor.test(x=words.setC$humour_resid,y=words.setC$logletterfreq,z=words.setC$iconicity)
+
+pcor.test(x=words.setC$humour,y=words.setC$logletterfreq,z=words.setC$iconicity)
+pcor.test(words.setC$humour,words.setC$logletterfreq,words.setC$logfreq)
+pcor.test(x=words.setC$iconicity,y=words.setC$logletterfreq,z=words.setC$humour)
+
+
+words.setC %>%
+  filter(logletterfreq_perc < 2) %>%
+  arrange(desc(iconicity)) %>%
+  dplyr::select(word,humour,iconicity,diff_rank,logletterfreq,logletterfreq_perc) %>%
+  slice(1:20)
+
+words.setC %>%
+  arrange(logletterfreq) %>%
+  dplyr::select(word,humour,iconicity,diff_rank,logletterfreq,logletterfreq_perc) %>%
+  slice(1:20) %>%
+  summarise(mean_ico = mean.na(iconicity),mean_humour = mean.na(humour))
+
+
+words.setC %>%
+  arrange(-logletterfreq) %>%
+  dplyr::select(word,humour,iconicity,diff_rank,logletterfreq,logletterfreq_perc) %>%
+  slice(1:20) %>%
+  summarise(mean_ico = mean.na(iconicity),mean_humour = mean.na(humour))
+
+
+words.setC %>%
+  group_by(logletterfreq_perc) %>%
+  summarise(mean_ico = mean.na(iconicity),mean_humour = mean.na(humour))
+
+
+
+words.setC %>%
+  filter(diff_rank > 18) %>%
+  arrange(desc(iconicity)) %>%
+  dplyr::select(word,humour,iconicity,diff_rank,logletterfreq_perc) %>%
+  slice(1:20)
+
+
+```
+
+Example words:
+
+```{r similarity}
+
+# both high
+words %>%
+  filter(diff_rank > 19) %>%
+  arrange(desc(humour)) %>%
+  dplyr::select(word,humour,iconicity) %>%
+  slice(1:20)
+
+# both low
+words %>%
+  filter(diff_rank <= 3) %>%
+  arrange(humour) %>%
+  dplyr::select(word,humour,iconicity) %>%
+  slice(1:20)
+
+# rated as funny but not iconic
+words %>% 
+  filter(humour_perc > 9, iconicity_perc < 4) %>%
+  arrange(desc(humour)) %>%
+  dplyr::select(word,humour,iconicity) %>%
+  slice(1:20)
+
+# rated as iconic but not funny
+words %>% 
+  filter(iconicity_perc > 9, humour_perc < 4) %>%
+  arrange(humour) %>%
+  dplyr::select(word,humour,iconicity,humour_perc,iconicity_perc,valence_perc) %>%
+  slice(1:20)
+
+
+# is it a good idea to control for freq here, too?
+
+# I've done this for set D (using diff_rank_resid and humour_resid) and it doesn't make a difference
+
+```
+
+Valence may be one reason for some iconic words not being rated as funny. Words like 'crash', 'dread', 'scratch' and 'shoot' (all in the lowest percentiles of valence) may be highly iconic but they have no positive or humorous connotations. So the image-evoking potency of iconic words does not always translate into funniness. Samarin proposed that ideophones are not in themselves humourous, but they *are* "the locus of affective meaning" (Samarin 1969:321).
+
+
+What about valence?
+
+```{r valence}
+
+# What about valence?
+m1.3 <- lm(humour ~ logfreq + rt + iconicity + valence, words.setC)
+summary(m1.3)
+anova(m1.2,m1.3)
+
+m1.3 <- lm(humour ~ logfreq + rt + valence, words.setC)
+summary(m1.3)
+anova(m1.3,m1.2)
+
+
+```
+
+
+### 2. Known unknowns
+
+```{r lm_2}
+
+words.setE <- words %>%
+  filter(!is.na(humour),
+         is.na(iconicity))
+
+m2.1 <- lm(humour ~ logfreq + rt, words.setE)
+summary(m2.1)
+anova(m2.1)
+
+m2.1.table <- m2.1 %>%
+  anova() %>%
+  mutate(predictor = row.names(.),
+         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+  dplyr::select(c(predictor,1:2,4:5,7))
+kable(m2.1.table,digits=3)
+
+m2.2 <- lm(humour ~ logfreq + rt + iconicity_imputed, words.setE)
+plot(fitted(m2.2),residuals(m2.2))  # no obvious linearity
+qqnorm(residuals(m2.2))
+qqline(residuals(m2.2))           # looks OK, slight right skew or light tailed as above
+vif(m2.2)                         # all below 2 so no indications of multicollinearity
+
+summary(m2.2)
+anova(m2.1,m2.2)
+anova(m2.2)
+
+m2.2.table <- m2.2 %>%
+  anova() %>%
+  mutate(predictor = row.names(.),
+         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+  dplyr::select(c(predictor,1:2,4:5,7))
+kable(m2.2.table,digits=3)
+
+# you can export a table like this to Word as well
+# print(flextable(m2.2.table), preview = "docx")
+
+# partial correlation
+pcor.test(x=words.setE$humour,y=words.setE$iconicity_imputed,z=words.setE$logfreq)
+
+
+```
+
+Example words
+
+```{r iconicity_imputed_words_2}
+
+# high funniness and high imputed iconicity
+
+words.setE %>%
+  filter(diff_rank_imputed_ico > 19) %>%
+  arrange(desc(iconicity_imputed)) %>%
+  dplyr::select(word,humour,iconicity_imputed) %>%
+  slice(1:20)
+
+# low funniness and low imputed iconicity
+words.setE %>%
+  filter(diff_rank_imputed_ico <= 2) %>%
+  arrange(-desc(iconicity_imputed)) %>%
+  dplyr::select(word,humour,iconicity_imputed) %>%
+  slice(1:20)
+
+# rated as funny but not iconic
+words.setE %>% 
+  filter(humour_perc > 9, ico_imputed_perc < 4) %>%
+  arrange(desc(humour)) %>%
+  dplyr::select(word,humour,iconicity_imputed) %>%
+  slice(1:20)
+
+# rated as iconic but not funny
+words.setE %>% 
+  filter(ico_imputed_perc > 9, humour_perc < 3) %>%
+  arrange(-iconicity_imputed) %>%
+  dplyr::select(word,humour,iconicity_imputed,humour_perc,ico_imputed_perc,valence_perc) %>%
+  slice(1:20)
+
+```
+
+
+### 3. Unknown unknowns
+
+
+```{r lm_3}
+
+words.setF <- words %>%
+  filter(is.na(humour),
+         is.na(iconicity))
+
+m3.1 <- lm(humour_imputed ~ logfreq + rt, words.setF)
+summary(m3.1)
+anova(m3.1)
+
+m3.1.table <- m3.1 %>%
+  anova() %>%
+  mutate(predictor = row.names(.),
+         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+  dplyr::select(c(predictor,1:2,4:5,7))
+kable(m3.1.table,digits=3)
+
+m3.2 <- lm(humour_imputed ~ logfreq + rt + iconicity_imputed, words.setF)
+plot(fitted(m3.2),residuals(m3.2))  # no obvious linearity
+qqnorm(residuals(m3.2))
+qqline(residuals(m3.2))           # looks OK, slight right skew or light tailed as above
+vif(m3.2)                         # all below 2 so no indications of multicollinearity
+
+summary(m3.2)
+anova(m3.1,m3.2)
+anova(m3.2)
+
+m3.2.table <- m3.2 %>%
+  anova() %>%
+  mutate(predictor = row.names(.),
+         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+  dplyr::select(c(predictor,1:2,4:5,7))
+kable(m3.2.table,digits=3)
+
+# partial correlation
+pcor.test(x=words.setF$humour_imputed,y=words.setF$iconicity_imputed,z=words.setF$logfreq)
+
+```
+
+Sample words:
+
+
+```{r unknown_unknowns}
+
+# high imputed funniness and high imputed iconicity
+
+words.setF %>%
+  filter(diff_rank_imputed > 18) %>%
+  arrange(desc(iconicity_imputed)) %>%
+  dplyr::select(word,humour_imputed,iconicity_imputed) %>%
+  slice(1:20)
+
+# sanity check — does this come out strikingly different when using residualised imputed humour ratings? -> no
+
+# words.setF %>%
+#   filter(diff_rank_imputed_resid > 18) %>%
+#   arrange(desc(iconicity_imputed)) %>%
+#   dplyr::select(word,humour_imputed,humour_imputed_resid,iconicity_imputed) %>%
+#   slice(1:20)
+
+# low funniness and low imputed iconicity
+words.setF %>%
+  filter(diff_rank_imputed <= 2) %>%
+  arrange(-desc(iconicity_imputed)) %>%
+  dplyr::select(word,humour_imputed,iconicity_imputed) %>%
+  slice(1:20)
+
+# rated as funny but not iconic
+words.setF %>% 
+  filter(hum_imputed_perc > 9, ico_imputed_perc < 4) %>%
+  arrange(desc(humour)) %>%
+  dplyr::select(word,humour_imputed,iconicity_imputed) %>%
+  slice(1:20)
+
+# rated as iconic but not funny
+words.setF %>% 
+  filter(ico_imputed_perc > 9, hum_imputed_perc < 3) %>%
+  arrange(-iconicity_imputed) %>%
+  dplyr::select(word,humour_imputed,iconicity_imputed,hum_imputed_perc,ico_imputed_perc,valence_perc) %>%
+  slice(1:20)
+
+```
+
+### 4. Markedness and the high iconicity high funniness corner
+
+```{r markedness}
+
+m4.1 <- lm(humour ~ logfreq + rt + iconicity,data=words.setC)
+summary(m4.1)
+anova(m4.1)
+
+# add logletterfreq as predictor
+m4.2 <- lm(humour ~ logfreq + rt + iconicity + logletterfreq, data=words.setC)
+summary(m4.2)
+
+plot(fitted(m4.2),residuals(m4.2))  # no obvious linearity
+qqnorm(residuals(m4.2))
+qqline(residuals(m4.2))           # looks OK, slight right skew or light tailedness
+vif(m4.2)                         # all below 2 so no indications of multicollinearity
+
+summary(m4.2)
+anova(m4.1,m4.2)
+anova(m4.2)
+
+m4.2.table <- m4.2 %>%
+  anova() %>%
+  mutate(predictor = row.names(.),
+         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+  dplyr::select(c(predictor,1:2,4:5,7))
+kable(m4.2.table,digits=3)
+
+# by quantile
+
+words.setC %>%
+  group_by(logletterfreq_perc) %>%
+  summarise(mean.funniness = mean.na(humour),
+            mean.iconicity = mean.na(iconicity))
+
+```
+
+We carry out a qualitative analysis of the 80 highest ranked words (top deciles for funniness+iconicity) to see if there are formal cues of foregrounding and structural markedness that can help predict funniness and iconicity ratings.
+
+Then we apply the same method to a (1) a randomly selected set of 80 control words, and (2) the whole core dataset of 1.419 words.
+
+```{r qualitative}
+
+words.high <- words.setC %>%
+  filter(diff_rank > 18) %>%
+  dplyr::select(word,iconicity,humour,POS,logletterfreq,UnTrn,NSyll,NPhon,diff_rank) %>%
+  write_excel_csv(path="in/words_highest.csv",delim = ",")
+#  write_excel_csv2(path="in/words_highest.csv",delim = ",")
+
+set.seed(1)
+words.random <- words.setC %>%
+  drop_na(NSyll) %>% 
+  filter(diff_rank < 19) %>%
+  sample_n(80) %>%
+  dplyr::select(word,iconicity,humour,POS,logletterfreq,UnTrn,NSyll,NPhon,diff_rank) %>%
+  write_excel_csv(path="in/words_random.csv",delim = ",")
+#  write_excel_csv2(path="in/words_random.csv",delim = ",")
+
+# qualitative analysis of the top 80 words reveals the following sets of complex onsets, codas, and verbal diminutive suffixes that are likely structural cues of markedness:
+
+onsets <- "^(bl|cl|cr|dr|fl|sc|sl|sn|sp|spl|sw|tr|pr|sq)"
+codas <- "(nch|mp|nk|rt|rl|rr|sh|wk)$"
+verbdim <- "([b-df-hj-np-tv-xz]le)$" # i.e., look for -le after a consonant
+
+# tag words for these patterns, applying verbdim only for verbs
+words <- words %>%
+  mutate(set = ifelse(diff_rank > 18,"highest","other")) %>%
+  mutate(complex.coda = ifelse(str_detect(word,pattern=codas),1,0),
+         complex.onset = ifelse(str_detect(word,pattern=onsets),1,0),
+         complex.verbdim = ifelse(str_detect(word,pattern=verbdim),
+                                  ifelse(POS == "Verb",1,0),0)) %>%
+  mutate(cumulative = rowSums(.[c("complex.coda","complex.onset","complex.verbdim")])) 
+
+# sanity check: all words ending in -le vs all verbs
+words[str_detect(words$word,pattern=verbdim),]$word
+words[which(words$complex.verbdim == 1),]$word
+
+# comparing these cues in the 80 highest rated words versus the rest
+words %>%
+  group_by(set) %>% drop_na(set) %>% drop_na(cumulative) %>%
+  summarise(n=n(),
+            ico=mean.na(iconicity),
+            fun=mean.na(humour),
+            onset=mean.na(complex.onset),
+            coda=mean.na(complex.coda),
+            verbdim=mean.na(complex.verbdim),
+            cumulative=mean.na(cumulative),
+            sd=sd.na(cumulative))
+
+sd.na(words$cumulative)
+sd.na(words[which(words$set == "highest"),]$cumulative)
+sd.na(words[which(words$set == "other"),]$cumulative)
+
+t.test(words[which(words$set == "highest"),]$cumulative,
+       words[which(words$set == "other"),]$cumulative)
+
+
+```
+
+Model the contribution of markedness relative to logletter frequency
+  
+```{r model_markedness}
+
+# predicting fun+ico from markedness
+words.setC <- words %>%
+  drop_na(diff_rank) %>% # keep only rated words
+  mutate(funico = iconicity_z + humour_z,
+         funico_perc = ntile(funico,100))
+  
+
+m5.1 <- lm(funico ~ logfreq + rt,data=words.setC)
+summary(m5.1)
+
+m5.2 <- lm(funico ~ logfreq + rt + logletterfreq,data=words.setC)
+summary(m5.2)
+
+anova(m5.1,m5.2)
+
+m5.2.table <- m5.2 %>%
+  anova() %>%
+  mutate(predictor = row.names(.),
+         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+  dplyr::select(c(predictor,1:2,4:5,7))
+kable(m5.2.table,digits=3)
+
+
+m5.3 <- lm(funico ~ logfreq + rt + logletterfreq + cumulative,data=words.setC)
+summary(m5.3)
+
+summary(m5.3)
+anova(m5.2,m5.3)
+anova(m5.3)
+
+m5.3.table <- m5.3 %>%
+  anova() %>%
+  mutate(predictor = row.names(.),
+         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+  dplyr::select(c(predictor,1:2,4:5,7))
+kable(m5.3.table,digits=3)
+
+m5.4 <- lm(iconicity ~ logfreq + rt + humour + logletterfreq + cumulative,data=words.setC)
+summary(m5.4)
+anova(m5.4)
+
+# cumulative markedness is particularly good for iconicity, rivalling humour, word frequency and log letter frequency as a predictor of iconicity rating
+m5.4.table <- m5.4 %>%
+  anova() %>%
+  mutate(predictor = row.names(.),
+         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+  dplyr::select(c(predictor,1:2,4:5,7))
+kable(m5.4.table,digits=3)
+
+# much less so for funniness ratings, which are (as expected) also influenced by semantic and collocational factors
+m5.5 <- lm(humour ~ logfreq + rt + logletterfreq + iconicity * cumulative,data=words.setC)
+summary(m5.5)
+anova(m5.5)
+
+m5.5.table <- m5.5 %>%
+  anova() %>%
+  mutate(predictor = row.names(.),
+         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+  dplyr::select(c(predictor,1:2,4:5,7))
+kable(m5.5.table,digits=3)
+
+``` 
+
+## Figures
+
+
+### Descriptive data
+```{r figures}
+
+# use plotly to interactively select words to display on overview plot
+ggplot(words.setC,aes(iconicity,humour,label=word)) +
+  theme_tufte() + ggtitle("Iconicity and funniness") +
+  labs(y = "funniness (residuals)") +
+  geom_smooth(method="loess")
+library(plotly)
+ggplotly()
+
+these_words <- c("baboon","jiggle","giggle","smooch","zigzag","murmur","roar","scratch","victim","grade","grenade","business","canoe","magpie","deuce","buttocks","plush","grain","mud","tender","waddle","fluff","sound")
+
+pA <- ggplot(words.setC,aes(iconicity,humour,label=word)) +
+  theme_tufte() + ggtitle("Iconicity and funniness (n = 1.419)") +
+  labs(y = "funniness") +
+  stat_smooth(method="loess",colour="grey",span=0.8) +
+  geom_point(alpha=0.5,na.rm=T) +
+    geom_label_repel(
+    data=subset(words.setC, word %in% these_words),
+    aes(label=word),
+    size=4,
+    alpha=0.8,
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines"),
+    min.segment.length = unit(1.5,"lines")
+  ) +
+  NULL
+
+pB <- ggplot(words.setC,aes(iconicity)) +
+  theme_tufte() + ggtitle("Iconicity ratings") +
+  scale_x_continuous(limits=c(-5,5)) +
+  stat_density(geom="line") + geom_rug()
+
+pC <- ggplot(words.setC,aes(humour)) +
+  theme_tufte() + ggtitle("Funniness ratings") +
+  labs(x = "funniness") + scale_x_continuous(limits=c(1,5)) +
+  stat_density(geom="line") + geom_rug()
+
+right_panel <- plot_grid(pB, pC,ncol = 1,labels=c("B","C"))
+
+plot_grid(pA, right_panel,labels=c("A",NA,NA), label_size=14, rel_widths = c(3,1))
+
+ggsave("out/fig_ico_funniness_labelled.png",width=10,height=5)
+
+```
+
+### Scatterplots for analyses 1-3
+
+```{r fig_3_panel}
+
+
+ggplot(words.setE,aes(iconicity_imputed,humour_imputed_resid)) +
+  theme_tufte() + ggtitle("Funniness & iconicity", subtitle="(n = 1.419)") +
+  labs(y="funniness (residuals)") +
+  geom_point(alpha=0.5,na.rm=T) +
+  stat_smooth(method="lm",se=T,colour="black",fill="white",alpha=0.9)
+
+
+p3A <- ggplot(words.setC,aes(iconicity,humour_resid)) +
+  theme_tufte() + ggtitle("Funniness & iconicity", subtitle="(n = 1.419)") +
+  labs(y="funniness (residuals)") +
+  geom_point(alpha=0.5,na.rm=T) +
+  stat_smooth(method="lm",se=T,colour="grey",fill="white",alpha=0.9)
+
+p3B <- ggplot(words.setE,aes(iconicity_imputed,humour_resid)) +
+  theme_tufte() + ggtitle("Funniness & imputed iconicity",subtitle="(n = 3.577)") +
+  labs(x="imputed iconicity",y="funniness (residuals)") +
+  geom_point(alpha=0.5,na.rm=T) +
+  stat_smooth(method="lm",se=T,colour="grey",fill="white",alpha=0.9)
+
+p3C <- ggplot(words.setF,aes(iconicity_imputed,humour_imputed_resid)) +
+  theme_tufte() + ggtitle("Imputed funniness & imputed iconicity", subtitle="(n = 63.721)") +
+  labs(x="imputed iconicity",y="imputed funniness (residuals)") +
+  geom_point(alpha=0.5,na.rm=T) +
+  stat_smooth(method="lm",se=T,colour="grey",fill="white",alpha=0.9)
+
+plot_grid(p3A, p3B, p3C, labels="AUTO", label_size=14,nrow=1)
+
+ggsave("out/fig_ico_funniness_lm.png",width=10.2,height=4)
+
+
+```
+
+### High-iconicity high-funniness words
+
+```{r figure_upper}
+
+ggplot(words.setC,aes(iconicity,humour)) +
+  theme_tufte() + ggtitle("Humour and iconicity: highest rated words") +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    data=sample_n(subset(words.setC,diff_rank > 18),40),
+    aes(label=word),
+    size=4,
+    alpha=0.8,
+    segment.colour="grey50",
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+
+ggsave("out/fig_ico_funniness_highestrated.png",width=10.2,height=6)
+
+
+```
+
+### Structural markedness
+
+```{r figure_foregrounding}
+
+# define snippets to minimise repetition
+markedness_layers <- list(
+  stat_smooth(method="loess", span=0.8,color="black",se=T),
+  stat_smooth(method="loess", span=0.7,se=F, color="black",show.legend = T,linetype="longdash",aes(y=onset)),
+  stat_smooth(method="loess", span=0.7,se=F, color="black",show.legend = T,linetype="dashed",aes(y=coda)),
+  stat_smooth(method="loess", span=0.7,se=F, color="black",show.legend = T,linetype="dotted",aes(y=verbdim))
+)
+
+# there are many other avoidable redundancies here but okay
+p4A <- words %>%
+  drop_na(diff_rank) %>%
+  mutate(fun_perc = ntile(humour,100)) %>%
+  group_by(fun_perc) %>%
+  summarise(n=n(),
+            onset=mean.na(complex.onset),
+            coda=mean.na(complex.coda),
+            verbdim=mean.na(complex.verbdim),
+            complexity=mean.na(cumulative)) %>%
+  ggplot(aes(fun_perc,complexity)) +
+  theme_tufte() +
+  ggtitle("Structural markedness") +
+  labs(y="cumulative markedness",x="funniness (percentile)") +
+  scale_y_continuous(limits=c(0,1)) +
+  geom_point(shape=1) +
+  markedness_layers +
+  annotate("segment",x=5,xend=15,y=0.96,yend=0.96,colour="black",linetype="longdash",size=0.8) +
+  annotate("segment",x=5,xend=15,y=0.88,yend=0.88,colour="black",linetype="dashed",size=0.8) +
+  annotate("segment",x=5,xend=15,y=0.80,yend=0.80,colour="black",linetype="dotted",size=0.8) +
+  annotate("segment",x=5,xend=15,y=0.72,yend=0.72,colour="black",linetype="solid",size=0.8) +
+  annotate("text",x=20,y=c(0.97,0.89,0.81,0.73),
+           label=c("onset","coda","'-le' suffix","cumulative"),
+           hjust=0,size=3.8,family="serif")
+
+p4B <- words %>%
+  drop_na(diff_rank) %>%
+  mutate(ico_perc = ntile(iconicity,100)) %>%
+  group_by(ico_perc) %>%
+  summarise(n=n(),
+            onset=mean.na(complex.onset),
+            coda=mean.na(complex.coda),
+            verbdim=mean.na(complex.verbdim),
+            complexity=mean.na(cumulative)) %>%
+  ggplot(aes(ico_perc,complexity)) +
+  theme_tufte() +
+  labs(y="cumulative markedness",x="iconicity (percentile)") +
+  scale_y_continuous(limits=c(0,1)) +
+  geom_point(shape=1) +
+  markedness_layers 
+
+p4C <- words %>%
+  drop_na(diff_rank) %>%
+  mutate(funico_perc = ntile(iconicity_z + humour_z,100)) %>%
+  group_by(funico_perc) %>%
+  summarise(n=n(),
+            onset=mean.na(complex.onset),
+            coda=mean.na(complex.coda),
+            verbdim=mean.na(complex.verbdim),
+            complexity=mean.na(cumulative)) %>%
+  ggplot(aes(funico_perc,complexity)) +
+  theme_tufte() +
+  labs(y="cumulative markedness",x="funniness + iconicity (percentile)") +
+  scale_y_continuous(limits=c(0,1)) +
+  geom_point(shape=1) +
+  markedness_layers
+
+
+plot_grid(p4A, p4B, p4C, labels="AUTO", label_size=14,nrow=1)
+ggsave("out/fig_markedness_panel.png",width=10.2,height=4)
+
+```
+
+
+## Supplementary analyses
+
+### IPHOD
+A quick look at a range of IPhOD measures shows that none of them correlates as strongly with iconicity or humour as logletterfreq, so they don't offer additional explanatory power. 
+
+```{r iphodmeasures}
+
+words %>%
+  filter(!is.na(iconicity)) %>% 
+  dplyr::select(iconicity,humour,unsDENS,unsBPAV,unsPOSPAV,unsTPAV,unsLCPOSPAV) %>%
+  ggpairs(cardinality_threshold=20) +
+  theme_tufte()
+
+# extreme ends of triphone probability
+words %>%
+  filter(!is.na(iconicity), !is.na(humour),
+         (triphone_perc > 9 | triphone_perc < 2)) %>%
+  arrange(triphone_perc) %>%
+  dplyr::select(word,humour,iconicity,unsTPAV,triphone_perc) %>%
+  group_by(triphone_perc) %>%
+  slice(1:10)
+
+# extreme ends of biphone probability
+words %>%
+  filter(!is.na(iconicity), !is.na(humour),
+         (biphone_perc > 9 | biphone_perc < 2)) %>%
+  arrange(biphone_perc) %>%
+  dplyr::select(word,humour,iconicity,unsTPAV,biphone_perc) %>%
+  group_by(biphone_perc) %>%
+  slice(1:10)
+
+# extreme ends of phonological density
+words %>%
+  filter(!is.na(iconicity), !is.na(humour)) %>%
+  arrange(-unsDENS) %>%
+  dplyr::select(word,humour,iconicity,unsDENS) %>%
+  slice(1:20)
+words %>%
+  filter(!is.na(iconicity), !is.na(humour)) %>%
+  arrange(unsDENS) %>%
+  dplyr::select(word,humour,iconicity,unsDENS) %>%
+  slice(1:20)
+
+```
+
+### Markedness for imputed ratings
+
+While the primary focus of analysis 4 was on set C (the core set of human ratings), it's interesting to see how well the structural cues fare in explaining independently imputed iconicity ratings in the larger datasets.
+
+```{r markedness_imputed}
+
+# quick look: are words high in cumulative markedness also high in imputed iconicity?
+
+words %>%
+  filter(is.na(iconicity)) %>%
+  group_by(cumulative) %>%
+  summarise(n=n(),ico_imputed=mean.na(iconicity_imputed),fun_imputed=mean.na(humour_imputed))
+
+words %>%
+  filter(is.na(iconicity),
+         ico_imputed_perc < 10) %>%
+  summarise(n=n(),ico_imputed=mean.na(iconicity_imputed),
+            fun_imputed=mean.na(humour_imputed),
+            cumulative=mean.na(cumulative))
+
+words %>%
+  filter(is.na(iconicity),
+         cumulative == 2) %>%
+  sample_n(40) %>%
+  arrange(-iconicity_imputed) %>%
+  dplyr::select(word,ico_imputed_perc,iconicity_imputed,cumulative)
+
+words %>%
+  filter(is.na(iconicity),
+         ico_imputed_perc < 10) %>%
+  sample_n(40) %>%
+  arrange(iconicity_imputed) %>%
+  dplyr::select(word,ico_imputed_perc,iconicity_imputed,cumulative)
+
+# closer look at subsets
+words.setE <- words %>%
+  filter(!is.na(humour),
+         is.na(iconicity))
+
+words.setF <- words %>%
+  filter(is.na(humour),
+         is.na(iconicity))
+
+# upper quadrant
+words.setF %>%
+  mutate(target_perc = ntile(iconicity_imputed,4)) %>%
+  group_by(target_perc) %>%
+  summarise(n=n(),
+            onset=mean.na(complex.onset),
+            coda=mean.na(complex.coda),
+            verbdim=mean.na(complex.verbdim),
+            complexity=mean.na(cumulative))
+
+
+sd.na(words$cumulative)
+sd.na(words[which(words$set == "highest"),]$cumulative)
+sd.na(words[which(words$set == "other"),]$cumulative)
+
+t.test(words[which(words$set == "highest"),]$cumulative,
+       words[which(words$set == "other"),]$cumulative)
+
+# have a look at the distribution
+words.setE %>%
+  group_by(ico_imputed_perc) %>%
+  summarise(n=n(),
+            ico=mean.na(iconicity_imputed),
+            fun=mean.na(humour_imputed),
+            onset=mean.na(complex.onset),
+            coda=mean.na(complex.coda),
+            verbdim=mean.na(complex.verbdim),
+            cumulative=mean.na(cumulative))
+
+words.setF %>%
+  group_by(ico_imputed_perc) %>%
+  summarise(n=n(),
+            ico=mean.na(iconicity_imputed),
+            fun=mean.na(humour_imputed),
+            onset=mean.na(complex.onset),
+            coda=mean.na(complex.coda),
+            verbdim=mean.na(complex.verbdim),
+            cumulative=mean.na(cumulative))
+
+words.setE %>%
+  mutate(target_perc = ntile(iconicity_imputed,100)) %>%
+  group_by(target_perc) %>%
+  summarise(n=n(),
+            onset=mean.na(complex.onset),
+            coda=mean.na(complex.coda),
+            verbdim=mean.na(complex.verbdim),
+            complexity=mean.na(cumulative)) %>%
+  ggplot(aes(target_perc,complexity)) +
+  theme_tufte() +
+  ggtitle("Structural markedness and imputed iconicity (n = 3.577)",
+          subtitle="Every dot represents 36 words") +
+  labs(y="cumulative markedness",x="imputed iconicity (percentile)") +
+  scale_y_continuous(limits=c(0,1)) +
+  geom_point(shape=1) + markedness_layers
+
+words.setF %>%
+  mutate(target_perc = ntile(iconicity_imputed,100)) %>%
+  group_by(target_perc) %>%
+  summarise(n=n(),
+            onset=mean.na(complex.onset),
+            coda=mean.na(complex.coda),
+            verbdim=mean.na(complex.verbdim),
+            complexity=mean.na(cumulative)) %>%
+  ggplot(aes(target_perc,complexity)) +
+  theme_tufte() +
+  ggtitle("Structural markedness and imputed iconicity (n = 63.721)",
+          subtitle="Every dot represents 637 or 638 words") +
+  labs(y="cumulative markedness",x="imputed iconicity (percentile)") +
+  scale_y_continuous(limits=c(0,1)) +
+  geom_point(shape=1) +
+  markedness_layers
+
+```
+
+
+## The End.
+Thanks for reading. If you find this useful, consider checking out the following resources that have been helpful in preparing this Rmarkdown document:
+
+* Formatting ANOVA tables in R (by Rose Hartman, Understanding Data)
+http://www.understandingdata.net/2017/05/11/anova-tables-in-r/

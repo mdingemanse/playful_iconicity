@@ -1,12 +1,12 @@
 # for ILL slides
 
-# 2986 iconicity ratings
-norms %>%
+# 2986 iconicity ratings (2945 for which we have frequency)
+words %>%
   filter(!is.na(iconicity)) %>%
   summarise(count=n())
 
-# 4997 humour ratings
-norms %>%
+# 4997 humour ratings (4996 for which we have frequency)
+words %>%
   filter(!is.na(humour)) %>%
   summarise(count=n())
 
@@ -30,6 +30,9 @@ words %>%
   filter(!is.na(iconicity_imputed) & !is.na(humour_imputed)) %>%
   summarise(count=n())
 
+words %>%
+  filter(is.na(iconicity) & !is.na(humour)) %>%
+  summarise(count=n())
 
 # 
 words %>%
