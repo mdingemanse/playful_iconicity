@@ -1,4 +1,4 @@
-# for ILL slides
+# plots for use on ILL12 Lund slides
 
 # 2986 iconicity ratings (2945 for which we have frequency)
 words %>%

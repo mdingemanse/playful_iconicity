@@ -4,12 +4,6 @@
 # Clear workspace
 rm(list=ls())
 
-# check for /in/ and /out/ directories (create them if needed)
-add_working_dir <- function(x) { if(file.exists(x)) { cat(x,"dir:",paste0(getwd(),"/",x,"/")) } else { dir.create(paste0(getwd(),"/",x)) 
-  cat("subdirectory",x,"created in",getwd()) } }
-add_working_dir("in")
-add_working_dir("out")
-
 # Packages and useful functions
 list.of.packages <- c("tidyverse","ggthemes","ggrepel","dbplyr","GGally","lme4","Hmisc","readxl","wordbankr")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
@@ -22,26 +16,28 @@ rm(list.of.packages,new.packages)
 # Load data ---------------------------------------------------------------
 
 # Iconicity ratings from Winter et al. 2017, Perry et al. 2015
-load(file="in/iconicity-ratings.Rdata")
+load(file="data/iconicity-ratings.Rdata")
 
 # three methods from Perry et al. 2015
-ratings = read_csv("in\\threefold_ratings_English_Perry_et_al.csv")
+ratings = read_csv("data/threefold_ratings_English_Perry_et_al.csv")
 summary(ratings$alien)
 
-# Predicted iconicity ratings from Bill
-p.ico <- read_csv("in/ipennl.csv")
+# Predicted iconicity ratings
+p.ico <- read_csv("data/combined-experimental-norms-with-humour-iconicity-aversion-taboo-predictions-logletterfreq.csv")
 names(p.ico) <- tolower(names(p.ico))
+p.ico <- p.ico %>%
+  dplyr::select(word,iconicity,iconicity_imputed)
 
 ico <- left_join(p.ico,d.ico)
 ico$language <- as.factor(ico$language)
 
 # add SUBTLEX data for Dutch and English
 # from CRR, Ghent University
-subtlex.en <- read_excel(path="in/SUBTLEX-US frequency list with PoS and Zipf information.xlsx") %>%
+subtlex.en <- read_excel(path="data/SUBTLEX-US frequency list with PoS and Zipf information.xlsx") %>%
   plyr::rename(c("Word" = "word","FREQcount" = "freq_count","Lg10WF" = "freq_log","Dom_PoS_SUBTLEX" = "POS")) %>%
   dplyr::select(word,freq_log,POS) %>%
   mutate(language = "en")
-subtlex.nl <- read_excel(path="in/SUBTLEX-NL.cd-above2.with-POS.xlsx",
+subtlex.nl <- read_excel(path="data/SUBTLEX-NL.cd-above2.with-POS.xlsx",
                          range=cell_cols("A:K"),
                          col_types=c("text",rep("numeric",9),"text")) %>%
   plyr::rename(c("Word" = "word","FREQcount" = "freq_count","Lg10WF" = "freq_log","dominant.pos" = "POS")) %>%
@@ -50,26 +46,13 @@ subtlex.nl <- read_excel(path="in/SUBTLEX-NL.cd-above2.with-POS.xlsx",
 subtlex <- bind_rows(subtlex.en,subtlex.nl)
 summary(subtlex$freq_log)
 
-# FIXME: add SUBTLEX frequency to ico words
-icotest <- left_join(ico,subtlex)
-summary(icotest$freq_log)
-summary(ico$freq_log)
-
-# add modality norms
-modnorms <- read_csv("https://raw.githubusercontent.com/pablobernabeu/Modality-exclusivity-norms-747-Dutch-English-replication/master/all.csv") 
-names(modnorms) <- tolower(names(modnorms))
-# we don't need cols 17-21 (subtlex duplicates)
-mod <- modnorms %>%
-  dplyr::select(word,perceptualstrength,exclusivity,auditory,haptic,visual,concrete_brysbaertetal2014) %>%
-  plyr::rename(c("concrete_brysbaertetal2014" = "concreteness"))
-
 # Compare collected and inferred iconicity ratings ------------------------
 
 
 icoen <- ico %>% 
   filter(language=="en") %>%
   mutate(overlap = ifelse(is.na(iconicity),0,1)) %>%
-  mutate(difference = iconicity - iconicity_predicted) %>%
+  mutate(difference = iconicity - iconicity_imputed) %>%
   mutate(absolute_difference = abs(difference)) %>%
   mutate(difference_direction = ifelse(difference > 0,"lower","higher"))
 
@@ -79,21 +62,21 @@ diffabs.sd <- sd(icoen$absolute_difference,na.rm=T)
 # The range of iconicity_predcited seems to be (i) more compressed and (ii) 
 # skewed positive relative to the original iconicity ratings
 summary(icoen$iconicity)
-summary(icoen[which(icoen$overlap == 1),]$iconicity_predicted)  
+summary(icoen[which(icoen$overlap == 1),]$iconicity_imputed)  
 
 range1 <- sum(abs(range(icoen$iconicity,na.rm=T)))
-range2 <- sum(abs(range(icoen[which(icoen$overlap == 1),]$iconicity_predicted)))
-range1/range2 # compressed by a factor of 1.87
+range2 <- sum(abs(range(icoen[which(icoen$overlap == 1),]$iconicity_imputed)))
+range1/range2 # compressed by a factor of 1.38
 
-summary(icoen$iconicity_predicted)
-summary(icoen[which(icoen$overlap == 0),]$iconicity_predicted)  
+summary(icoen$iconicity_imputed)
+summary(icoen[which(icoen$overlap == 0),]$iconicity_imputed)  
 
-ggplot(icoen,aes(iconicity,iconicity_predicted)) +
+ggplot(icoen,aes(iconicity,iconicity_imputed)) +
   theme_tufte() +
   geom_point(alpha=0.5,na.rm=T) +
   geom_smooth(na.rm=T,method="loess",colour="grey")
 
-ggplot(icoen,aes(iconicity,iconicity_predicted)) +
+ggplot(icoen,aes(iconicity,iconicity_imputed)) +
   theme_tufte() +
   ggtitle("Predicted vs rated iconicity — maximally different words") +
   geom_point(alpha=0.5,na.rm=T) +
@@ -108,8 +91,6 @@ ggplot(icoen,aes(iconicity,iconicity_predicted)) +
     box.padding=unit(0.35, "lines"),
     point.padding=unit(0.3,"lines")
   )
-ggsave(file="out/iconicity_predictions_outliers.png",width=6,height=4)
-ggsave(file="out/iconicity_predictions_outliers.pdf",width=6,height=4)
 
 # Where are the largest absolute differences? Not strikingly different at either
 # end, though perhaps a bit more at the negative end of the scale
@@ -117,14 +98,13 @@ ggplot(icoen,aes(iconicity,absolute_difference)) +
   theme_tufte() + 
   geom_point(alpha=0.5) +
   ggtitle("Absolute difference between ratings and predictions") +
-  geom_smooth(aes(x=iconicity_predict,y=absolute_difference),method="loess",color="grey")
+  geom_smooth(aes(x=iconicity_imputed,y=absolute_difference),method="loess",color="grey")
 
 # most different words
 icoen %>%
   filter(absolute_difference > 3*diffabs.sd) %>%
-  arrange(iconicity_predicted) %>%
-  dplyr::select(word,iconicity,iconicity_predicted,absolute_difference) %>%
-  View(.)
+  arrange(iconicity_imputed) %>%
+  dplyr::select(word,iconicity,iconicity_imputed,absolute_difference)
 
 iconew <- icoen %>%
   filter(overlap==0)
@@ -135,10 +115,10 @@ iconew <- icoen %>%
 
 # Predicted iconicity shows higher correlation with frequency than ratings
 cor.test(icoen$iconicity,icoen$freq_log)
-cor.test(iconew$iconicity_predicted,iconew$freq_log)
+cor.test(iconew$iconicity_imputed,iconew$freq_log)
 # but lower correlation with AoA
 cor.test(icoen$iconicity,icoen$KupermanAOA)
-cor.test(iconew$iconicity_predicted,iconew$KupermanAOA)
+cor.test(iconew$iconicity_imputed,iconew$KupermanAOA)
 
 
 # Are the peaks around round numbers a result of the original rating scale? If 
@@ -148,43 +128,13 @@ cor.test(iconew$iconicity_predicted,iconew$KupermanAOA)
 
 icoen %>%
   filter(iconicity==1.5) %>%
-  dplyr::select(word,iconicity_predicted) %>%
-  arrange(-iconicity_predicted) %>%
-  View(.)
-
-
-# Peeking into the negative corner
-  
-icoen %>%
-  filter(iconicity_predicted <0, iconicity <0) %>%
-  dplyr::select(word,iconicity,iconicity_predicted) %>%
-  arrange(iconicity) %>%
-  View(.)
-
-icoen %>%
-  filter(iconicity_predicted >=0, iconicity <0) %>%
-  dplyr::select(word,iconicity,iconicity_predicted) %>%
-  arrange(iconicity_predicted) %>%
-  View(.)
-
-icoen %>%
-  filter(iconicity <0, diffabs > 2) %>%
-  dplyr::select(word,iconicity,iconicity_predicted) %>%
-  arrange(iconicity_predicted) %>%
-  View(.)
-
+  dplyr::select(word,iconicity_imputed) %>%
+  arrange(-iconicity_imputed) %>%
 
 # Examining written words on -5...0...5 scale -----------------------------
 
-bottom <- d.ico %>%
-  filter(language == "en",iconicity < -0.5) %>%
-  arrange(iconicity) %>%
-  summarise(count=n())
-View(bottom)
 
 # Comparing 3 Perry et al. 2015 rating methods ----------------------------
-
-ggpairs(ratings,columns=c("written","spoken","alien"),lower=list(continuous="smooth",method="loess"))
 
 bottom <- d.ico %>%
   filter(language == "en",iconicity < -0.5) %>%
@@ -207,8 +157,7 @@ d.ico %>%
   mutate(AOA_perc = ntile(KupermanAOA,10)) %>%
   filter(iconicity_perc > 9, AOA_perc > 8) %>%
   arrange(-iconicity) %>%
-  dplyr::select(word,iconicity,KupermanAOA,iconicity_perc,AOA_perc) %>%
-  View(.)
+  dplyr::select(word,iconicity,KupermanAOA,iconicity_perc,AOA_perc)
 
 # mean AoA
 d.ico %>%
@@ -236,43 +185,12 @@ ico %>%
   mutate(redup = ifelse(grepl("^(.+)\\1$",word),"redup","not")) %>%
   drop_na(iconicity) %>%
   group_by(redup) %>%
-  summarise(count=n(),mean_ico = mean(iconicity,na.rm=T),mean_ico_p = mean(iconicity_predicted))
+  summarise(count=n(),mean_ico = mean(iconicity,na.rm=T),mean_ico_p = mean(iconicity_imputed))
 
 ico %>%
   mutate(redup = ifelse(grepl("^(.+)\\1$",word),"redup","not")) %>%
   group_by(redup) %>%
-  summarise(count=n(),mean_ico_p = mean(iconicity_predicted))
+  summarise(count=n(),mean_ico_p = mean(iconicity_imputed))
 
-
-# Modality norms and iconicity (Bernabeu data) ----------------------------
-
-
-
-
-# wordbank and iconicity --------------------------------------------------
-
-# TO DO: figure out how to get AoA/AoP for words from Wordbank
-
-instruments <- get_instruments()
-
-english_ws_admins <- get_administration_data("English (American)", "WS")
-items_en <- get_item_data("English (American)", "WS")
-items_data <- get_instrument_data(instrument_language = "English (American)",
-                                  instrument_form = "WS",
-                                  items = items_en$item_id,
-                                  administrations = english_ws_admins)
-
-items_data %>%
-  filter(num_item_id == 1)
-
-
-items_summary <- items_data %>%
-  mutate(produces = value == "produces") %>%
-  group_by(age, data_id) %>%
-  summarise(num_words = sum(produces,na.rm=T)) %>%
-  group_by(age) %>%
-  summarise(median_num_words = median(num_words,na.rm=T))
-ggplot(items_summary,(aes(age,median_num_words))) +
-  geom_point()
 
 
