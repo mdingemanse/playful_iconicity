@@ -39,6 +39,8 @@ Primary data sources:
 -   Perry, Lynn K. et al. Iconicity in the Speech of Children and Adults. Developmental Science. <doi:10.1111/desc.12572>
 -   Engelthaler, Tomas, and Thomas T. Hills. 2017. Humor Norms for 4,997 English Words. Behavior Research Methods, July, 1-9. <doi:10.3758/s13428-017-0930-6>
 
+We use these ratings in our analyses, but we also feed them to our [imputation method](/benchmark-prediction.py), which regresses the human ratings against semantic vectors in order to generate imputed ratings for an additional 63.721 words (`fun_imputed` and `ico_imputed`).
+
 Secondary data sources:
 
 -   Balota, D. A., Yap, M. J., Hutchison, K. A., Cortese, M. J., Kessler, B., Loftis, B., … Treiman, R. (2007). The English Lexicon Project. Behavior Research Methods, 39(3), 445–459. doi: 10.3758/BF03193014
@@ -164,7 +166,7 @@ words %>%
     ## 2 E      3577
     ## 3 F     63723
 
-The most important columns in the data are shown below for set C (some summary columns excluded). Sets E and F also feature `ico_imputed` and `fun_imputed`. The field `diff_rank` is the sum of `fun` and `ico` deciles for a given word: a word with `diff_rank` 2 occurs in the first decile (lowest 10%) of both funniness and iconicity ratings, and a word with \`diff\_rank\`\` 20 occurs in the 10th decile (highest 10%) of both.
+The most important columns in the data are shown below for set C (some summary columns excluded). Sets E and F also feature `ico_imputed` and `fun_imputed`. The field `diff_rank` is the sum of `fun` and `ico` deciles for a given word: a word with `diff_rank` 2 occurs in the first decile (lowest 10%) of both funniness and iconicity ratings, and a word with `diff_rank` 20 occurs in the 10th decile (highest 10%) of both.
 
 ``` r
 words %>% 
