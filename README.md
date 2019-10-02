@@ -1,5 +1,7 @@
 # Playful iconicity
-**Authors**: Mark Dingemanse, Centre for Language Studies, Radboud University; Bill D. Thompson, Princeton University
+Mark Dingemanse, Centre for Language Studies, Radboud University (corresponding author)
+
+Bill D. Thompson, Princeton University
 
 ## Script files 
 
@@ -12,5 +14,5 @@ Subsidiary Python scripts:
 * [benchmark-prediction.py](benchmark-prediction.py) : benchmarks predictions
 
 ## Data files 
-* [experimental-and-imputed-norms-for-funniness-iconicity-logletterfreq.csv](blob/master/data/experimental-and-imputed-norms-for-funniness-iconicity-logletterfreq.csv): main data file
-* other files in [data](/data) as referenced in [the main analyses](/playful_iconicity_paper.md)
+* [experimental-and-imputed-norms-for-funniness-iconicity-logletterfreq.csv](data/experimental-and-imputed-norms-for-funniness-iconicity-logletterfreq.csv): main data file
+* other files in [data](/data) as referenced in [the main analyses](playful_iconicity_paper.md)
