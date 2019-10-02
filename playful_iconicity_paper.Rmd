@@ -1032,11 +1032,13 @@ words %>%
 
 
 ### AoA
-Simon Kirby asked [https://twitter.com/SimonKirby/status/1123602157322887169](on Twitter) whether the relation between funniness and iconicity might have something to do with child-directedness. This is hard to test directly (and unlikely to apply across the board) but if this were the case presumably it would also be reflected in AoA ratings — e.g., the more funny and iconic words would have relatively lower AoA ratings. (We know of course from Perry et al. 2017 that AoA is negatively correlated with iconicity: words rated higher in iconicity have a somewhat lower age of acquisition.)
+Simon Kirby [asked on Twitter](https://twitter.com/SimonKirby/status/1123602157322887169) whether the relation between funniness and iconicity might have something to do with child-directedness. This is hard to test directly (and unlikely to apply across the board) but if this were the case presumably it would also be reflected in AoA ratings — e.g., the more funny and iconic words would have relatively lower AoA ratings. (Importantly: we already know from Perry et al. 2017 that AoA is negatively correlated with iconicity: words rated higher in iconicity have a somewhat lower age of acquisition.)
 
 * Kuperman, V., Stadthagen-Gonzalez, H., & Brysbaert, M. (2012). Age-of-acquisition ratings for 30,000 English words. Behavior Research Methods, 44(4), 978-990. doi: 10.3758/s13428-012-0210-4
 
-We have AoA data for all 1.419 words in set C. It doesn't really explain the iconicity + funniness relation. Though an important caveat is that this particular small subset may not be the best data to judge this on.
+We have AoA data for all 1.419 words in set C. It doesn't really explain the iconicity + funniness relation. That is, words high in both iconicity and funniness are not strikingly low in AoA. 
+
+Though an important caveat is that this particular small subset may not be the best data to judge this on.
 
 ```{r AoA_check}
 
@@ -1078,6 +1080,7 @@ cor.test(words$fun,words$aoa)
 cor.test(words$ico,words$aoa)
 
 cor.test(words$diff_rank,words$aoa)
+
 
 # doesn't look very different in the ico_imputed ratings in set E
 
