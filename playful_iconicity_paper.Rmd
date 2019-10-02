@@ -32,6 +32,17 @@ rm(list.of.packages,new.packages)
 mean.na <- function(x) mean(x, na.rm = T)
 sd.na <- function(x) sd(x, na.rm = T)
 
+# print model outputs using kable
+print_table <- function(lm.input) {
+  lm.anova <- anova(lm.input) %>%
+    mutate(predictor = row.names(.),
+           pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+    setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+    dplyr::select(c(predictor,1:2,4:5,7))
+  kable(lm.anova,digits=3)
+}
+
+
 ```
 ## Data
 
@@ -158,36 +169,26 @@ words <- words %>%
 
 ### Descriptive data
 
-We have 4996 words rated for funniness, 2945 rated for iconicity, and 1419 in the intersection.
+We have 4996 words rated for funniness, 2945 rated for iconicity, and 1419 in the intersection (set C). We have 3577 words with human funniness ratings and imputed iconicity ratings (set E). We have imputed data for a total of 70.245 words, and we're venturing outside the realm of rated words for 63.723 of them (set F). 
 
-We have imputed data for a total of 70.245 words, and we're venturing outside the realm of rated words for 63.723 of them. 
+```{r numbers}
+words %>%
+  drop_na(set) %>% group_by(set) %>% summarise(n=n())
+
+```
+
+The most important columns in the data are shown below for set C (some summary columns excluded). Sets E and F also feature `ico_imputed` and `fun_imputed`. The field `diff_rank` is the sum of `fun` and `ico` deciles for a given word: a word with `diff_rank` 2 occurs in the first decile (lowest 10%) of both funniness and iconicity ratings, and a word with `diff_rank`` 20 occurs in the 10th decile (highest 10%) of both.
 
 ```{r prelim_desc}
 
 words %>% 
-  drop_na(fun) %>%
-  summarise(count=n())
-
-words %>% 
-  drop_na(ico) %>%
-  summarise(count=n())
-
-# core intersection
-words %>% 
-  drop_na(ico,fun) %>%
-  summarise(count=n())
-
-# all words with imputed data
-words %>%
-  drop_na(ico_imputed,fun_imputed) %>%
-  summarise(count=n())
-
-# unknown unknowns
-words %>%
-  filter(is.na(fun) & is.na(ico) ) %>%
-  summarise(count=n())
+  filter(set == "C") %>%
+  group_by(diff_rank) %>% arrange(-diff_rank) %>%
+  dplyr::select(word,ico,fun,logletterfreq,logfreq,rt,nmorph,diff_rank) %>%
+  slice(1)
 
 ```
+
 
 ## Main analyses
 
@@ -203,9 +204,8 @@ cor.test(words$fun,words$logfreq)
 cor.test(words$fun,words$rt)
 
 # to what extent do frequency and RT predict funniness?
-m0 <- lm(fun ~ logfreq + rt, words)
+m0 <- lm(fun ~ logfreq + rt, words %>% drop_na(fun))
 summary(m0)
-anova(m0)
 
 # model validation
 plot(fitted(m0),
@@ -214,13 +214,7 @@ qqnorm(residuals(m0)) # looks OK
 qqline(residuals(m0)) # looks OK, slight right skew
 vif(m0)               # below 2 so no indication of multicollinearity
 
-m0.table <- m0 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:5,7))
-kable(m0.table,digits=3)
+print_table(m0)
 
 ```
 
@@ -234,14 +228,7 @@ Turns out that the magnitude estimate of iconicity is about half that of frequen
 
 m1.1 <- lm(fun ~ logfreq + rt, words %>% filter(set=="C"))
 summary(m1.1)
-
-m1.1.table <- m1.1 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m1.1.table,digits=3)
+print_table(m1.1)
 
 m1.2 <- lm(fun ~ logfreq + rt + ico, words %>% filter(set=="C"))
 plot(fitted(m1.2),residuals(m1.2))  # no obvious linearity
@@ -249,20 +236,14 @@ qqnorm(residuals(m1.2))
 qqline(residuals(m1.2))           # looks OK, slight right skew or light tailed as above
 vif(m1.2)                         # all below 2 so no indications of multicollinearity
 
-summary(m1.2)
 anova(m1.1,m1.2)
+summary(m1.2)
+print_table(m1.2)
 
-m1.2.table <- m1.2 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m1.2.table,digits=3)
 
 ```
 
-Partial correlations show 20.6% covariance between funniness and iconicity, partialing out log frequency as a mediator. This shows the effects of iconicity and funniness are not reducible to frequency alone. (Partial correlations also show -35.6% covariance between funniness and frequency, controlling out iconicity as a mediator (the more frequent a word, the less funny), replicating the finding reported by Engelthaler and Hill (2017); and a -9.4% correlation between iconicity and frequency when partialing out funniness, as expected and reported elsewhere (e.g., Winter et al. 2017).)
+Partial correlations show 20.6% covariance between funniness and iconicity, partialing out log frequency as a mediator. This shows the effects of iconicity and funniness are not reducible to frequency alone. 
 
 
 ```{r partial_correlations}
@@ -272,8 +253,8 @@ words.setC <- words %>% filter(set=="C")
 pcor.test(x=words.setC$fun,y=words.setC$ico,z=words.setC$logfreq)
 
 # the other two:
-pcor.test(x=words.setC$fun,y=words.setC$logfreq,z=words.setC$ico)
-pcor.test(x=words.setC$ico,y=words.setC$logfreq,z=words.setC$fun)
+# pcor.test(x=words.setC$fun,y=words.setC$logfreq,z=words.setC$ico)
+# pcor.test(x=words.setC$ico,y=words.setC$logfreq,z=words.setC$fun)
 
 ```
 
@@ -286,48 +267,38 @@ Example words:
 words %>%
   filter(diff_rank > 19) %>%
   arrange(-ico) %>%
-  dplyr::select(word,fun,ico) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 
 # both low
 words %>%
   filter(diff_rank <= 2) %>%
   arrange(ico) %>%
-  dplyr::select(word,fun,ico) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 
 # rated as funny but not iconic
 words %>% 
   filter(fun_perc > 9, ico_perc < 4) %>%
   arrange(-ico) %>%
-  dplyr::select(word,fun,ico) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 
 # rated as iconic but not funny
 words %>% 
   filter(ico_perc > 9, fun_perc < 4) %>%
   arrange(-ico) %>%
-  dplyr::select(word,fun,ico,fun_perc,ico_perc,valence_perc) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 
 # N.B. controlling for frequency in this list (by using fun_resid instead of fun) does not make a difference in ranking, so not done here and elsewhere
 
-# what about compound nouns among high iconicity words?
+# what about compound nouns among high iconicity words? about 10% in this set:
 words %>% 
-  filter(set == "C",
-         ico_perc > 8,
-         POS == "Noun") %>%
+  filter(set == "C", ico_perc > 8, POS == "Noun") %>%
   arrange(-ico) %>%
-  slice(1:200) %>%
-  dplyr::select(word) %>% unlist %>% unname() 
+  slice(1:200) %>% dplyr::select(word) %>% unlist %>% unname() 
 
 ```
 
-Valence may be one reason for some iconic words not being rated as funny. Words like 'crash', 'dread', 'scratch' and 'shoot' (all in the lowest percentiles of valence) may be highly iconic but they have no positive or humorous connotations. So the image-evoking potency of iconic words does not always translate into funniness. Samarin proposed that ideophones are not in themselves humourous, but they *are* "the locus of affective meaning" (Samarin 1969:321).
-
-
-
 ### 2. Known unknowns
+Here we study the link between funniness ratings and imputed iconicity ratings.
 
 ```{r lm_2}
 
@@ -337,15 +308,7 @@ words.setE <- words %>%
 
 m2.1 <- lm(fun ~ logfreq + rt, words.setE)
 summary(m2.1)
-anova(m2.1)
-
-m2.1.table <- m2.1 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m2.1.table,digits=3)
+print_table(m2.1)
 
 m2.2 <- lm(fun ~ logfreq + rt + ico_imputed, words.setE)
 plot(fitted(m2.2),residuals(m2.2))  # no obvious linearity
@@ -355,18 +318,7 @@ vif(m2.2)                         # all below 2 so no indications of multicollin
 
 summary(m2.2)
 anova(m2.1,m2.2)
-anova(m2.2)
-
-m2.2.table <- m2.2 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m2.2.table,digits=3)
-
-# you can export a table like this to Word as well
-# print(flextable(m2.2.table), preview = "docx")
+print_table(m2.2)
 
 # partial correlation
 pcor.test(x=words.setE$fun,y=words.setE$ico_imputed,z=words.setE$logfreq)
@@ -383,32 +335,28 @@ Example words
 words.setE %>%
   filter(diff_rank_setE > 19) %>%
   arrange(-ico_imputed) %>%
-  dplyr::select(word,fun,ico_imputed) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 
 # low funniness and low imputed iconicity
 words.setE %>%
   filter(diff_rank_setE <= 2) %>%
   arrange(-desc(ico_imputed)) %>%
-  dplyr::select(word,fun,ico_imputed) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 
-# rated as funny but not iconic
+# high funniness and low imputed iconicity
 words.setE %>% 
   filter(fun_perc > 9, ico_imputed_perc < 4) %>%
   arrange(desc(fun)) %>%
-  dplyr::select(word,fun,ico_imputed) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 
-# rated as iconic but not funny
+# low funniness and high imputed iconicity
 words.setE %>% 
   filter(ico_imputed_perc > 9, fun_perc < 3) %>%
   arrange(-ico_imputed) %>%
-  dplyr::select(word,fun,ico_imputed,fun_perc,ico_imputed_perc,valence_perc) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 
 
-# what about compound nouns among high iconicity words?
+# what about analysable compounds among high iconicity nouns? here too about 10%
 words.setE %>% 
   filter(ico_imputed_perc > 9,
          POS == "Noun") %>%
@@ -430,15 +378,7 @@ words.setF <- words %>%
 
 m3.1 <- lm(fun_imputed ~ logfreq + rt, words.setF)
 summary(m3.1)
-anova(m3.1)
-
-m3.1.table <- m3.1 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m3.1.table,digits=3)
+print_table(m3.1)
 
 m3.2 <- lm(fun_imputed ~ logfreq + rt + ico_imputed, words.setF)
 plot(fitted(m3.2),residuals(m3.2))  # no obvious linearity
@@ -448,15 +388,7 @@ vif(m3.2)                         # all below 2 so no indications of multicollin
 
 summary(m3.2)
 anova(m3.1,m3.2)
-anova(m3.2)
-
-m3.2.table <- m3.2 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m3.2.table,digits=3)
+print_table(m3.2)
 
 # partial correlation
 pcor.test(x=words.setF$fun_imputed,y=words.setF$ico_imputed,z=words.setF$logfreq)
@@ -473,36 +405,32 @@ Sample words:
 words.setF %>%
   filter(diff_rank_setF > 18) %>%
   arrange(desc(ico_imputed)) %>%
-  dplyr::select(word,fun_imputed,ico_imputed) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 
-# low funniness and low imputed iconicity
+# low imputed funniness and low imputed iconicity
 words.setF %>%
   filter(diff_rank_setF <= 2) %>%
   arrange(-desc(ico_imputed)) %>%
-  dplyr::select(word,fun_imputed,ico_imputed) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 
-# rated as funny but not iconic
+# high imputed funniness and low imputed iconicity
 words.setF %>% 
   filter(hum_imputed_perc > 9, ico_imputed_perc < 4) %>%
   arrange(desc(fun)) %>%
-  dplyr::select(word,fun_imputed,ico_imputed) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 
-# rated as iconic but not funny
+# low imputed funniness and high imputed iconicity
 words.setF %>% 
   filter(ico_imputed_perc > 9, hum_imputed_perc < 3) %>%
   arrange(-ico_imputed) %>%
-  dplyr::select(word,fun_imputed,ico_imputed,hum_imputed_perc,ico_imputed_perc,valence_perc) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 
 # what about compound nouns here? In the top 200 nouns we can spot ~5 (shockwave, doodlebug, flashbulb, backflip, footstep) but that is of course a tiny tail end of a much larger dataset than the earlier two.
 words.setF %>% 
   filter(ico_imputed_perc > 9,
          POS == "Noun") %>%
   arrange(-ico_imputed) %>%
-  slice(201:400) %>%
+  slice(1:200) %>%
   dplyr::select(word) %>% unlist %>% unname() 
 
 # better way is to sample 200 random nouns from a proportionate slice of the data, i.e. 200 * 17.8 = 3560 top nouns in imputed iconicity. In this subset we find at least 30 non-iconic analysable compounds: fireworm, deadbolt, footstep, pockmark, uppercut, woodwork, biotech, notepad, spellbinder, henchmen, quicksands, blowgun, heartbreaks, moonbeams, sketchpad, etc. 
@@ -558,14 +486,7 @@ vif(m4.2)                         # all below 2 so no indications of multicollin
 
 summary(m4.2)
 anova(m4.1,m4.2)
-
-m4.2.table <- m4.2 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m4.2.table,digits=3)
+print_table(m4.2)
 
 #partial correlations 
 pcor.test(x=words.setC$fun,y=words.setC$logletterfreq,z=words.setC$ico)
@@ -582,17 +503,8 @@ summary(m5.1)
 
 m5.2 <- lm(funico ~ logfreq + rt + logletterfreq,data=words.setC)
 summary(m5.2)
-
 anova(m5.1,m5.2)
-
-m5.2.table <- m5.2 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m5.2.table,digits=3)
-
+print_table(m5.2)
 
 ```
 
@@ -659,17 +571,9 @@ Model the contribution of markedness relative to logletter frequency
 words.setC <- words %>% filter(set=="C")
 
 m5.3 <- lm(funico ~ logfreq + rt + logletterfreq + cumulative,data=words.setC)
-summary(m5.3)
-
 anova(m5.2,m5.3)
-
-m5.3.table <- m5.3 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m5.3.table,digits=3)
+summary(m5.3)
+print_table(m5.3)
 
 
 ``` 
@@ -742,27 +646,13 @@ words.setF <- words.setF %>%
 
 m5.4 <- lm(funico_imputed ~ logfreq + rt + logletterfreq,data=words.setF)
 summary(m5.4)
-
-m5.4.table <- m5.4 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m5.4.table,digits=3)
+print_table(m5.4)
 
 m5.5 <- lm(funico_imputed ~ logfreq + rt + logletterfreq + cumulative,data=words.setF)
 summary(m5.5)
-
 anova(m5.4,m5.5)
+print_table(m5.5)
 
-m5.5.table <- m5.5 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m5.5.table,digits=3)
 
 ```
 
@@ -1115,26 +1005,12 @@ mS.1 <- lm(ico ~ logfreq + rt + fun + logletterfreq + cumulative,data=words.setC
 summary(mS.1)
 
 # cumulative markedness is particularly good for iconicity, rivalling funniness, word frequency and log letter frequency as a predictor of iconicity rating
-mS.1.table <- mS.1 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(mS.1.table,digits=3)
+print_table(mS.1)
 
 # much less so for funniness ratings, which are (as we know) also influenced by semantic and collocational factors
 mS.2 <- lm(fun ~ logfreq + rt + logletterfreq + ico * cumulative,data=words.setC)
 summary(mS.2)
-
-mS.2.table <- mS.2 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(mS.2.table,digits=3)
-
+print_table(mS.2)
 
 ```
 

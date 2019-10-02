@@ -19,6 +19,16 @@ rm(list.of.packages,new.packages)
 # with thanks to Bodo Winter:
 mean.na <- function(x) mean(x, na.rm = T)
 sd.na <- function(x) sd(x, na.rm = T)
+
+# print model outputs using kable
+print_table <- function(lm.input) {
+  lm.anova <- anova(lm.input) %>%
+    mutate(predictor = row.names(.),
+           pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+    setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+    dplyr::select(c(predictor,1:2,4:5,7))
+  kable(lm.anova,digits=3)
+}
 ```
 
 Data
@@ -140,67 +150,53 @@ words <- words %>%
 
 ### Descriptive data
 
-We have 4996 words rated for funniness, 2945 rated for iconicity, and 1419 in the intersection.
-
-We have imputed data for a total of 70.245 words, and we're venturing outside the realm of rated words for 63.723 of them.
+We have 4996 words rated for funniness, 2945 rated for iconicity, and 1419 in the intersection (set C). We have 3577 words with human funniness ratings and imputed iconicity ratings (set E). We have imputed data for a total of 70.245 words, and we're venturing outside the realm of rated words for 63.723 of them (set F).
 
 ``` r
-words %>% 
-  drop_na(fun) %>%
-  summarise(count=n())
-```
-
-    ## # A tibble: 1 x 1
-    ##   count
-    ##   <int>
-    ## 1  4996
-
-``` r
-words %>% 
-  drop_na(ico) %>%
-  summarise(count=n())
-```
-
-    ## # A tibble: 1 x 1
-    ##   count
-    ##   <int>
-    ## 1  2945
-
-``` r
-# core intersection
-words %>% 
-  drop_na(ico,fun) %>%
-  summarise(count=n())
-```
-
-    ## # A tibble: 1 x 1
-    ##   count
-    ##   <int>
-    ## 1  1419
-
-``` r
-# all words with imputed data
 words %>%
-  drop_na(ico_imputed,fun_imputed) %>%
-  summarise(count=n())
+  drop_na(set) %>% group_by(set) %>% summarise(n=n())
 ```
 
-    ## # A tibble: 1 x 1
-    ##   count
-    ##   <int>
-    ## 1 70245
+    ## # A tibble: 3 x 2
+    ##   set       n
+    ##   <chr> <int>
+    ## 1 C      1419
+    ## 2 E      3577
+    ## 3 F     63723
+
+The most important columns in the data are shown below for set C (some summary columns excluded). Sets E and F also feature `ico_imputed` and `fun_imputed`. The field `diff_rank` is the sum of `fun` and `ico` deciles for a given word: a word with `diff_rank` 2 occurs in the first decile (lowest 10%) of both funniness and iconicity ratings, and a word with \`diff\_rank\`\` 20 occurs in the 10th decile (highest 10%) of both.
 
 ``` r
-# unknown unknowns
-words %>%
-  filter(is.na(fun) & is.na(ico) ) %>%
-  summarise(count=n())
+words %>% 
+  filter(set == "C") %>%
+  group_by(diff_rank) %>% arrange(-diff_rank) %>%
+  dplyr::select(word,ico,fun,logletterfreq,logfreq,rt,nmorph,diff_rank) %>%
+  slice(1)
 ```
 
-    ## # A tibble: 1 x 1
-    ##   count
-    ##   <int>
-    ## 1 63723
+    ## # A tibble: 19 x 8
+    ## # Groups:   diff_rank [19]
+    ##    word     ico   fun logletterfreq logfreq    rt nmorph diff_rank
+    ##    <chr>  <dbl> <dbl>         <dbl>   <dbl> <dbl> <chr>      <int>
+    ##  1 wait  -0.5    1.83         -2.71    4.63  526. 1              2
+    ##  2 whole -0.769  2            -2.79    4.29  561. 1              3
+    ##  3 want  -0.214  1.97         -2.71    5.15  511. 1              4
+    ##  4 will   0.214  2.04         -3.12    5.03  532. 1              5
+    ##  5 know   0.769  1.89         -3.14    5.47  572. 1              6
+    ##  6 think  0.364  2.14         -2.84    5.14  564. 1              7
+    ##  7 like  -0.333  2.43         -2.79    5.31  514. 1              8
+    ##  8 do     0.846  2.09         -2.87    5.50  524. 1              9
+    ##  9 go     1.45   1.97         -3.04    5.29  516. 1             10
+    ## 10 one    1.85   2.06         -2.42    5.20  487. 1             11
+    ## 11 right  0.917  2.37         -2.83    5.31  516. 1             12
+    ## 12 girl   0.636  2.65         -3.00    4.45  542. 1             13
+    ## 13 look   1.82   2.32         -3.00    5.00  546. 1             14
+    ## 14 play   1.08   2.68         -3.19    4.26  508. 1             15
+    ## 15 must   1.5    2.64         -2.95    4.55  570. 1             16
+    ## 16 kid    1.45   2.78         -3.22    4.24  522. 1             17
+    ## 17 high   2.64   2.61         -3.03    4.00  544. 1             18
+    ## 18 party  1.92   3.03         -2.90    4.08  598. 1             19
+    ## 19 pop    4.08   3.29         -3.25    3.54  590. 1             20
 
 Main analyses
 -------------
@@ -246,13 +242,13 @@ cor.test(words$fun,words$rt)
 
 ``` r
 # to what extent do frequency and RT predict funniness?
-m0 <- lm(fun ~ logfreq + rt, words)
+m0 <- lm(fun ~ logfreq + rt, words %>% drop_na(fun))
 summary(m0)
 ```
 
     ## 
     ## Call:
-    ## lm(formula = fun ~ logfreq + rt, data = words)
+    ## lm(formula = fun ~ logfreq + rt, data = words %>% drop_na(fun))
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
@@ -267,23 +263,8 @@ summary(m0)
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Residual standard error: 0.4153 on 4993 degrees of freedom
-    ##   (65249 observations deleted due to missingness)
     ## Multiple R-squared:  0.09995,    Adjusted R-squared:  0.09959 
     ## F-statistic: 277.2 on 2 and 4993 DF,  p-value: < 2.2e-16
-
-``` r
-anova(m0)
-```
-
-    ## Analysis of Variance Table
-    ## 
-    ## Response: fun
-    ##             Df Sum Sq Mean Sq F value    Pr(>F)    
-    ## logfreq      1  78.33  78.329  454.10 < 2.2e-16 ***
-    ## rt           1  17.31  17.315  100.38 < 2.2e-16 ***
-    ## Residuals 4993 861.26   0.172                      
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
 # model validation
@@ -308,20 +289,14 @@ vif(m0)               # below 2 so no indication of multicollinearity
     ##  1.7086  1.7086
 
 ``` r
-m0.table <- m0 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:5,7))
-kable(m0.table,digits=3)
+print_table(m0)
 ```
 
-| predictor |    df|       SS|      MS|      *F*|  *p*|  partial *η*<sup>2</sup>|
-|:----------|-----:|--------:|-------:|--------:|----:|------------------------:|
-| logfreq   |     1|   78.329|  78.329|  454.096|    0|                    0.083|
-| rt        |     1|   17.315|  17.315|  100.380|    0|                    0.020|
-| Residuals |  4993|  861.264|   0.172|         |     |                         |
+| predictor |    df|       SS|      *F*|  *p*|  partial *η*<sup>2</sup>|
+|:----------|-----:|--------:|--------:|----:|------------------------:|
+| logfreq   |     1|   78.329|  454.096|    0|                    0.083|
+| rt        |     1|   17.315|  100.380|    0|                    0.020|
+| Residuals |  4993|  861.264|         |     |                         |
 
 ### 1. Known knowns
 
@@ -356,13 +331,7 @@ summary(m1.1)
     ## F-statistic: 128.2 on 2 and 1416 DF,  p-value: < 2.2e-16
 
 ``` r
-m1.1.table <- m1.1 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m1.1.table,digits=3)
+print_table(m1.1)
 ```
 
 | predictor |    df|       SS|      *F*|    *p*|  partial *η*<sup>2</sup>|
@@ -393,6 +362,20 @@ vif(m1.2)                         # all below 2 so no indications of multicollin
     ## 1.692160 1.655702 1.034818
 
 ``` r
+anova(m1.1,m1.2)
+```
+
+    ## Analysis of Variance Table
+    ## 
+    ## Model 1: fun ~ logfreq + rt
+    ## Model 2: fun ~ logfreq + rt + ico
+    ##   Res.Df    RSS Df Sum of Sq      F    Pr(>F)    
+    ## 1   1416 206.52                                  
+    ## 2   1415 197.63  1    8.8913 63.661 3.027e-15 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` r
 summary(m1.2)
 ```
 
@@ -419,27 +402,7 @@ summary(m1.2)
     ## F-statistic: 110.5 on 3 and 1415 DF,  p-value: < 2.2e-16
 
 ``` r
-anova(m1.1,m1.2)
-```
-
-    ## Analysis of Variance Table
-    ## 
-    ## Model 1: fun ~ logfreq + rt
-    ## Model 2: fun ~ logfreq + rt + ico
-    ##   Res.Df    RSS Df Sum of Sq      F    Pr(>F)    
-    ## 1   1416 206.52                                  
-    ## 2   1415 197.63  1    8.8913 63.661 3.027e-15 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-m1.2.table <- m1.2 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m1.2.table,digits=3)
+print_table(m1.2)
 ```
 
 | predictor |    df|       SS|      *F*|    *p*|  partial *η*<sup>2</sup>|
@@ -449,7 +412,7 @@ kable(m1.2.table,digits=3)
 | ico       |     1|    8.891|   63.661|  0.000|                    0.043|
 | Residuals |  1415|  197.628|         |       |                         |
 
-Partial correlations show 20.6% covariance between funniness and iconicity, partialing out log frequency as a mediator. This shows the effects of iconicity and funniness are not reducible to frequency alone. (Partial correlations also show -35.6% covariance between funniness and frequency, controlling out iconicity as a mediator (the more frequent a word, the less funny), replicating the finding reported by Engelthaler and Hill (2017); and a -9.4% correlation between iconicity and frequency when partialing out funniness, as expected and reported elsewhere (e.g., Winter et al. 2017).)
+Partial correlations show 20.6% covariance between funniness and iconicity, partialing out log frequency as a mediator. This shows the effects of iconicity and funniness are not reducible to frequency alone.
 
 ``` r
 words.setC <- words %>% filter(set=="C")
@@ -462,18 +425,9 @@ pcor.test(x=words.setC$fun,y=words.setC$ico,z=words.setC$logfreq)
 
 ``` r
 # the other two:
-pcor.test(x=words.setC$fun,y=words.setC$logfreq,z=words.setC$ico)
+# pcor.test(x=words.setC$fun,y=words.setC$logfreq,z=words.setC$ico)
+# pcor.test(x=words.setC$ico,y=words.setC$logfreq,z=words.setC$fun)
 ```
-
-    ##     estimate      p.value statistic    n gp  Method
-    ## 1 -0.3555085 1.688727e-43 -14.31271 1419  1 pearson
-
-``` r
-pcor.test(x=words.setC$ico,y=words.setC$logfreq,z=words.setC$fun)
-```
-
-    ##      estimate      p.value statistic    n gp  Method
-    ## 1 -0.09429068 0.0003773552 -3.564016 1419  1 pearson
 
 Example words:
 
@@ -482,131 +436,58 @@ Example words:
 words %>%
   filter(diff_rank > 19) %>%
   arrange(-ico) %>%
-  dplyr::select(word,fun,ico) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 ```
 
-    ## # A tibble: 20 x 3
-    ##    word     fun   ico
-    ##    <chr>  <dbl> <dbl>
-    ##  1 zigzag  3.11  4.3 
-    ##  2 squeak  3.23  4.23
-    ##  3 chirp   3     4.14
-    ##  4 pop     3.29  4.08
-    ##  5 clunk   3.34  3.93
-    ##  6 moo     3.7   3.88
-    ##  7 clang   3.2   3.86
-    ##  8 oink    3.87  3.62
-    ##  9 zoom    3.04  3.6 
-    ## 10 smooch  3.33  3.6 
-    ## 11 babble  3.16  3.54
-    ## 12 squawk  3.42  3.46
-    ## 13 thud    3.08  3.38
-    ## 14 gush    3.03  3.27
-    ## 15 fluff   3.72  3.21
-    ## 16 flop    3.03  3.14
-    ## 17 waddle  4.05  3.1 
-    ## 18 giggle  3.39  3   
-    ## 19 tinkle  3.96  3   
-    ## 20 ooze    3.23  3
+    ##  [1] "zigzag" "squeak" "chirp"  "pop"    "clunk"  "moo"    "clang" 
+    ##  [8] "oink"   "zoom"   "smooch" "babble" "squawk" "thud"   "gush"  
+    ## [15] "fluff"  "flop"   "waddle" "giggle" "tinkle" "ooze"
 
 ``` r
 # both low
 words %>%
   filter(diff_rank <= 2) %>%
   arrange(ico) %>%
-  dplyr::select(word,fun,ico) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 ```
 
-    ## # A tibble: 14 x 3
-    ##    word        fun    ico
-    ##    <chr>     <dbl>  <dbl>
-    ##  1 silent     1.91 -2.17 
-    ##  2 statement  1.83 -1.38 
-    ##  3 poor       1.64 -1.2  
-    ##  4 cellar     1.77 -1.08 
-    ##  5 incest     1.61 -1.07 
-    ##  6 window     1.92 -0.833
-    ##  7 lie        1.76 -0.636
-    ##  8 coffin     1.89 -0.6  
-    ##  9 platform   1.88 -0.6  
-    ## 10 address    1.6  -0.583
-    ## 11 slave      1.48 -0.571
-    ## 12 wait       1.83 -0.5  
-    ## 13 year       1.87 -0.462
-    ## 14 case       1.9  -0.417
+    ##  [1] "silent"    "statement" "poor"      "cellar"    "incest"   
+    ##  [6] "window"    "lie"       "coffin"    "platform"  "address"  
+    ## [11] "slave"     "wait"      "year"      "case"
 
 ``` r
 # rated as funny but not iconic
 words %>% 
   filter(fun_perc > 9, ico_perc < 4) %>%
   arrange(-ico) %>%
-  dplyr::select(word,fun,ico) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 ```
 
-    ## # A tibble: 20 x 3
-    ##    word       fun     ico
-    ##    <chr>    <dbl>   <dbl>
-    ##  1 belly     3.38  0.25  
-    ##  2 buttocks  3.62  0.25  
-    ##  3 beaver    3.06  0.2   
-    ##  4 chipmunk  3.23  0.1   
-    ##  5 turkey    3.21  0.0667
-    ##  6 bra       3.17  0     
-    ##  7 hippo     3.37  0     
-    ##  8 chimp     3.31 -0.0909
-    ##  9 blonde    3.12 -0.167 
-    ## 10 penis     3.57 -0.2   
-    ## 11 pun       3.21 -0.375 
-    ## 12 dingo     3.68 -0.5   
-    ## 13 trombone  3    -0.636 
-    ## 14 deuce     3.48 -0.733 
-    ## 15 lark      3.03 -0.9   
-    ## 16 gander    3.5  -0.917 
-    ## 17 magpie    3.07 -0.917 
-    ## 18 tongue    3.17 -1     
-    ## 19 giraffe   3.10 -1.19  
-    ## 20 hoe       3.6  -1.45
+    ##  [1] "belly"    "buttocks" "beaver"   "chipmunk" "turkey"   "bra"     
+    ##  [7] "hippo"    "chimp"    "blonde"   "penis"    "pun"      "dingo"   
+    ## [13] "trombone" "deuce"    "lark"     "gander"   "magpie"   "tongue"  
+    ## [19] "giraffe"  "hoe"
 
 ``` r
 # rated as iconic but not funny
 words %>% 
   filter(ico_perc > 9, fun_perc < 4) %>%
   arrange(-ico) %>%
-  dplyr::select(word,fun,ico,fun_perc,ico_perc,valence_perc) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 ```
 
-    ## # A tibble: 13 x 6
-    ##    word       fun   ico fun_perc ico_perc valence_perc
-    ##    <chr>    <dbl> <dbl>    <int>    <int>        <int>
-    ##  1 click     2.14  4.46        3       10            7
-    ##  2 roar      2.03  3.92        2       10            6
-    ##  3 crash     1.73  3.77        1       10            1
-    ##  4 chime     2.15  3.31        3       10            8
-    ##  5 scratch   1.8   3.29        1       10            5
-    ##  6 swift     2.14  3.23        3       10            8
-    ##  7 sunshine  2.06  3.09        2       10           10
-    ##  8 low       1.58  2.92        1       10            3
-    ##  9 break     2.03  2.9         2       10            5
-    ## 10 clash     2.09  2.67        3       10            3
-    ## 11 shoot     1.84  2.6         1       10            2
-    ## 12 airplane  2.06  2.55        2       10            6
-    ## 13 dread     1.58  2.55        1       10            1
+    ##  [1] "click"    "roar"     "crash"    "chime"    "scratch"  "swift"   
+    ##  [7] "sunshine" "low"      "break"    "clash"    "shoot"    "airplane"
+    ## [13] "dread"
 
 ``` r
 # N.B. controlling for frequency in this list (by using fun_resid instead of fun) does not make a difference in ranking, so not done here and elsewhere
 
-# what about compound nouns among high iconicity words?
+# what about compound nouns among high iconicity words? about 10% in this set:
 words %>% 
-  filter(set == "C",
-         ico_perc > 8,
-         POS == "Noun") %>%
+  filter(set == "C", ico_perc > 8, POS == "Noun") %>%
   arrange(-ico) %>%
-  slice(1:200) %>%
-  dplyr::select(word) %>% unlist %>% unname() 
+  slice(1:200) %>% dplyr::select(word) %>% unlist %>% unname() 
 ```
 
     ##   [1] "beep"       "zigzag"     "buzzer"     "bleep"      "clunk"     
@@ -641,9 +522,9 @@ words %>%
     ## [146] "inch"       "bliss"      "leap"       "fling"      "racer"     
     ## [151] "uproar"     "egg"
 
-Valence may be one reason for some iconic words not being rated as funny. Words like 'crash', 'dread', 'scratch' and 'shoot' (all in the lowest percentiles of valence) may be highly iconic but they have no positive or humorous connotations. So the image-evoking potency of iconic words does not always translate into funniness. Samarin proposed that ideophones are not in themselves humourous, but they *are* "the locus of affective meaning" (Samarin 1969:321).
-
 ### 2. Known unknowns
+
+Here we study the link between funniness ratings and imputed iconicity ratings.
 
 ``` r
 words.setE <- words %>%
@@ -675,27 +556,7 @@ summary(m2.1)
     ## F-statistic: 165.7 on 2 and 3574 DF,  p-value: < 2.2e-16
 
 ``` r
-anova(m2.1)
-```
-
-    ## Analysis of Variance Table
-    ## 
-    ## Response: fun
-    ##             Df Sum Sq Mean Sq F value    Pr(>F)    
-    ## logfreq      1  39.53  39.528  218.21 < 2.2e-16 ***
-    ## rt           1  20.49  20.487  113.10 < 2.2e-16 ***
-    ## Residuals 3574 647.40   0.181                      
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-m2.1.table <- m2.1 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m2.1.table,digits=3)
+print_table(m2.1)
 ```
 
 | predictor |    df|       SS|      *F*|  *p*|  partial *η*<sup>2</sup>|
@@ -765,28 +626,7 @@ anova(m2.1,m2.2)
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-anova(m2.2)
-```
-
-    ## Analysis of Variance Table
-    ## 
-    ## Response: fun
-    ##               Df Sum Sq Mean Sq F value    Pr(>F)    
-    ## logfreq        1  39.53  39.528  245.74 < 2.2e-16 ***
-    ## rt             1  20.49  20.487  127.36 < 2.2e-16 ***
-    ## ico_imputed    1  72.67  72.669  451.77 < 2.2e-16 ***
-    ## Residuals   3573 574.73   0.161                      
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-m2.2.table <- m2.2 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m2.2.table,digits=3)
+print_table(m2.2)
 ```
 
 | predictor    |    df|       SS|      *F*|  *p*|  partial *η*<sup>2</sup>|
@@ -797,9 +637,6 @@ kable(m2.2.table,digits=3)
 | Residuals    |  3573|  574.731|         |     |                         |
 
 ``` r
-# you can export a table like this to Word as well
-# print(flextable(m2.2.table), preview = "docx")
-
 # partial correlation
 pcor.test(x=words.setE$fun,y=words.setE$ico_imputed,z=words.setE$logfreq)
 ```
@@ -815,135 +652,54 @@ Example words
 words.setE %>%
   filter(diff_rank_setE > 19) %>%
   arrange(-ico_imputed) %>%
-  dplyr::select(word,fun,ico_imputed) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 ```
 
-    ## # A tibble: 20 x 3
-    ##    word      fun ico_imputed
-    ##    <chr>   <dbl>       <dbl>
-    ##  1 swish    3.17        3.75
-    ##  2 chug     3.73        3.75
-    ##  3 bop      3.58        3.63
-    ##  4 gobble   3.65        3.32
-    ##  5 smack    3.12        3.27
-    ##  6 blip     3.06        2.87
-    ##  7 whack    3.55        2.87
-    ##  8 oomph    3.93        2.78
-    ##  9 poke     3.28        2.76
-    ## 10 wallop   3.67        2.59
-    ## 11 funk     3.75        2.57
-    ## 12 chuckle  3.69        2.51
-    ## 13 quickie  3.69        2.47
-    ## 14 wriggle  3.44        2.46
-    ## 15 quiver   3.10        2.43
-    ## 16 scamp    3.11        2.40
-    ## 17 burp     3.26        2.37
-    ## 18 hooky    3.41        2.23
-    ## 19 oodles   3.84        2.21
-    ## 20 weasel   3.69        2.20
+    ##  [1] "swish"   "chug"    "bop"     "gobble"  "smack"   "blip"    "whack"  
+    ##  [8] "oomph"   "poke"    "wallop"  "funk"    "chuckle" "quickie" "wriggle"
+    ## [15] "quiver"  "scamp"   "burp"    "hooky"   "oodles"  "weasel"
 
 ``` r
 # low funniness and low imputed iconicity
 words.setE %>%
   filter(diff_rank_setE <= 2) %>%
   arrange(-desc(ico_imputed)) %>%
-  dplyr::select(word,fun,ico_imputed) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 ```
 
-    ## # A tibble: 20 x 3
-    ##    word        fun ico_imputed
-    ##    <chr>     <dbl>       <dbl>
-    ##  1 subject    1.79      -1.23 
-    ##  2 ransom     1.89      -0.938
-    ##  3 libel      1.82      -0.876
-    ##  4 bible      1.86      -0.836
-    ##  5 siege      1.83      -0.815
-    ##  6 hospice    1.70      -0.802
-    ##  7 conduct    1.90      -0.708
-    ##  8 arsenic    1.55      -0.701
-    ##  9 clothing   1.92      -0.637
-    ## 10 negro      1.79      -0.627
-    ## 11 mosque     1.78      -0.592
-    ## 12 typhoid    1.71      -0.568
-    ## 13 request    1.82      -0.524
-    ## 14 expense    1.92      -0.494
-    ## 15 author     1.67      -0.456
-    ## 16 length     1.92      -0.426
-    ## 17 anthrax    1.76      -0.426
-    ## 18 mandate    1.82      -0.406
-    ## 19 plaintiff  1.88      -0.387
-    ## 20 hostage    1.71      -0.381
+    ##  [1] "subject"   "ransom"    "libel"     "bible"     "siege"    
+    ##  [6] "hospice"   "conduct"   "arsenic"   "clothing"  "negro"    
+    ## [11] "mosque"    "typhoid"   "request"   "expense"   "author"   
+    ## [16] "length"    "anthrax"   "mandate"   "plaintiff" "hostage"
 
 ``` r
-# rated as funny but not iconic
+# high funniness and low imputed iconicity
 words.setE %>% 
   filter(fun_perc > 9, ico_imputed_perc < 4) %>%
   arrange(desc(fun)) %>%
-  dplyr::select(word,fun,ico_imputed) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 ```
 
-    ## # A tibble: 20 x 3
-    ##    word         fun ico_imputed
-    ##    <chr>      <dbl>       <dbl>
-    ##  1 heifer      3.56    -0.0109 
-    ##  2 dinghy      3.53     0.136  
-    ##  3 cuckold     3.53     0.167  
-    ##  4 nudist      3.41    -0.186  
-    ##  5 sheepdog    3.4      0.115  
-    ##  6 oddball     3.31     0.0527 
-    ##  7 spam        3.28    -0.197  
-    ##  8 harlot      3.23    -0.171  
-    ##  9 getup       3.22    -0.0385 
-    ## 10 rickshaw    3.22    -0.00140
-    ## 11 sac         3.22    -0.0678 
-    ## 12 kiwi        3.2      0.135  
-    ## 13 whorehouse  3.17     0.126  
-    ## 14 soiree      3.16    -0.0508 
-    ## 15 condom      3.13     0.157  
-    ## 16 plaything   3.12    -0.0608 
-    ## 17 croquet     3.12    -0.00663
-    ## 18 charade     3.11     0.0737 
-    ## 19 fiver       3.11    -0.0584 
-    ## 20 loch        3.11    -0.130
+    ##  [1] "heifer"     "dinghy"     "cuckold"    "nudist"     "sheepdog"  
+    ##  [6] "oddball"    "spam"       "harlot"     "getup"      "rickshaw"  
+    ## [11] "sac"        "kiwi"       "whorehouse" "soiree"     "condom"    
+    ## [16] "plaything"  "croquet"    "charade"    "fiver"      "loch"
 
 ``` r
-# rated as iconic but not funny
+# low funniness and high imputed iconicity
 words.setE %>% 
   filter(ico_imputed_perc > 9, fun_perc < 3) %>%
   arrange(-ico_imputed) %>%
-  dplyr::select(word,fun,ico_imputed,fun_perc,ico_imputed_perc,valence_perc) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 ```
 
-    ## # A tibble: 20 x 6
-    ##    word        fun ico_imputed fun_perc ico_imputed_perc valence_perc
-    ##    <chr>     <dbl>       <dbl>    <int>            <int>        <int>
-    ##  1 shudder    2.03        2.76        2               10            3
-    ##  2 scrape     2.03        2.16        2               10            2
-    ##  3 taps       1.92        2.15        1               10            4
-    ##  4 fright     1.91        2.05        1               10            2
-    ##  5 heartbeat  1.77        2.04        1               10            9
-    ##  6 puncture   2.03        1.93        2               10            3
-    ##  7 choke      1.82        1.90        1               10            1
-    ##  8 tremor     1.61        1.87        1               10            3
-    ##  9 biceps     2.04        1.80        2               10            8
-    ## 10 glimpse    1.97        1.76        2               10            7
-    ## 11 disgust    1.75        1.71        1               10            2
-    ## 12 doom       1.97        1.69        2               10            1
-    ## 13 stir       2.05        1.68        2               10            6
-    ## 14 dent       2           1.68        2               10            2
-    ## 15 scold      1.78        1.67        1               10            1
-    ## 16 bully      1.84        1.66        1               10            1
-    ## 17 reign      1.92        1.61        1               10            6
-    ## 18 blister    1.97        1.58        2               10            1
-    ## 19 check      2           1.57        2               10            9
-    ## 20 horror     1.70        1.55        1               10            2
+    ##  [1] "shudder"   "scrape"    "taps"      "fright"    "heartbeat"
+    ##  [6] "puncture"  "choke"     "tremor"    "biceps"    "glimpse"  
+    ## [11] "disgust"   "doom"      "stir"      "dent"      "scold"    
+    ## [16] "bully"     "reign"     "blister"   "check"     "horror"
 
 ``` r
-# what about compound nouns among high iconicity words?
+# what about analysable compounds among high iconicity nouns? here too about 10%
 words.setE %>% 
   filter(ico_imputed_perc > 9,
          POS == "Noun") %>%
@@ -1026,27 +782,7 @@ summary(m3.1)
     ## F-statistic: 575.8 on 2 and 19232 DF,  p-value: < 2.2e-16
 
 ``` r
-anova(m3.1)
-```
-
-    ## Analysis of Variance Table
-    ## 
-    ## Response: fun_imputed
-    ##              Df  Sum Sq Mean Sq F value    Pr(>F)    
-    ## logfreq       1   91.76  91.757 1004.16 < 2.2e-16 ***
-    ## rt            1   13.48  13.480  147.52 < 2.2e-16 ***
-    ## Residuals 19232 1757.37   0.091                      
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-m3.1.table <- m3.1 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m3.1.table,digits=3)
+print_table(m3.1)
 ```
 
 | predictor |     df|        SS|       *F*|  *p*|  partial *η*<sup>2</sup>|
@@ -1117,28 +853,7 @@ anova(m3.1,m3.2)
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-anova(m3.2)
-```
-
-    ## Analysis of Variance Table
-    ## 
-    ## Response: fun_imputed
-    ##                Df  Sum Sq Mean Sq F value    Pr(>F)    
-    ## logfreq         1   91.76   91.76 1241.83 < 2.2e-16 ***
-    ## rt              1   13.48   13.48  182.44 < 2.2e-16 ***
-    ## ico_imputed     1  336.41  336.41 4552.89 < 2.2e-16 ***
-    ## Residuals   19231 1420.96    0.07                      
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-m3.2.table <- m3.2 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m3.2.table,digits=3)
+print_table(m3.2)
 ```
 
 | predictor    |     df|        SS|       *F*|  *p*|  partial *η*<sup>2</sup>|
@@ -1164,133 +879,53 @@ Sample words:
 words.setF %>%
   filter(diff_rank_setF > 18) %>%
   arrange(desc(ico_imputed)) %>%
-  dplyr::select(word,fun_imputed,ico_imputed) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 ```
 
-    ## # A tibble: 20 x 3
-    ##    word      fun_imputed ico_imputed
-    ##    <chr>           <dbl>       <dbl>
-    ##  1 whoosh           2.91        4.28
-    ##  2 whirr            2.95        4.24
-    ##  3 whooshing        2.69        4.13
-    ##  4 brr              2.99        4.07
-    ##  5 argh             2.70        3.88
-    ##  6 chomp            3.16        3.81
-    ##  7 whir             3.07        3.81
-    ##  8 swoosh           2.98        3.80
-    ##  9 brrr             3.02        3.77
-    ## 10 zaps             3.14        3.77
-    ## 11 squeaks          3.24        3.77
-    ## 12 whirring         2.66        3.76
-    ## 13 squelchy         2.90        3.71
-    ## 14 gulps            2.92        3.67
-    ## 15 smacking         2.89        3.67
-    ## 16 growls           2.76        3.63
-    ## 17 clanks           2.82        3.58
-    ## 18 squish           2.78        3.57
-    ## 19 whoo             3.10        3.56
-    ## 20 clop             3.62        3.55
+    ##  [1] "whoosh"    "whirr"     "whooshing" "brr"       "argh"     
+    ##  [6] "chomp"     "whir"      "swoosh"    "brrr"      "zaps"     
+    ## [11] "squeaks"   "whirring"  "squelchy"  "gulps"     "smacking" 
+    ## [16] "growls"    "clanks"    "squish"    "whoo"      "clop"
 
 ``` r
-# low funniness and low imputed iconicity
+# low imputed funniness and low imputed iconicity
 words.setF %>%
   filter(diff_rank_setF <= 2) %>%
   arrange(-desc(ico_imputed)) %>%
-  dplyr::select(word,fun_imputed,ico_imputed) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 ```
 
-    ## # A tibble: 20 x 3
-    ##    word         fun_imputed ico_imputed
-    ##    <chr>              <dbl>       <dbl>
-    ##  1 apr                 1.82       -1.49
-    ##  2 dei                 2.02       -1.46
-    ##  3 covenants           1.92       -1.39
-    ##  4 palestinians        1.86       -1.38
-    ##  5 covenant            1.95       -1.34
-    ##  6 clothier            1.96       -1.34
-    ##  7 palestinian         1.66       -1.26
-    ##  8 variant             1.86       -1.26
-    ##  9 mitochondria        1.91       -1.25
-    ## 10 israelis            1.92       -1.25
-    ## 11 serb                2.02       -1.22
-    ## 12 sufferers           1.63       -1.21
-    ## 13 herein              2.02       -1.20
-    ## 14 isotope             1.76       -1.18
-    ## 15 duration            1.91       -1.18
-    ## 16 ciudad              1.95       -1.17
-    ## 17 appellant           1.93       -1.17
-    ## 18 palestine           1.99       -1.16
-    ## 19 alexandria          2.01       -1.13
-    ## 20 infantrymen         1.98       -1.11
+    ##  [1] "apr"          "dei"          "covenants"    "palestinians"
+    ##  [5] "covenant"     "clothier"     "palestinian"  "variant"     
+    ##  [9] "mitochondria" "israelis"     "serb"         "sufferers"   
+    ## [13] "herein"       "isotope"      "duration"     "ciudad"      
+    ## [17] "appellant"    "palestine"    "alexandria"   "infantrymen"
 
 ``` r
-# rated as funny but not iconic
+# high imputed funniness and low imputed iconicity
 words.setF %>% 
   filter(hum_imputed_perc > 9, ico_imputed_perc < 4) %>%
   arrange(desc(fun)) %>%
-  dplyr::select(word,fun_imputed,ico_imputed) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 ```
 
-    ## # A tibble: 20 x 3
-    ##    word     fun_imputed ico_imputed
-    ##    <chr>          <dbl>       <dbl>
-    ##  1 pigs            2.86    -0.212  
-    ##  2 monkeys         2.89     0.153  
-    ##  3 herr            2.89    -0.142  
-    ##  4 raja            2.87     0.119  
-    ##  5 franz           2.85     0.0567 
-    ##  6 lulu            2.83     0.166  
-    ##  7 von             3.27    -0.347  
-    ##  8 beau            2.89     0.0327 
-    ##  9 caviar          2.81     0.149  
-    ## 10 penguins        2.94     0.0640 
-    ## 11 elves           2.84     0.0518 
-    ## 12 virgins         2.85    -0.628  
-    ## 13 lesbians        2.94     0.177  
-    ## 14 fez             2.83    -0.575  
-    ## 15 amuse           2.91    -0.0922 
-    ## 16 hawaiian        2.83     0.0562 
-    ## 17 hens            2.94     0.00535
-    ## 18 salami          2.83    -0.502  
-    ## 19 perverts        3.09    -0.120  
-    ## 20 gertrude        2.81     0.148
+    ##  [1] "pigs"     "monkeys"  "herr"     "raja"     "franz"    "lulu"    
+    ##  [7] "von"      "beau"     "caviar"   "penguins" "elves"    "virgins" 
+    ## [13] "lesbians" "fez"      "amuse"    "hawaiian" "hens"     "salami"  
+    ## [19] "perverts" "gertrude"
 
 ``` r
-# rated as iconic but not funny
+# low imputed funniness and high imputed iconicity
 words.setF %>% 
   filter(ico_imputed_perc > 9, hum_imputed_perc < 3) %>%
   arrange(-ico_imputed) %>%
-  dplyr::select(word,fun_imputed,ico_imputed,hum_imputed_perc,ico_imputed_perc,valence_perc) %>%
-  slice(1:20)
+  dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()
 ```
 
-    ## # A tibble: 20 x 6
-    ##    word  fun_imputed ico_imputed hum_imputed_perc ico_imputed_perc
-    ##    <chr>       <dbl>       <dbl>            <int>            <int>
-    ##  1 slas~        1.97        2.68                1               10
-    ##  2 guns~        1.82        2.58                1               10
-    ##  3 foot~        2.12        2.51                2               10
-    ##  4 cries        2.07        2.30                2               10
-    ##  5 foot~        2.02        2.23                1               10
-    ##  6 fade         1.90        2.18                1               10
-    ##  7 froze        2.09        2.14                2               10
-    ##  8 cr           1.93        2.11                1               10
-    ##  9 swel~        2.11        2.10                2               10
-    ## 10 crus~        2.10        2.10                2               10
-    ## 11 pier~        2.04        2.10                2               10
-    ## 12 shoo~        2.10        2.09                2               10
-    ## 13 brea~        2.06        2.08                2               10
-    ## 14 sobs         2.01        2.08                1               10
-    ## 15 trem~        1.81        2.07                1               10
-    ## 16 stro~        2.12        2.07                2               10
-    ## 17 chok~        2.05        2.06                2               10
-    ## 18 slam~        2.12        2.06                2               10
-    ## 19 shoc~        2.04        2.06                2               10
-    ## 20 ng           2.00        2.05                1               10
-    ## # ... with 1 more variable: valence_perc <int>
+    ##  [1] "slashes"   "gunshots"  "footstep"  "cries"     "footsteps"
+    ##  [6] "fade"      "froze"     "cr"        "swelter"   "crushing" 
+    ## [11] "piercing"  "shoots"    "breathing" "sobs"      "tremors"  
+    ## [16] "strokes"   "choking"   "slammed"   "shocked"   "ng"
 
 ``` r
 # what about compound nouns here? In the top 200 nouns we can spot ~5 (shockwave, doodlebug, flashbulb, backflip, footstep) but that is of course a tiny tail end of a much larger dataset than the earlier two.
@@ -1298,60 +933,60 @@ words.setF %>%
   filter(ico_imputed_perc > 9,
          POS == "Noun") %>%
   arrange(-ico_imputed) %>%
-  slice(201:400) %>%
+  slice(1:200) %>%
   dplyr::select(word) %>% unlist %>% unname() 
 ```
 
-    ##   [1] "kinks"          "footsteps"      "blasters"       "thunders"      
-    ##   [5] "slicks"         "whirlwinds"     "footfalls"      "tig"           
-    ##   [9] "farts"          "squirts"        "scat"           "volts"         
-    ##  [13] "guffaw"         "pipsqueaks"     "churns"         "peepy"         
-    ##  [17] "shug"           "guffaws"        "tings"          "firecracker"   
-    ##  [21] "shredder"       "gnashing"       "scooch"         "hiccups"       
-    ##  [25] "booboo"         "poppers"        "slurry"         "reaks"         
-    ##  [29] "hugs"           "revs"           "gaps"           "bazoo"         
-    ##  [33] "diddles"        "nibbles"        "scats"          "crunchiness"   
-    ##  [37] "surg"           "crunk"          "zits"           "hocks"         
-    ##  [41] "puffs"          "glim"           "growler"        "choc"          
-    ##  [45] "twists"         "munchy"         "matey"          "fash"          
-    ##  [49] "wags"           "oos"            "mashes"         "reflexes"      
-    ##  [53] "woofer"         "latches"        "pulsation"      "pedal"         
-    ##  [57] "staggers"       "noo"            "scoops"         "wallops"       
-    ##  [61] "flops"          "chills"         "somersaults"    "mutterings"    
-    ##  [65] "reverberations" "gaga"           "gumdrop"        "spitter"       
-    ##  [69] "cr"             "tics"           "loo"            "kissy"         
-    ##  [73] "jackhammers"    "tinge"          "shive"          "wheelie"       
-    ##  [77] "breaths"        "unhip"          "jackhammer"     "flatulence"    
-    ##  [81] "spitters"       "doodlebugs"     "ka"             "wheelies"      
-    ##  [85] "scrunchie"      "scr"            "chompers"       "footfall"      
-    ##  [89] "ahs"            "chewer"         "swings"         "sayonara"      
-    ##  [93] "boohooing"      "doohickeys"     "snips"          "twinkles"      
-    ##  [97] "toughy"         "clickers"       "tremors"        "cramps"        
-    ## [101] "pep"            "sniffle"        "winks"          "strokes"       
-    ## [105] "thro"           "pipsqueak"      "owling"         "wisecracks"    
-    ## [109] "gangbang"       "bap"            "shoon"          "bursts"        
-    ## [113] "humps"          "thunderhead"    "fudge"          "tushie"        
-    ## [117] "razzes"         "crunchers"      "somersault"     "flasher"       
-    ## [121] "pouncy"         "tweaks"         "bustles"        "goop"          
-    ## [125] "claws"          "rolls"          "clackers"       "wobblies"      
-    ## [129] "streaks"        "owd"            "prickles"       "yuh"           
-    ## [133] "popsy"          "uncool"         "fam"            "bouncers"      
-    ## [137] "pitter"         "smarts"         "dungy"          "tats"          
-    ## [141] "guck"           "whizzer"        "drumbeat"       "putters"       
-    ## [145] "tucks"          "clutters"       "rockabye"       "shredders"     
-    ## [149] "poppet"         "murmurings"     "bites"          "typing"        
-    ## [153] "dool"           "jowls"          "weasels"        "gimp"          
-    ## [157] "clicker"        "frazzle"        "goosebumps"     "chomper"       
-    ## [161] "pinprick"       "cymbals"        "sp"             "fizzes"        
-    ## [165] "wipeouts"       "baps"           "umph"           "weaseling"     
-    ## [169] "trunch"         "ribby"          "nudge"          "wisecrack"     
-    ## [173] "boho"           "jumble"         "slurs"          "sci"           
-    ## [177] "doodlers"       "phooey"         "nubs"           "tum"           
-    ## [181] "flooey"         "shrilling"      "gonzo"          "untwist"       
-    ## [185] "surges"         "blooper"        "sprouts"        "whizzers"      
-    ## [189] "quicksilver"    "bum"            "batwing"        "gunfire"       
-    ## [193] "yeahs"          "whirligig"      "scrumpy"        "choop"         
-    ## [197] "gobblers"       "niggle"         "smasher"        "rashes"
+    ##   [1] "whir"          "growls"        "whizzle"       "crackle"      
+    ##   [5] "screechy"      "poppin"        "whooshes"      "slurps"       
+    ##   [9] "crackles"      "squelching"    "whizz"         "yips"         
+    ##  [13] "shimmy"        "grunts"        "yowl"          "splats"       
+    ##  [17] "screeches"     "smooches"      "abuzz"         "flashes"      
+    ##  [21] "snarls"        "zings"         "sizzles"       "ska"          
+    ##  [25] "grunting"      "punches"       "cackle"        "doodle"       
+    ##  [29] "roarings"      "whinny"        "glop"          "oohs"         
+    ##  [33] "bobble"        "biggity"       "yippie"        "shivers"      
+    ##  [37] "knocks"        "splay"         "giggles"       "cha"          
+    ##  [41] "thwacks"       "murmurs"       "hoppity"       "quicks"       
+    ##  [45] "cack"          "digs"          "screecher"     "peek"         
+    ##  [49] "chewie"        "dings"         "drumming"      "boohoo"       
+    ##  [53] "cruncher"      "thunderclap"   "scrapes"       "whinnies"     
+    ##  [57] "blasts"        "clicks"        "hooey"         "woom"         
+    ##  [61] "woohoo"        "biddy"         "splatters"     "cracks"       
+    ##  [65] "bumble"        "twang"         "busts"         "booms"        
+    ##  [69] "tootsy"        "rumblings"     "squiggle"      "gunshots"     
+    ##  [73] "doodah"        "sps"           "doodles"       "yaw"          
+    ##  [77] "blips"         "flickers"      "woofs"         "gags"         
+    ##  [81] "bumps"         "exhale"        "cluck"         "flashbulb"    
+    ##  [85] "wheezes"       "bobs"          "smoothy"       "swells"       
+    ##  [89] "bumpity"       "footstep"      "rebop"         "blooey"       
+    ##  [93] "aahs"          "chimes"        "twirp"         "shoos"        
+    ##  [97] "crush"         "wa"            "swizzle"       "swirls"       
+    ## [101] "widdy"         "humph"         "ba"            "clacker"      
+    ## [105] "yaps"          "phoo"          "ricochet"      "techno"       
+    ## [109] "glints"        "boos"          "spik"          "snippety"     
+    ## [113] "dap"           "looey"         "squeaker"      "clacks"       
+    ## [117] "hiccup"        "girlies"       "buzzers"       "woofy"        
+    ## [121] "unison"        "squeegee"      "gobbler"       "scuffs"       
+    ## [125] "crushes"       "dd"            "dop"           "wisps"        
+    ## [129] "boogaloo"      "whips"         "swizzles"      "spurts"       
+    ## [133] "shockwave"     "titties"       "rustles"       "chocks"       
+    ## [137] "blaster"       "scratches"     "jabs"          "suction"      
+    ## [141] "clinker"       "thrum"         "scuz"          "puncher"      
+    ## [145] "jinks"         "spurt"         "roo"           "girlie"       
+    ## [149] "unsnarl"       "grumblings"    "sips"          "shotty"       
+    ## [153] "doodler"       "chuggers"      "sla"           "bubby"        
+    ## [157] "berserk"       "shocks"        "flashbulbs"    "bonkers"      
+    ## [161] "squiggles"     "jingles"       "hubba"         "explosions"   
+    ## [165] "titty"         "bongs"         "woozle"        "flashiness"   
+    ## [169] "twi"           "shuffling"     "twitches"      "tingles"      
+    ## [173] "bong"          "sprocket"      "wagger"        "tsp"          
+    ## [177] "sprockets"     "backflip"      "pizzle"        "hooves"       
+    ## [181] "noises"        "hootch"        "jiff"          "flurry"       
+    ## [185] "awhirl"        "creeps"        "duh"           "doohickey"    
+    ## [189] "widdle"        "bu"            "hyp"           "pecs"         
+    ## [193] "clamors"       "abracadabra"   "whiney"        "reverberation"
+    ## [197] "quacks"        "hubbub"        "doodlebug"     "fu"
 
 ``` r
 # better way is to sample 200 random nouns from a proportionate slice of the data, i.e. 200 * 17.8 = 3560 top nouns in imputed iconicity. In this subset we find at least 30 non-iconic analysable compounds: fireworm, deadbolt, footstep, pockmark, uppercut, woodwork, biotech, notepad, spellbinder, henchmen, quicksands, blowgun, heartbreaks, moonbeams, sketchpad, etc. 
@@ -1547,13 +1182,7 @@ anova(m4.1,m4.2)
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-m4.2.table <- m4.2 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m4.2.table,digits=3)
+print_table(m4.2)
 ```
 
 | predictor     |    df|       SS|      *F*|    *p*|  partial *η*<sup>2</sup>|
@@ -1651,13 +1280,7 @@ anova(m5.1,m5.2)
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-m5.2.table <- m5.2 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m5.2.table,digits=3)
+print_table(m5.2)
 ```
 
 | predictor     |    df|        SS|      *F*|   *p*|  partial *η*<sup>2</sup>|
@@ -1757,6 +1380,20 @@ Model the contribution of markedness relative to logletter frequency
 words.setC <- words %>% filter(set=="C")
 
 m5.3 <- lm(funico ~ logfreq + rt + logletterfreq + cumulative,data=words.setC)
+anova(m5.2,m5.3)
+```
+
+    ## Analysis of Variance Table
+    ## 
+    ## Model 1: funico ~ logfreq + rt + logletterfreq
+    ## Model 2: funico ~ logfreq + rt + logletterfreq + cumulative
+    ##   Res.Df    RSS Df Sum of Sq      F    Pr(>F)    
+    ## 1   1415 2703.4                                  
+    ## 2   1414 2606.1  1    97.283 52.783 6.134e-13 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` r
 summary(m5.3)
 ```
 
@@ -1784,27 +1421,7 @@ summary(m5.3)
     ## F-statistic: 95.93 on 4 and 1414 DF,  p-value: < 2.2e-16
 
 ``` r
-anova(m5.2,m5.3)
-```
-
-    ## Analysis of Variance Table
-    ## 
-    ## Model 1: funico ~ logfreq + rt + logletterfreq
-    ## Model 2: funico ~ logfreq + rt + logletterfreq + cumulative
-    ##   Res.Df    RSS Df Sum of Sq      F    Pr(>F)    
-    ## 1   1415 2703.4                                  
-    ## 2   1414 2606.1  1    97.283 52.783 6.134e-13 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
-m5.3.table <- m5.3 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m5.3.table,digits=3)
+print_table(m5.3)
 ```
 
 | predictor     |    df|        SS|      *F*|    *p*|  partial *η*<sup>2</sup>|
@@ -2013,13 +1630,7 @@ summary(m5.4)
     ## F-statistic: 782.2 on 3 and 19231 DF,  p-value: < 2.2e-16
 
 ``` r
-m5.4.table <- m5.4 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m5.4.table,digits=3)
+print_table(m5.4)
 ```
 
 | predictor     |     df|        SS|       *F*|    *p*|  partial *η*<sup>2</sup>|
@@ -2073,13 +1684,7 @@ anova(m5.4,m5.5)
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-m5.5.table <- m5.5 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(m5.5.table,digits=3)
+print_table(m5.5)
 ```
 
 | predictor     |     df|         SS|       *F*|    *p*|  partial *η*<sup>2</sup>|
@@ -2710,13 +2315,7 @@ summary(mS.1)
 
 ``` r
 # cumulative markedness is particularly good for iconicity, rivalling funniness, word frequency and log letter frequency as a predictor of iconicity rating
-mS.1.table <- mS.1 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(mS.1.table,digits=3)
+print_table(mS.1)
 ```
 
 | predictor     |    df|        SS|     *F*|    *p*|  partial *η*<sup>2</sup>|
@@ -2760,13 +2359,7 @@ summary(mS.2)
     ## F-statistic: 63.98 on 6 and 1412 DF,  p-value: < 2.2e-16
 
 ``` r
-mS.2.table <- mS.2 %>%
-  anova() %>%
-  mutate(predictor = row.names(.),
-         pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
-  setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
-  dplyr::select(c(predictor,1:2,4:5,7))
-kable(mS.2.table,digits=3)
+print_table(mS.2)
 ```
 
 | predictor      |    df|       SS|      *F*|    *p*|  partial *η*<sup>2</sup>|
