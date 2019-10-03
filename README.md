@@ -1,7 +1,10 @@
 # Playful iconicity
-Mark Dingemanse, Centre for Language Studies, Radboud University (corresponding author)
+* Mark Dingemanse, Centre for Language Studies, Radboud University (corresponding author)
+* Bill D. Thompson, Princeton University
 
-Bill D. Thompson, Princeton University
+Open data, analyses & supplementary materials for a paper on the relation between funniness and iconicity.
+
+![](out/figures-1.png)
 
 ## Script files 
 
