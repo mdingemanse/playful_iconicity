@@ -1,7 +1,7 @@
 Playful iconicity: data & analyses
 ================
 Mark Dingemanse & Bill Thompson
-(this version: 2019-10-02)
+(this version: 2019-10-08)
 
 Setup
 -----
@@ -44,7 +44,7 @@ We use these ratings in our analyses, but we also feed them to our [imputation m
 Secondary data sources:
 
 -   Balota, D. A., Yap, M. J., Hutchison, K. A., Cortese, M. J., Kessler, B., Loftis, B., … Treiman, R. (2007). The English Lexicon Project. Behavior Research Methods, 39(3), 445–459. doi: 10.3758/BF03193014
--   Brysbaert, M., & New, B. (2009). Moving beyond Kucera and Francis: A critical evaluation of current word frequency norms and the introduction of a new and improved word frequency measure for American English. Behavior Research Methods, 41(4), 977-990. doi: 10.3758/BRM.41.4.977
+-   Brysbaert, M., New, B., & Keuleers, E. (2012). Adding part-of-speech information to the SUBTLEX-US word frequencies. Behavior Research Methods, 44(4), 991–997. doi: 10.3758/s13428-012-0190-4
 -   Keuleers, E., Lacey, P., Rastle, K., & Brysbaert, M. (2012). The British Lexicon Project: Lexical decision data for 28,730 monosyllabic and disyllabic English words. Behavior Research Methods, 44(1), 287-304. doi: 10.3758/s13428-011-0118-4
 -   Vaden, K.I., Halpin, H.R., Hickok, G.S. (2009). Irvine Phonotactic Online Dictionary, Version 2.0. \[Data file\]. Available from <http://www.iphod.com>.
 -   Warriner, A.B., Kuperman, V., & Brysbaert, M. (2013). Norms of valence, arousal, and dominance for 13,915 English lemmas. Behavior Research Methods, 45, 1191-1207
@@ -119,7 +119,11 @@ iphod <- iphod.raw[!duplicated(iphod.raw$word),] %>%
 words <- words %>% 
   left_join(iphod)
 rm(iphod,iphod.raw)
+```
 
+Let's also add number of morphemes from the British Lexicon Project.
+
+``` r
 # and we add number of morphemes from the British Lexicon Project
 morph <- read_csv("data/EnglishLexiconProject_nmorph_Items.csv") %>% 
   plyr::rename(c("Word" = "word", "NMorph" = "nmorph"))
@@ -929,8 +933,11 @@ words.setF %>%
     ## [11] "piercing"  "shoots"    "breathing" "sobs"      "tremors"  
     ## [16] "strokes"   "choking"   "slammed"   "shocked"   "ng"
 
+What about compound nouns here? In the top 200 nouns we can spot ~5 (shockwave, doodlebug, flashbulb, backflip, footstep) but that is of course a tiny tail end of a much larger dataset than the earlier two.
+
+A better way is to sample 200 random nouns from a proportionate slice of the data, i.e. 200 \* 17.8 = 3560 top nouns in imputed iconicity. In this subset we find at least 30 non-iconic analysable compounds: fireworm, deadbolt, footstep, pockmark, uppercut, woodwork, biotech, notepad, spellbinder, henchmen, quicksands, blowgun, heartbreaks, moonbeams, sketchpad, et cetera.
+
 ``` r
-# what about compound nouns here? In the top 200 nouns we can spot ~5 (shockwave, doodlebug, flashbulb, backflip, footstep) but that is of course a tiny tail end of a much larger dataset than the earlier two.
 words.setF %>% 
   filter(ico_imputed_perc > 9,
          POS == "Noun") %>%
@@ -991,8 +998,6 @@ words.setF %>%
     ## [197] "quacks"        "hubbub"        "doodlebug"     "fu"
 
 ``` r
-# better way is to sample 200 random nouns from a proportionate slice of the data, i.e. 200 * 17.8 = 3560 top nouns in imputed iconicity. In this subset we find at least 30 non-iconic analysable compounds: fireworm, deadbolt, footstep, pockmark, uppercut, woodwork, biotech, notepad, spellbinder, henchmen, quicksands, blowgun, heartbreaks, moonbeams, sketchpad, etc. 
-
 set.seed(1983)
 words.setF %>% 
   filter(ico_imputed_perc > 9,
@@ -1294,6 +1299,12 @@ print_table(m5.2)
 
 We carry out a qualitative analysis of the 80 highest ranked words (top deciles for funniness+iconicity) to see if there are formal cues of foregrounding and structural markedness that can help predict funniness and iconicity ratings. Then we find these cues in the larger dataset and see if the patterns hold up.
 
+This analysis reveals the following sets of complex onsets, codas, and verbal diminutive suffixes that are likely structural cues of markedness (given here in the form of regular expressions):
+
+-   onsets: `^(bl|cl|cr|dr|fl|sc|sl|sn|sp|spl|sw|tr|pr|sq)`
+-   codas: `(nch|mp|nk|rt|rl|rr|sh|wk)$`
+-   verbal suffix: `[b-df-hj-np-tv-xz]le)$`" (i.e., look for -le after a consonant)
+
 ``` r
 words.high <- words %>%
   filter(set=="C",
@@ -1309,7 +1320,11 @@ words.high <- words %>%
 onsets <- "^(bl|cl|cr|dr|fl|sc|sl|sn|sp|spl|sw|tr|pr|sq)"
 codas <- "(nch|mp|nk|rt|rl|rr|sh|wk)$"
 verbdim <- "([b-df-hj-np-tv-xz]le)$" # i.e., look for -le after a consonant
+```
 
+We tag these cues across the whole dataset (looking for the -le suffix only in verbs because words like mutable, unnameable, scalable, manacle are not the same phenomenon).
+
+``` r
 # tag words for these patterns, applying verbdim only to verbs
 # add a cumulative measure of complexity
 words <- words %>%
@@ -2411,11 +2426,13 @@ words %>%
 
 ### AoA
 
-Simon Kirby asked [https://twitter.com/SimonKirby/status/1123602157322887169](on%20Twitter) whether the relation between funniness and iconicity might have something to do with child-directedness. This is hard to test directly (and unlikely to apply across the board) but if this were the case presumably it would also be reflected in AoA ratings — e.g., the more funny and iconic words would have relatively lower AoA ratings. (We know of course from Perry et al. 2017 that AoA is negatively correlated with iconicity: words rated higher in iconicity have a somewhat lower age of acquisition.)
+Simon Kirby [asked on Twitter](https://twitter.com/SimonKirby/status/1123602157322887169) whether the relation between funniness and iconicity might have something to do with child-directedness. This is hard to test directly (and unlikely to apply across the board) but if this were the case presumably it would also be reflected in AoA ratings — e.g., the more funny and iconic words would have relatively lower AoA ratings. (Importantly: we already know from Perry et al. 2017 that AoA is negatively correlated with iconicity: words rated higher in iconicity have a somewhat lower age of acquisition.)
 
 -   Kuperman, V., Stadthagen-Gonzalez, H., & Brysbaert, M. (2012). Age-of-acquisition ratings for 30,000 English words. Behavior Research Methods, 44(4), 978-990. doi: 10.3758/s13428-012-0210-4
 
-We have AoA data for all 1.419 words in set C. It doesn't really explain the iconicity + funniness relation. Though an important caveat is that this particular small subset may not be the best data to judge this on.
+We have AoA data for all 1.419 words in set C. It doesn't really explain the iconicity + funniness relation. That is, words high in both iconicity and funniness are not strikingly low in AoA.
+
+Though an important caveat is that this particular small subset may not be the best data to judge this on.
 
 ``` r
 # using AoA data from Kuperman et al. 2012
@@ -2852,7 +2869,7 @@ The End.
 
 If you find this useful, consider checking out the following resources that have been helpful in preparing this Rmarkdown document:
 
+-   Two of my own past projects (remember, the person most grateful for your well-documented past code is future you): \*\* [Expressiveness and grammatical integration](http://ideophone.org/collab/expint/) (by Mark Dingemanse) \*\* [Coloured vowels: open data and code](https://github.com/mdingemanse/colouredvowels/blob/master/BRM_colouredvowels_opendata.md) (by Mark Dingemanse & Christine Cuskley)
 -   [Formatting ANOVA tables in R](http://www.understandingdata.net/2017/05/11/anova-tables-in-r/) (by Rose Hartman, Understanding Data)
--   [Coloured vowels: open data and code](https://github.com/mdingemanse/colouredvowels/blob/master/BRM_colouredvowels_opendata.md) (by Mark Dingemanse & Christine Cuskley) (remember, the person most grateful for your well-documented past code is future you)
 -   [Iconicity in the speech of children and adults](https://github.com/bodowinter/iconicity_acquisition) (by Bodo Winter)
 -   [English letter frequencies](http://practicalcryptography.com/cryptanalysis/letter-frequencies-various-languages/english-letter-frequencies/)
