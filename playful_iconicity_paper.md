@@ -255,37 +255,37 @@ diff\_rank
 
 <td style="text-align:left;">
 
-tinkle
+oink
 
 </td>
 
 <td style="text-align:right;">
 
-3
+3.615385
 
 </td>
 
 <td style="text-align:right;">
 
-3.962963
+3.871795
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.694147
+\-2.865582
 
 </td>
 
 <td style="text-align:right;">
 
-1.681241
+1.748188
 
 </td>
 
 <td style="text-align:right;">
 
-574.9714
+669.3214
 
 </td>
 
@@ -1157,23 +1157,14 @@ instead of `fun`) does not make a difference in ranking, so not done
 here and elsewhere.
 
 What about compound nouns among high iconicity words? From eyeballing,
-it seems to be about 10% in this set of 200 nouns: *beep, zigzag,
-buzzer, bleep, clunk, roar, moo, clang, boom, murmur, whirl, crunch,
-crash, flash, sludge, ping, skateboard, blast, purr, splash, shriek,
-thud, snarl, bump, tap, slush, groan, fluff, slime, drum, flop, crack,
-jolt, sunshine, limp, mash, tinkle, silk, zipper, freezer, whiff, shot,
-tick, peep, cuckoo, yodel, thunder, rumble, twist, echo, sigh, snort,
-flap, jingle, yahoo, snowball, drizzle, tang, clash, prick, swirl,
-flick, cricket, juggler, whimper, airplane, dread, hole, bedroom, arch,
-goldfish, seaweed, coo, slur, mist, dash, block, pulse, loop, lipstick,
-slum, mixer, corkscrew, pump, cough, gloss, tingle, flat, charge,
-muzzle, slobber, stench, doorknob, slump, shock, baby, stagger, frog,
-sleet, anchor, gallop, wisp, ripple, spring, creep, python, killer,
-mirror, cushion, carnage, punch, slick, father, snake, hug, moonlight,
-torment, tummy, sparkle, leech, prune, prance, miss, kingdom, party,
-razor, gloom, singer, pin, drift, ashtray, prowl, velour, bomb, corpse,
-shield, fireworks, axe, twilight, pliers, rush, stump, victim, flow,
-grub, inch, bliss, leap, fling, racer, uproar, egg*
+it seems to be about 10% in a set of the highest rated 200 nouns. Many
+probable examples can be found by looking at highly rated nouns with
+multiple morphemes: *zigzag, buzzer, skateboard, sunshine, zipper,
+freezer, snowball, juggler, airplane, bedroom, goldfish, seaweed,
+lipstick, mixer, corkscrew, doorknob, killer, moonlight, tummy, kingdom,
+razor, singer, ashtray, fireworks, pliers, racer, uproar* (*zigzag*, one
+of the few reduplicative words in English, is included here because the
+Balota et al. database lists it as having 2 morphemes).
 
 ### 3.2. Funniness and imputed iconicity
 
