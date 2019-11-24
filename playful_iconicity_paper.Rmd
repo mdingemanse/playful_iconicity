@@ -25,7 +25,7 @@ options(knitr.kable.NA = '') # set NA values in knitr tables as blank
 ```{r preliminaries, include=F}
 
 # Packages and useful functions
-list.of.packages <- c("knitr","kableExtra","stringr","tidyverse","GGally","ggthemes","readxl","ggrepel","ppcor","stringr","car","lme4","mgcv","cowplot","flextable","effsize")
+list.of.packages <- c("knitr","kableExtra","stringr","tidyverse","GGally","ggthemes","readxl","ggrepel","ppcor","car","cowplot","flextable","effsize")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)>0) install.packages(new.packages)
 lapply(list.of.packages, require, character.only=T)
@@ -146,6 +146,10 @@ morph <- read_csv("data/EnglishLexiconProject_nmorph_Items.csv") %>%
 words <- words %>% 
   left_join(morph)
 rm(morph)
+
+words %>% drop_na(nmorph) %>%
+  group_by(set) %>%
+  summarise(n=n())
 
 ```
 
@@ -732,11 +736,11 @@ We tag these cues across the whole dataset (looking for the *-le* suffix only in
 
 ```{r qualitative, include=F}
 
-words.high <- words %>%
-  filter(set=="A",
-         diff_rank > 18) %>%
-  dplyr::select(word,ico,fun,POS,logletterfreq,UnTrn,NSyll,NPhon,diff_rank) %>%
-  write_excel_csv(path="data/words_highest.csv",delim = ",")
+# words.high <- words %>%
+#   filter(set=="A",
+#          diff_rank > 18) %>%
+#   dplyr::select(word,ico,fun,POS,logletterfreq,UnTrn,NSyll,NPhon,diff_rank) %>%
+#   write_excel_csv(path="data/words_highest.csv",delim = ",")
 
 # BTW, some versions of excel cope better with output from csv2
 # write_excel_csv2(path="data/words_highest.csv",delim = ",")
@@ -756,6 +760,19 @@ words <- words %>%
          complex.verbdim = ifelse(str_detect(word,pattern=verbdim),
                                   ifelse(POS == "Verb",1,0),0)) %>%
   mutate(cumulative = rowSums(.[c("complex.coda","complex.onset","complex.verbdim")])) 
+
+# give a few examples of each
+words %>% 
+  filter(complex.onset == 1 & diff_rank > 18) %>% dplyr::select(word) %>%
+  slice(1:10) %>% unlist() %>% unname() %>% kable(caption="10 words with complex onsets")
+  
+words %>% 
+  filter(complex.coda == 1 & diff_rank > 18) %>% dplyr::select(word) %>%
+  slice(1:10) %>% unlist() %>% unname() %>% kable(caption="10 words with complex codas")
+
+words %>% 
+  filter(complex.verbdim == 1 & diff_rank > 18) %>% dplyr::select(word) %>%
+  slice(1:10) %>% unlist() %>% unname() %>% kable(caption="10 words with the verbal -le suffix")
 
 # sanity check: all words ending in -le vs all verbs
 #words[str_detect(words$word,pattern=verbdim),]$word
@@ -1368,7 +1385,35 @@ words %>%
 
 ```
 
+#### Word classes
+Reviewer 1 asked us to look into word classes. We report this here as an exploratory analysis. The correlation between funniness and iconicity ratings has the same sign across word classes. The somewhat steeper correlation in verbs (*n* = 241) can be attributed in part to the verbal diminutive suffix *-le* (*n* = 17). 
 
+```{r exploratory_POS,echo=F}
+
+words %>%
+  filter(set=="A",POS %in% c("Adjective","Noun","Verb")) %>%
+  group_by(POS) %>%
+  summarise(n=n(),mean.ico=mean.na(ico),mean.fun=mean.na(fun),
+            raw.correlation=cor.test(ico,fun)$estimate) %>%
+  kable(caption="Mean iconicity and funniness in set A across word classes")
+
+words %>%
+  filter(POS %in% c("Adjective","Noun","Verb")) %>%
+  ggplot(aes(ico,fun,color=POS)) +
+  theme_tufte() + ggtitle("Funniness and iconicity by POS") +
+  geom_point(alpha=0.5) +
+  geom_smooth(method="lm") +
+  facet_wrap(~ POS)
+
+words %>%
+  filter(POS == "Verb",set=="A") %>%
+  ggplot(aes(ico,fun,color=as.factor(complex.verbdim))) +
+  theme_tufte() + ggtitle("Funniness and iconicity in verbs",subtitle="Teasing apart verbs with and without -le suffix") +
+  labs(colour="-le suffix") +
+  geom_point(alpha=0.5) +
+  geom_smooth(method="lm")
+
+```
 
 
 ## End

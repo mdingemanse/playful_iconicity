@@ -1,7 +1,7 @@
 Playful iconicity: data & analyses
 ================
 Mark Dingemanse & Bill Thompson
-(this version: 2019-11-22)
+(this version: 2019-11-24)
 
   - [Introduction](#introduction)
       - [Data sources](#data-sources)
@@ -255,37 +255,37 @@ diff\_rank
 
 <td style="text-align:left;">
 
-oink
+thud
 
 </td>
 
 <td style="text-align:right;">
 
-3.615385
+3.384615
 
 </td>
 
 <td style="text-align:right;">
 
-3.871795
+3.081081
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.865582
+\-2.973482
 
 </td>
 
 <td style="text-align:right;">
 
-1.748188
+2
 
 </td>
 
 <td style="text-align:right;">
 
-669.3214
+582.3636
 
 </td>
 
@@ -14400,6 +14400,146 @@ mean.aoa
 </tbody>
 
 </table>
+
+#### Word classes
+
+Reviewer 1 asked us to look into word classes. We report this here as an
+exploratory analysis. The correlation between funniness and iconicity
+ratings has the same sign across word classes. The somewhat steeper
+correlation in verbs (*n* = 241) can be attributed in part to the verbal
+diminutive suffix *-le* (*n* = 17).
+
+<table>
+
+<caption>
+
+Mean iconicity and funniness in set A across word classes
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+POS
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+<th style="text-align:right;">
+
+mean.ico
+
+</th>
+
+<th style="text-align:right;">
+
+mean.fun
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+Adjective
+
+</td>
+
+<td style="text-align:right;">
+
+109
+
+</td>
+
+<td style="text-align:right;">
+
+0.9662906
+
+</td>
+
+<td style="text-align:right;">
+
+2.270046
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Noun
+
+</td>
+
+<td style="text-align:right;">
+
+1049
+
+</td>
+
+<td style="text-align:right;">
+
+0.7212491
+
+</td>
+
+<td style="text-align:right;">
+
+2.367076
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Verb
+
+</td>
+
+<td style="text-align:right;">
+
+241
+
+</td>
+
+<td style="text-align:right;">
+
+1.4846836
+
+</td>
+
+<td style="text-align:right;">
+
+2.366951
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+![](out/exploratory_POS-1.png)<!-- -->![](out/exploratory_POS-2.png)<!-- -->
 
 ## End
 
