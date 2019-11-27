@@ -1,7 +1,7 @@
 Playful iconicity: data & analyses
 ================
 Mark Dingemanse & Bill Thompson
-(this version: 2019-11-26)
+(this version: 2019-11-27)
 
   - [Introduction](#introduction)
       - [Data sources](#data-sources)
@@ -16,8 +16,12 @@ Mark Dingemanse & Bill Thompson
       - [Structural properties of highly rated
         words](#structural-properties-of-highly-rated-words)
   - [Supplementary analyses](#supplementary-analyses)
+      - [Imputed funniness and
+        iconicity](#imputed-funniness-and-iconicity)
       - [Analysable morphology bias in iconicity
         ratings](#analysable-morphology-bias-in-iconicity-ratings)
+      - [Imputing ratings based on monomorphemic words
+        only](#imputing-ratings-based-on-monomorphemic-words-only)
       - [Other analyses](#other-analyses)
   - [End](#end)
 
@@ -82,16 +86,21 @@ words <- words %>%
          ico_perc = ntile(ico,10),
          diff_rank = fun_perc + ico_perc,
          ico_imputed_perc = ntile(ico_imputed,10),
-         hum_imputed_perc = ntile(fun_imputed,10),
-         hum_imputed_resid_perc = ntile(fun_imputed_resid,10),
+         fun_imputed_perc = ntile(fun_imputed,10),
+         fun_imputed_resid_perc = ntile(fun_imputed_resid,10),
          diff_rank_setB = fun_perc + ico_imputed_perc,
-         diff_rank_setC = hum_imputed_perc + ico_imputed_perc,
+         diff_rank_setC = fun_imputed_perc + ico_imputed_perc,
+         diff_rank_setD = fun_imputed_perc + ico_perc,
          logletterfreq_perc = ntile(logletterfreq,10),
          dens_perc = ntile(unsDENS,10),
          biphone_perc = ntile(unsBPAV,10),
          triphone_perc = ntile(unsTPAV,10),
          posprob_perc = ntile(unsPOSPAV,10),
          valence_perc = ntile(valence,10))
+
+words.export <- words %>%
+  drop_na(set)
+write.csv(words.export, file="data/words.csv")
 ```
 
 ### Descriptive data
@@ -170,6 +179,22 @@ C
 <td style="text-align:right;">
 
 63723
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+D
+
+</td>
+
+<td style="text-align:right;">
+
+1526
 
 </td>
 
@@ -257,37 +282,37 @@ diff\_rank
 
 <td style="text-align:left;">
 
-chirp
+dump
 
 </td>
 
 <td style="text-align:right;">
 
-4.142857
+2.9375
 
 </td>
 
 <td style="text-align:right;">
 
-3
+3.09375
 
 </td>
 
 <td style="text-align:right;">
 
-\-3.042824
+\-3.580025
 
 </td>
 
 <td style="text-align:right;">
 
-1.491362
+3.167613
 
 </td>
 
 <td style="text-align:right;">
 
-644.5161
+533.1795
 
 </td>
 
@@ -8222,6 +8247,675 @@ Pr(\>F)
 Here we report additional analyses that provide more details than we
 have room for in the paper.
 
+### Imputed funniness and iconicity
+
+In the paper, we test the imputation method by seeing whether the
+fun\~iconicity relation is upheld in imputed iconicity ratings. The
+reason is that we have a sizable test set (3.577) and there is an
+objective definition of iconicity (resemblance between aspects of form
+and aspects of meaning). In the paper, we point out that words with high
+imputed iconicity are indeed clearly imitative and cite some evidence
+from OED definitions (though we don’t do this in a systematic way).
+
+Can we also test the imputation method the other way around? There are
+1.526 words for which we have human iconicity ratings but not funniness
+ratings. Since this is a much smaller set and there is no objective ways
+to judge the funniness of words we don’t report this comparison in the
+paper, but it comes out as expected.
+
+``` r
+words.setD <- words %>% filter(set=="D")
+
+words %>%
+  filter(set=="D") %>%
+  ggplot(aes(x=ico,y=fun_imputed)) +
+  theme_tufte() + 
+  labs(x="iconicity", y="imputed funniness") + 
+  ggtitle("Imputed funniness and human iconicity ratings (n = 1526)",subtitle="(labelling top 15 words with high imputed funniness)") +
+  stat_smooth(method="loess",colour="grey",span=0.8) +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    #data=sample_n(words.setD %>% filter(fun_imputed_perc > 9),12),
+    data=words.setD %>% arrange(-fun_imputed) %>% slice(1:15),
+    aes(label=word),
+    size=4,
+    alpha=0.8,
+    segment.colour="grey50",
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+```
+
+![](out/imputed_fun-1.png)<!-- -->
+
+``` r
+mS2.1 <- lm(fun_imputed ~ logfreq + rt, words.setD)
+summary(mS2.1)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = fun_imputed ~ logfreq + rt, data = words.setD)
+    ## 
+    ## Residuals:
+    ##      Min       1Q   Median       3Q      Max 
+    ## -0.82355 -0.19056 -0.00997  0.18545  0.99558 
+    ## 
+    ## Coefficients:
+    ##               Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)  2.1400246  0.1326180  16.137  < 2e-16 ***
+    ## logfreq     -0.0962365  0.0104864  -9.177  < 2e-16 ***
+    ## rt           0.0009374  0.0001893   4.952 8.61e-07 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 0.2977 on 1006 degrees of freedom
+    ##   (517 observations deleted due to missingness)
+    ## Multiple R-squared:  0.2392, Adjusted R-squared:  0.2377 
+    ## F-statistic: 158.2 on 2 and 1006 DF,  p-value: < 2.2e-16
+
+``` r
+mS2.2 <- lm(fun_imputed ~ logfreq + rt + ico, words.setD)
+plot(fitted(mS2.2),residuals(mS2.2))  # no obvious linearity
+```
+
+![](out/imputed_fun-2.png)<!-- -->
+
+``` r
+qqnorm(residuals(mS2.2))
+qqline(residuals(mS2.2))           # looks OK, slight right skew or light tailed as above
+```
+
+![](out/imputed_fun-3.png)<!-- -->
+
+``` r
+vif(mS2.2)                         # all below 2 so no indications of multicollinearity
+```
+
+    ##  logfreq       rt      ico 
+    ## 1.913598 1.856358 1.065061
+
+``` r
+summary(mS2.2)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = fun_imputed ~ logfreq + rt + ico, data = words.setD)
+    ## 
+    ## Residuals:
+    ##      Min       1Q   Median       3Q      Max 
+    ## -0.89958 -0.18667  0.00119  0.16164  1.01843 
+    ## 
+    ## Coefficients:
+    ##               Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)  2.0119858  0.1256012  16.019  < 2e-16 ***
+    ## logfreq     -0.0766722  0.0100430  -7.634 5.26e-14 ***
+    ## rt           0.0009062  0.0001786   5.075 4.62e-07 ***
+    ## ico          0.0883170  0.0078717  11.220  < 2e-16 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 0.2808 on 1005 degrees of freedom
+    ##   (517 observations deleted due to missingness)
+    ## Multiple R-squared:  0.3239, Adjusted R-squared:  0.3219 
+    ## F-statistic: 160.5 on 3 and 1005 DF,  p-value: < 2.2e-16
+
+``` r
+anova(mS2.1,mS2.2)
+```
+
+    ## Analysis of Variance Table
+    ## 
+    ## Model 1: fun_imputed ~ logfreq + rt
+    ## Model 2: fun_imputed ~ logfreq + rt + ico
+    ##   Res.Df    RSS Df Sum of Sq      F    Pr(>F)    
+    ## 1   1006 89.170                                  
+    ## 2   1005 79.244  1    9.9255 125.88 < 2.2e-16 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+As in §3.2 in the paper we can try to predict imputed funniness based on
+frequency and rt, and see how much iconicity ratings improve our
+predictions.
+
+Compared to model mS2.1, which predicts fun\_imputed with just log
+frequency and lexical decision time, model mS2.2 including iconicity as
+predictor provides a significantly better fit and explains a larger
+portion of the variance.
+
+**Model mS2.1**: lm(formula = fun\_imputed \~ logfreq + rt, data =
+words.setD)
+
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+predictor
+
+</th>
+
+<th style="text-align:right;">
+
+df
+
+</th>
+
+<th style="text-align:right;">
+
+SS
+
+</th>
+
+<th style="text-align:right;">
+
+\(F\)
+
+</th>
+
+<th style="text-align:right;">
+
+\(p\)
+
+</th>
+
+<th style="text-align:right;">
+
+partial \(\eta^2\)
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+logfreq
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+25.869
+
+</td>
+
+<td style="text-align:right;">
+
+291.852
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+0.225
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+rt
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+2.174
+
+</td>
+
+<td style="text-align:right;">
+
+24.522
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+0.024
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Residuals
+
+</td>
+
+<td style="text-align:right;">
+
+1006
+
+</td>
+
+<td style="text-align:right;">
+
+89.170
+
+</td>
+
+<td style="text-align:right;">
+
+</td>
+
+<td style="text-align:right;">
+
+</td>
+
+<td style="text-align:right;">
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+**Model m2.2**: lm(formula = fun\_imputed \~ logfreq + rt + ico, data =
+words.setD)
+
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+predictor
+
+</th>
+
+<th style="text-align:right;">
+
+df
+
+</th>
+
+<th style="text-align:right;">
+
+SS
+
+</th>
+
+<th style="text-align:right;">
+
+\(F\)
+
+</th>
+
+<th style="text-align:right;">
+
+\(p\)
+
+</th>
+
+<th style="text-align:right;">
+
+partial \(\eta^2\)
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+logfreq
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+25.869
+
+</td>
+
+<td style="text-align:right;">
+
+328.080
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+0.246
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+rt
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+2.174
+
+</td>
+
+<td style="text-align:right;">
+
+27.566
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+0.027
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+ico
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+9.926
+
+</td>
+
+<td style="text-align:right;">
+
+125.878
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+0.111
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Residuals
+
+</td>
+
+<td style="text-align:right;">
+
+1005
+
+</td>
+
+<td style="text-align:right;">
+
+79.244
+
+</td>
+
+<td style="text-align:right;">
+
+</td>
+
+<td style="text-align:right;">
+
+</td>
+
+<td style="text-align:right;">
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+<table>
+
+<caption>
+
+model comparison
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:right;">
+
+Res.Df
+
+</th>
+
+<th style="text-align:right;">
+
+RSS
+
+</th>
+
+<th style="text-align:right;">
+
+Df
+
+</th>
+
+<th style="text-align:right;">
+
+Sum of Sq
+
+</th>
+
+<th style="text-align:right;">
+
+F
+
+</th>
+
+<th style="text-align:right;">
+
+Pr(\>F)
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:right;">
+
+1006
+
+</td>
+
+<td style="text-align:right;">
+
+89.16985
+
+</td>
+
+<td style="text-align:right;">
+
+</td>
+
+<td style="text-align:right;">
+
+</td>
+
+<td style="text-align:right;">
+
+</td>
+
+<td style="text-align:right;">
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+1005
+
+</td>
+
+<td style="text-align:right;">
+
+79.24433
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+9.92552
+
+</td>
+
+<td style="text-align:right;">
+
+125.8784
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+A partial correlations analysis shows that there is 32% of covariance
+between iconicity ratings and imputed funniness that is not explained by
+word frequency (r = 0.32, p \< 0.0001). In other words, iconicity
+ratings can also help us predict imputed funniness.
+
+**Example words**
+
+High imputed funniness and high iconicity: *gurgle, mushy, screech,
+icky, goopy, hiss, quack, cooing, chirping, squishy, mini, crinkle,
+sizzle, slosh, slurp, purring, splat, crinkly, buzz, scoot*
+
+Low imputed funniness and low iconicity: *synagogue, bequeath, require,
+choose, repent, condition, ambulance, polio, injury, attorney, oppose,
+resign, denial, motionless*
+
+High funniness and low iconicity: *buttock, knave, cockatoo, bib, yam,
+donut, zucchini, honeyed, dewy, emu, budgie, buttery, holey, vagina,
+leotards, parakeet, kitten, burl, downy, slang*
+
+Low imputed funniness and high iconicity: *explosion, crushed, no,
+stinging, breathe, harsh, sting, huge, fibrous*
+
 ### Analysable morphology bias in iconicity ratings
 
 An inspection of the top few hundred words reveals many clearly iconic
@@ -9581,6 +10275,13 @@ pearson
 
 </table>
 
+### Imputing ratings based on monomorphemic words only
+
+Given what we know about the bias in iconicity ratings it may make sense
+to base imputation only on monomorphemic words and see how this affects
+the results. It should lead to less analysable compounds showing up high
+in the imputed iconicity ratings of set B and set C.
+
 ### Other analyses
 
 #### Markedness patterns in words with imputed ratings
@@ -9840,7 +10541,7 @@ cumulative
 
 <td style="text-align:left;">
 
-clink
+swoosh
 
 </td>
 
@@ -9852,7 +10553,7 @@ clink
 
 <td style="text-align:right;">
 
-2.6584769
+3.8021451
 
 </td>
 
@@ -9868,7 +10569,7 @@ clink
 
 <td style="text-align:left;">
 
-crush
+blurt
 
 </td>
 
@@ -9880,7 +10581,7 @@ crush
 
 <td style="text-align:right;">
 
-2.4874010
+2.2853380
 
 </td>
 
@@ -9896,7 +10597,7 @@ crush
 
 <td style="text-align:left;">
 
-slink
+crunk
 
 </td>
 
@@ -9908,7 +10609,7 @@ slink
 
 <td style="text-align:right;">
 
-2.1164153
+2.1653418
 
 </td>
 
@@ -9924,7 +10625,7 @@ slink
 
 <td style="text-align:left;">
 
-trunch
+crumple
 
 </td>
 
@@ -9936,7 +10637,7 @@ trunch
 
 <td style="text-align:right;">
 
-1.9866388
+1.9479412
 
 </td>
 
@@ -9952,7 +10653,7 @@ trunch
 
 <td style="text-align:left;">
 
-snappish
+flinch
 
 </td>
 
@@ -9964,7 +10665,7 @@ snappish
 
 <td style="text-align:right;">
 
-1.6125467
+1.8646337
 
 </td>
 
@@ -9980,7 +10681,7 @@ snappish
 
 <td style="text-align:left;">
 
-sluggish
+clump
 
 </td>
 
@@ -9992,7 +10693,7 @@ sluggish
 
 <td style="text-align:right;">
 
-1.5854586
+1.5840648
 
 </td>
 
@@ -10008,7 +10709,7 @@ sluggish
 
 <td style="text-align:left;">
 
-snuggle
+scribble
 
 </td>
 
@@ -10020,7 +10721,7 @@ snuggle
 
 <td style="text-align:right;">
 
-1.5526855
+1.5335878
 
 </td>
 
@@ -10036,7 +10737,7 @@ snuggle
 
 <td style="text-align:left;">
 
-cronk
+squash
 
 </td>
 
@@ -10048,7 +10749,7 @@ cronk
 
 <td style="text-align:right;">
 
-1.4004689
+1.4720196
 
 </td>
 
@@ -10064,7 +10765,35 @@ cronk
 
 <td style="text-align:left;">
 
-scart
+blank
+
+</td>
+
+<td style="text-align:right;">
+
+10
+
+</td>
+
+<td style="text-align:right;">
+
+1.4354367
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+bluish
 
 </td>
 
@@ -10076,35 +10805,7 @@ scart
 
 <td style="text-align:right;">
 
-1.3531129
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-crl
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1.2325660
+1.1294532
 
 </td>
 
@@ -10148,7 +10849,7 @@ cleanish
 
 <td style="text-align:left;">
 
-priggish
+primp
 
 </td>
 
@@ -10160,119 +10861,7 @@ priggish
 
 <td style="text-align:right;">
 
-1.0163470
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-trush
-
-</td>
-
-<td style="text-align:right;">
-
-8
-
-</td>
-
-<td style="text-align:right;">
-
-0.9897793
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-slavish
-
-</td>
-
-<td style="text-align:right;">
-
-8
-
-</td>
-
-<td style="text-align:right;">
-
-0.9740523
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-clownish
-
-</td>
-
-<td style="text-align:right;">
-
-8
-
-</td>
-
-<td style="text-align:right;">
-
-0.9214691
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-swinish
-
-</td>
-
-<td style="text-align:right;">
-
-8
-
-</td>
-
-<td style="text-align:right;">
-
-0.8504212
+0.9036671
 
 </td>
 
@@ -10316,7 +10905,91 @@ spinsterish
 
 <td style="text-align:left;">
 
-prudish
+blanch
+
+</td>
+
+<td style="text-align:right;">
+
+6
+
+</td>
+
+<td style="text-align:right;">
+
+0.4864278
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+flatfish
+
+</td>
+
+<td style="text-align:right;">
+
+5
+
+</td>
+
+<td style="text-align:right;">
+
+0.3870658
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+tradespeople
+
+</td>
+
+<td style="text-align:right;">
+
+4
+
+</td>
+
+<td style="text-align:right;">
+
+0.2557573
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+crayfish
 
 </td>
 
@@ -10328,7 +11001,35 @@ prudish
 
 <td style="text-align:right;">
 
-0.1531699
+0.1607801
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+preshrunk
+
+</td>
+
+<td style="text-align:right;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+0.1581131
 
 </td>
 
@@ -10372,7 +11073,7 @@ transport
 
 <td style="text-align:left;">
 
-swedish
+spearfish
 
 </td>
 
@@ -10384,7 +11085,7 @@ swedish
 
 <td style="text-align:right;">
 
-\-0.0868294
+0.0134083
 
 </td>
 

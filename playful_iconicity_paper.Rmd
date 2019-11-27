@@ -76,6 +76,13 @@ Secondary data sources used in supplementary analyses:
 words <- read_csv("data/experimental-and-imputed-norms-for-funniness-iconicity-logletterfreq.csv") %>%
   plyr::rename(c("iconicity" = "ico","iconicity_imputed" = "ico_imputed"))
 
+# add sets
+words <- words %>%
+  mutate(set = ifelse(is.na(ico) & is.na(fun), "C",
+                      ifelse(is.na(ico) & !is.na(fun), "B", 
+                             ifelse(!is.na(fun) & !is.na(ico),"A","D"))))
+
+
 subtlex <- read_excel(path="data/SUBTLEX-US frequency list with PoS and Zipf information.xlsx") %>%
   plyr::rename(c("Word" = "word","FREQcount" = "freq_count","Lg10WF" = "logfreq","Dom_PoS_SUBTLEX" = "POS")) %>%
   dplyr::select(word,logfreq,POS) %>%
@@ -87,10 +94,7 @@ unique(words$word)[unique(words$word) %notin% unique(subtlex$word)]
 
 words <- words %>%
   left_join(subtlex) %>%
-  drop_na(logfreq,POS) %>%
-  mutate(set = ifelse(is.na(ico) & is.na(fun), "C",
-                      ifelse(is.na(ico) & !is.na(fun), "B", 
-                             ifelse(!is.na(fun) & !is.na(ico),"A",NA))))
+  drop_na(logfreq,POS)
 rm(subtlex)
 
 # add RT data from Keuleers et al. 2012
@@ -163,16 +167,22 @@ words <- words %>%
          ico_perc = ntile(ico,10),
          diff_rank = fun_perc + ico_perc,
          ico_imputed_perc = ntile(ico_imputed,10),
-         hum_imputed_perc = ntile(fun_imputed,10),
-         hum_imputed_resid_perc = ntile(fun_imputed_resid,10),
+         fun_imputed_perc = ntile(fun_imputed,10),
+         fun_imputed_resid_perc = ntile(fun_imputed_resid,10),
          diff_rank_setB = fun_perc + ico_imputed_perc,
-         diff_rank_setC = hum_imputed_perc + ico_imputed_perc,
+         diff_rank_setC = fun_imputed_perc + ico_imputed_perc,
+         diff_rank_setD = fun_imputed_perc + ico_perc,
          logletterfreq_perc = ntile(logletterfreq,10),
          dens_perc = ntile(unsDENS,10),
          biphone_perc = ntile(unsBPAV,10),
          triphone_perc = ntile(unsTPAV,10),
          posprob_perc = ntile(unsPOSPAV,10),
          valence_perc = ntile(valence,10))
+
+words.export <- words %>%
+  drop_na(set)
+write.csv(words.export, file="data/words.csv")
+
 
 ```
 
@@ -607,9 +617,9 @@ High imputed funniness and high imputed iconicity: *`r words.setC %>% filter(dif
 
 Low imputed funniness and low imputed iconicity: *`r words.setC %>% filter(diff_rank_setC <= 2) %>% arrange(-desc(ico_imputed)) %>%   dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
 
-High imputed funniness and low imputed iconicity: *`r words.setC %>% filter(hum_imputed_perc > 9, ico_imputed_perc < 4) %>% arrange(desc(fun)) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+High imputed funniness and low imputed iconicity: *`r words.setC %>% filter(fun_imputed_perc > 9, ico_imputed_perc < 4) %>% arrange(desc(fun)) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
 
-Low imputed funniness and high imputed iconicity: *`r words.setC %>% filter(ico_imputed_perc > 9, hum_imputed_perc < 3) %>% arrange(-ico_imputed) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+Low imputed funniness and high imputed iconicity: *`r words.setC %>% filter(ico_imputed_perc > 9, fun_imputed_perc < 3) %>% arrange(-ico_imputed) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
 
 What about compound nouns here? In the top 200 nouns we can spot ~5 (*shockwave, doodlebug, flashbulb, backflip, footstep*) but that is of course a tiny tail end of a much larger dataset than the earlier two.
 
@@ -930,6 +940,85 @@ Comparison of models with combined imputed funniness and iconicity as a dependen
 Here we report additional analyses that provide more details than we have room for in the paper.
 
 
+### Imputed funniness and iconicity
+
+In the paper, we test the imputation method by seeing whether the fun~iconicity relation is upheld in imputed iconicity ratings. The reason is that we have a sizable test set (3.577) and there is an objective definition of iconicity (resemblance between aspects of form and aspects of meaning). In the paper, we point out that words with high imputed iconicity are indeed clearly imitative and cite some evidence from OED definitions (though we don't do this in a systematic way).
+
+Can we also test the imputation method the other way around? There are 1.526 words for which we have human iconicity ratings but not funniness ratings. Since this is a much smaller set and there is no objective ways to judge the funniness of words we don't report this comparison in the paper, but it comes out as expected.
+
+```{r imputed_fun} 
+
+words.setD <- words %>% filter(set=="D")
+
+words %>%
+  filter(set=="D") %>%
+  ggplot(aes(x=ico,y=fun_imputed)) +
+  theme_tufte() + 
+  labs(x="iconicity", y="imputed funniness") + 
+  ggtitle("Imputed funniness and human iconicity ratings (n = 1526)",subtitle="(labelling top 15 words with high imputed funniness)") +
+  stat_smooth(method="loess",colour="grey",span=0.8) +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    #data=sample_n(words.setD %>% filter(fun_imputed_perc > 9),12),
+    data=words.setD %>% arrange(-fun_imputed) %>% slice(1:15),
+    aes(label=word),
+    size=4,
+    alpha=0.8,
+    segment.colour="grey50",
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+
+
+mS2.1 <- lm(fun_imputed ~ logfreq + rt, words.setD)
+summary(mS2.1)
+
+mS2.2 <- lm(fun_imputed ~ logfreq + rt + ico, words.setD)
+plot(fitted(mS2.2),residuals(mS2.2))  # no obvious linearity
+qqnorm(residuals(mS2.2))
+qqline(residuals(mS2.2))           # looks OK, slight right skew or light tailed as above
+vif(mS2.2)                         # all below 2 so no indications of multicollinearity
+
+summary(mS2.2)
+anova(mS2.1,mS2.2)
+
+```
+
+As in §3.2 in the paper we can try to predict imputed funniness based on frequency and rt, and see how much iconicity ratings improve our predictions.
+
+Compared to model mS2.1, which predicts fun_imputed with just log frequency and lexical decision time, model mS2.2 including iconicity as predictor provides a significantly better fit and explains a larger portion of the variance.
+
+**Model mS2.1**: `r format(mS2.1$call)`
+`r print_table(mS2.1)`
+
+**Model m2.2**: `r format(mS2.2$call)`
+`r print_table(mS2.2)`
+
+`r kable(anova(mS2.1,mS2.2),caption="model comparison")`
+
+A partial correlations analysis shows that there is 32% of covariance between iconicity ratings and imputed funniness that is not explained by word frequency (r = 0.32, p < 0.0001). In other words, iconicity ratings can also help us predict imputed funniness.
+
+```{r fun_imputed_pcor_2, include=F}
+# partial correlation
+pcor.test(x=words.setD$fun_imputed,y=words.setD$ico,z=words.setD$logfreq) %>% kable(caption="imputed funniness and iconicity controlling for word frequency")
+
+
+```
+
+**Example words**
+
+High imputed funniness and high iconicity: *`r words.setD %>% filter(diff_rank_setD > 19) %>% arrange(-ico) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+
+Low imputed funniness and low iconicity: *`r words.setD %>% filter(diff_rank_setD <= 2) %>% arrange(-desc(ico_imputed)) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+
+High funniness and low iconicity: *`r words.setD %>% filter(fun_imputed_perc > 9, ico_perc < 4) %>% arrange(desc(fun_imputed)) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+
+Low imputed funniness and high iconicity: *`r words.setD %>% filter(ico_perc > 9, fun_imputed_perc < 3) %>% arrange(-ico) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+
+
+
 ### Analysable morphology bias in iconicity ratings
 
 An inspection of the top few hundred words reveals many clearly iconic words, but also a number of transparently compositional words like *sunshine, seaweed, downpour, dishwasher, corkscrew, bedroom*. Looking at top rated iconic nouns with >1 morphemes is a good way of finding many of these.
@@ -1100,6 +1189,10 @@ pcor.test(x=words.setC.1$fun_imputed,y=words.setC.1$ico_imputed,z=words.setC.1$l
 
 
 ```
+
+### Imputing ratings based on monomorphemic words only
+
+Given what we know about the bias in iconicity ratings it may make sense to base imputation only on monomorphemic words and see how this affects the results. It should lead to less analysable compounds showing up high in the imputed iconicity ratings of set B and set C.
 
 ### Other analyses
 
