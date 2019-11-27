@@ -15,6 +15,7 @@ Subsidiary Python scripts:
 * [expand-intersection.py](expand-intersaction.py) : expands intersection between norm sets
 * [benchmark-prediction.py](benchmark-prediction.py) : benchmarks predictions
 * [tag-letter-entropy.py](tag-letter-entropy.py) : computes letter entropy
+* [impute-from-monomorphemic.py](impute-from-monomorphemic.py) : imputes norms from just monomorphemic words
 
 ## Data files 
 * [experimental-and-imputed-norms-for-funniness-iconicity-logletterfreq.csv](data/experimental-and-imputed-norms-for-funniness-iconicity-logletterfreq.csv): main data file
