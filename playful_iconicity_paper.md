@@ -1,30 +1,32 @@
 Playful iconicity: data & analyses
 ================
 Mark Dingemanse & Bill Thompson
-(this version: 2019-11-24)
+(this version: 2019-11-26)
 
   - [Introduction](#introduction)
       - [Data sources](#data-sources)
       - [Descriptive data](#descriptive-data)
       - [Figures](#figures)
   - [Main analyses](#main-analyses)
-      - [3.1 Funniness and iconicity](#funniness-and-iconicity)
-      - [3.2. Funniness and imputed
+      - [Funniness and iconicity](#funniness-and-iconicity)
+      - [Funniness and imputed
         iconicity](#funniness-and-imputed-iconicity)
-      - [3.3 Imputed iconicity and imputed
-        funniness](#imputed-iconicity-and-imputed-funniness)
-      - [3.4 Structural properties of highly rated
+      - [Imputed funniness and imputed
+        iconicity](#imputed-funniness-and-imputed-iconicity)
+      - [Structural properties of highly rated
         words](#structural-properties-of-highly-rated-words)
   - [Supplementary analyses](#supplementary-analyses)
-      - [(includes markedness, phonotactics, morphology, valence, age of
-        acquisition)](#includes-markedness-phonotactics-morphology-valence-age-of-acquisition)
+      - [Analysable morphology bias in iconicity
+        ratings](#analysable-morphology-bias-in-iconicity-ratings)
+      - [Other analyses](#other-analyses)
   - [End](#end)
 
 ## Introduction
 
 This code notebook provides a fully reproducible workflow for the paper
-‘Playful iconicity’. To increase readability, not all code chunks
-present in the .Rmd source are shown in the output.
+**Playful iconicity: Structural markedness underlies the relation
+between funniness and iconicity**. To increase readability, not all code
+chunks present in the .Rmd source are shown in the output.
 
 ### Data sources
 
@@ -255,37 +257,37 @@ diff\_rank
 
 <td style="text-align:left;">
 
-thud
+chirp
 
 </td>
 
 <td style="text-align:right;">
 
-3.384615
+4.142857
 
 </td>
 
 <td style="text-align:right;">
 
-3.081081
+3
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.973482
+\-3.042824
 
 </td>
 
 <td style="text-align:right;">
 
-2
+1.491362
 
 </td>
 
 <td style="text-align:right;">
 
-582.3636
+644.5161
 
 </td>
 
@@ -328,7 +330,7 @@ figures from the paper.
 
 ## Main analyses
 
-### 3.1 Funniness and iconicity
+### Funniness and iconicity
 
 #### Reproducing prior results
 
@@ -1166,7 +1168,7 @@ razor, singer, ashtray, fireworks, pliers, racer, uproar* (*zigzag*, one
 of the few reduplicative words in English, is included here because the
 Balota et al. database lists it as having 2 morphemes).
 
-### 3.2. Funniness and imputed iconicity
+### Funniness and imputed iconicity
 
 Here we study the link between funniness ratings and imputed iconicity
 ratings.
@@ -1710,7 +1712,7 @@ What about analysable compounds among high iconicity nouns? Here too
 about 10%, with examples like *heartbeat, mouthful, handshake, bellboy,
 comeback, catchphrase*.
 
-### 3.3 Imputed iconicity and imputed funniness
+### Imputed funniness and imputed iconicity
 
 Model 3.1: lm(formula = fun\_imputed \~ logfreq + rt, data = words.setC)
 
@@ -2268,7 +2270,7 @@ words.setC %>%
   dplyr::select(word) %>% unlist %>% unname() 
 ```
 
-### 3.4 Structural properties of highly rated words
+### Structural properties of highly rated words
 
 #### Log letter frequency
 
@@ -8217,10 +8219,1369 @@ Pr(\>F)
 
 ## Supplementary analyses
 
-### (includes markedness, phonotactics, morphology, valence, age of acquisition)
-
 Here we report additional analyses that provide more details than we
 have room for in the paper.
+
+### Analysable morphology bias in iconicity ratings
+
+An inspection of the top few hundred words reveals many clearly iconic
+words, but also a number of transparently compositional words like
+*sunshine, seaweed, downpour, dishwasher, corkscrew, bedroom*. Looking
+at top rated iconic nouns with \>1 morphemes is a good way of finding
+many of these.
+
+``` r
+# 200 most iconic words for visual inspection
+words %>%
+  drop_na(ico) %>%
+  filter(ico_perc > 8) %>%
+  arrange(-ico) %>%
+  dplyr::select(word) %>%
+  slice(1:200) %>% unlist() %>% unname()
+
+# top rated iconic nouns with >1 morphemes is a good way of getting at many of these
+words %>%
+  drop_na(ico) %>%
+  filter(ico_perc > 8,
+         nmorph > 1,
+         POS == "Noun") %>%
+  arrange(-ico) %>%
+  dplyr::select(word) %>%
+  slice(1:200) %>% unlist() %>% unname()
+```
+
+These analysable compound nouns are treated by naïve raters as “sounding
+like what they mean” and therefore given high iconicity ratings, leading
+to rating artefacts. We can use data on number of morphemes from the
+English lexicon project (Balota et al. 2007) to filter out such words
+and look at monomorphemic words only.
+
+The plots and partial correlations below show that the basic patterns
+emerge somewhat clearer in monomorphemic words, as expected. All
+findings remain essentially the same.
+
+There are **1278** monomorphemic words in set A (out of a total of
+1419).
+
+<table>
+
+<caption>
+
+mean iconicity by number of morphemes
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+nmorph
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+<th style="text-align:right;">
+
+mean.ico
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+1278
+
+</td>
+
+<td style="text-align:right;">
+
+0.8546147
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+<td style="text-align:right;">
+
+137
+
+</td>
+
+<td style="text-align:right;">
+
+1.0236474
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+1.4055556
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+1.0000000
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+<table>
+
+<caption>
+
+highest 7 iconic words per number of morphemes (1-3)
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+word
+
+</th>
+
+<th style="text-align:right;">
+
+ico
+
+</th>
+
+<th style="text-align:right;">
+
+fun
+
+</th>
+
+<th style="text-align:left;">
+
+nmorph
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+click
+
+</td>
+
+<td style="text-align:right;">
+
+4.4615385
+
+</td>
+
+<td style="text-align:right;">
+
+2.135135
+
+</td>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+beep
+
+</td>
+
+<td style="text-align:right;">
+
+4.3571429
+
+</td>
+
+<td style="text-align:right;">
+
+2.615385
+
+</td>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+squeak
+
+</td>
+
+<td style="text-align:right;">
+
+4.2307692
+
+</td>
+
+<td style="text-align:right;">
+
+3.230769
+
+</td>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+chirp
+
+</td>
+
+<td style="text-align:right;">
+
+4.1428571
+
+</td>
+
+<td style="text-align:right;">
+
+3.000000
+
+</td>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+stomp
+
+</td>
+
+<td style="text-align:right;">
+
+4.1000000
+
+</td>
+
+<td style="text-align:right;">
+
+2.421053
+
+</td>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+pop
+
+</td>
+
+<td style="text-align:right;">
+
+4.0769231
+
+</td>
+
+<td style="text-align:right;">
+
+3.294118
+
+</td>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+bleep
+
+</td>
+
+<td style="text-align:right;">
+
+3.9285714
+
+</td>
+
+<td style="text-align:right;">
+
+2.931818
+
+</td>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+zigzag
+
+</td>
+
+<td style="text-align:right;">
+
+4.3000000
+
+</td>
+
+<td style="text-align:right;">
+
+3.113636
+
+</td>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+buzzer
+
+</td>
+
+<td style="text-align:right;">
+
+4.0909091
+
+</td>
+
+<td style="text-align:right;">
+
+2.833333
+
+</td>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+skateboard
+
+</td>
+
+<td style="text-align:right;">
+
+3.6000000
+
+</td>
+
+<td style="text-align:right;">
+
+2.208333
+
+</td>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+sunshine
+
+</td>
+
+<td style="text-align:right;">
+
+3.0909091
+
+</td>
+
+<td style="text-align:right;">
+
+2.064516
+
+</td>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+zipper
+
+</td>
+
+<td style="text-align:right;">
+
+2.9230769
+
+</td>
+
+<td style="text-align:right;">
+
+2.516129
+
+</td>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+freezer
+
+</td>
+
+<td style="text-align:right;">
+
+2.9166667
+
+</td>
+
+<td style="text-align:right;">
+
+2.281250
+
+</td>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+bubbly
+
+</td>
+
+<td style="text-align:right;">
+
+2.8181818
+
+</td>
+
+<td style="text-align:right;">
+
+3.352941
+
+</td>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+fireworks
+
+</td>
+
+<td style="text-align:right;">
+
+1.9000000
+
+</td>
+
+<td style="text-align:right;">
+
+2.294118
+
+</td>
+
+<td style="text-align:left;">
+
+3
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+pliers
+
+</td>
+
+<td style="text-align:right;">
+
+1.9000000
+
+</td>
+
+<td style="text-align:right;">
+
+2.352941
+
+</td>
+
+<td style="text-align:left;">
+
+3
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+influence
+
+</td>
+
+<td style="text-align:right;">
+
+0.4166667
+
+</td>
+
+<td style="text-align:right;">
+
+1.914286
+
+</td>
+
+<td style="text-align:left;">
+
+3
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+![](out/morphology-1.png)<!-- -->
+
+<table>
+
+<caption>
+
+Partial correlations between funniness and iconicity, controlling for
+frequency, in monomorphemic words
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:right;">
+
+estimate
+
+</th>
+
+<th style="text-align:right;">
+
+p.value
+
+</th>
+
+<th style="text-align:right;">
+
+statistic
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+<th style="text-align:right;">
+
+gp
+
+</th>
+
+<th style="text-align:left;">
+
+Method
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:right;">
+
+0.2158506
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+7.893486
+
+</td>
+
+<td style="text-align:right;">
+
+1278
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+<td style="text-align:left;">
+
+pearson
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+There are 2176 monomorphemic words in set B (61% of 3577).
+
+<table>
+
+<caption>
+
+mean iconicity by number of morphemes in set B
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+nmorph
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+<th style="text-align:right;">
+
+mean.ico
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+\#
+
+</td>
+
+<td style="text-align:right;">
+
+14
+
+</td>
+
+<td style="text-align:right;">
+
+0.8584171
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+2176
+
+</td>
+
+<td style="text-align:right;">
+
+0.6878947
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+<td style="text-align:right;">
+
+1321
+
+</td>
+
+<td style="text-align:right;">
+
+0.5808049
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+42
+
+</td>
+
+<td style="text-align:right;">
+
+0.4412872
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+</td>
+
+<td style="text-align:right;">
+
+24
+
+</td>
+
+<td style="text-align:right;">
+
+0.2862270
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+![](out/nmorph_setB-1.png)<!-- -->
+
+<table>
+
+<caption>
+
+Partial correlations between funniness and imputed iconicity,
+controlling for frequency, in monomorphemic words
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:right;">
+
+estimate
+
+</th>
+
+<th style="text-align:right;">
+
+p.value
+
+</th>
+
+<th style="text-align:right;">
+
+statistic
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+<th style="text-align:right;">
+
+gp
+
+</th>
+
+<th style="text-align:left;">
+
+Method
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:right;">
+
+0.3278004
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+16.17424
+
+</td>
+
+<td style="text-align:right;">
+
+2176
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+<td style="text-align:left;">
+
+pearson
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+There are only 5188 monomorphemic words in set C (out of 41581 words for
+which we have data on number of morphemes).
+
+<table>
+
+<caption>
+
+mean iconicity by number of morphemes in set C
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+nmorph
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+<th style="text-align:right;">
+
+mean.ico
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+\#
+
+</td>
+
+<td style="text-align:right;">
+
+1320
+
+</td>
+
+<td style="text-align:right;">
+
+0.4958385
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+5188
+
+</td>
+
+<td style="text-align:right;">
+
+0.5429181
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+<td style="text-align:right;">
+
+20468
+
+</td>
+
+<td style="text-align:right;">
+
+0.6487038
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+11576
+
+</td>
+
+<td style="text-align:right;">
+
+0.4195044
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+4
+
+</td>
+
+<td style="text-align:right;">
+
+2689
+
+</td>
+
+<td style="text-align:right;">
+
+0.3195566
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+5
+
+</td>
+
+<td style="text-align:right;">
+
+329
+
+</td>
+
+<td style="text-align:right;">
+
+0.2877888
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+6
+
+</td>
+
+<td style="text-align:right;">
+
+11
+
+</td>
+
+<td style="text-align:right;">
+
+0.3718408
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+</td>
+
+<td style="text-align:right;">
+
+22142
+
+</td>
+
+<td style="text-align:right;">
+
+0.4707780
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+![](out/nmorph_setC-1.png)<!-- -->
+
+<table>
+
+<caption>
+
+Partial correlations between imputed funniness and imputed iconicity,
+controlling for frequency, in monomorphemic words
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:right;">
+
+estimate
+
+</th>
+
+<th style="text-align:right;">
+
+p.value
+
+</th>
+
+<th style="text-align:right;">
+
+statistic
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+<th style="text-align:right;">
+
+gp
+
+</th>
+
+<th style="text-align:left;">
+
+Method
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:right;">
+
+0.4378671
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+35.07016
+
+</td>
+
+<td style="text-align:right;">
+
+5188
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+<td style="text-align:left;">
+
+pearson
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+### Other analyses
 
 #### Markedness patterns in words with imputed ratings
 
@@ -8479,34 +9840,6 @@ cumulative
 
 <td style="text-align:left;">
 
-squish
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-3.5709144
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
 clink
 
 </td>
@@ -8535,7 +9868,7 @@ clink
 
 <td style="text-align:left;">
 
-crumble
+crush
 
 </td>
 
@@ -8547,7 +9880,7 @@ crumble
 
 <td style="text-align:right;">
 
-2.3524300
+2.4874010
 
 </td>
 
@@ -8563,7 +9896,7 @@ crumble
 
 <td style="text-align:left;">
 
-blink
+slink
 
 </td>
 
@@ -8575,35 +9908,7 @@ blink
 
 <td style="text-align:right;">
 
-2.1668420
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-crunk
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-2.1653418
+2.1164153
 
 </td>
 
@@ -8647,90 +9952,6 @@ trunch
 
 <td style="text-align:left;">
 
-flinch
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1.8646337
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-flourish
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1.7225817
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-snaffle
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1.6898653
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
 snappish
 
 </td>
@@ -8759,7 +9980,7 @@ snappish
 
 <td style="text-align:left;">
 
-spangle
+sluggish
 
 </td>
 
@@ -8771,7 +9992,7 @@ spangle
 
 <td style="text-align:right;">
 
-1.5792685
+1.5854586
 
 </td>
 
@@ -8815,7 +10036,7 @@ snuggle
 
 <td style="text-align:left;">
 
-scribble
+cronk
 
 </td>
 
@@ -8827,7 +10048,7 @@ scribble
 
 <td style="text-align:right;">
 
-1.5335878
+1.4004689
 
 </td>
 
@@ -8843,7 +10064,91 @@ scribble
 
 <td style="text-align:left;">
 
-clannish
+scart
+
+</td>
+
+<td style="text-align:right;">
+
+9
+
+</td>
+
+<td style="text-align:right;">
+
+1.3531129
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+crl
+
+</td>
+
+<td style="text-align:right;">
+
+9
+
+</td>
+
+<td style="text-align:right;">
+
+1.2325660
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+cleanish
+
+</td>
+
+<td style="text-align:right;">
+
+9
+
+</td>
+
+<td style="text-align:right;">
+
+1.0357122
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+priggish
 
 </td>
 
@@ -8855,7 +10160,7 @@ clannish
 
 <td style="text-align:right;">
 
-0.8745363
+1.0163470
 
 </td>
 
@@ -8871,7 +10176,7 @@ clannish
 
 <td style="text-align:left;">
 
-squarish
+trush
 
 </td>
 
@@ -8883,7 +10188,7 @@ squarish
 
 <td style="text-align:right;">
 
-0.8420693
+0.9897793
 
 </td>
 
@@ -8899,19 +10204,19 @@ squarish
 
 <td style="text-align:left;">
 
-snowbank
+slavish
 
 </td>
 
 <td style="text-align:right;">
 
-7
+8
 
 </td>
 
 <td style="text-align:right;">
 
-0.7425518
+0.9740523
 
 </td>
 
@@ -8927,7 +10232,63 @@ snowbank
 
 <td style="text-align:left;">
 
-drank
+clownish
+
+</td>
+
+<td style="text-align:right;">
+
+8
+
+</td>
+
+<td style="text-align:right;">
+
+0.9214691
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+swinish
+
+</td>
+
+<td style="text-align:right;">
+
+8
+
+</td>
+
+<td style="text-align:right;">
+
+0.8504212
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+spinsterish
 
 </td>
 
@@ -8939,7 +10300,7 @@ drank
 
 <td style="text-align:right;">
 
-0.6164557
+0.5475747
 
 </td>
 
@@ -8955,63 +10316,7 @@ drank
 
 <td style="text-align:left;">
 
-schrank
-
-</td>
-
-<td style="text-align:right;">
-
-5
-
-</td>
-
-<td style="text-align:right;">
-
-0.4676592
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-spanish
-
-</td>
-
-<td style="text-align:right;">
-
-4
-
-</td>
-
-<td style="text-align:right;">
-
-0.3279848
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-prelaunch
+prudish
 
 </td>
 
@@ -9023,7 +10328,63 @@ prelaunch
 
 <td style="text-align:right;">
 
-0.0355877
+0.1531699
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+transport
+
+</td>
+
+<td style="text-align:right;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+0.0254468
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+swedish
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.0868294
 
 </td>
 
@@ -10220,1067 +11581,6 @@ cumulative
 </table>
 
 ![](out/markedness_imputed-1.png)<!-- -->
-
-#### Inspecting iconicity ratings
-
-An inspection of the top few hundred words reveals many clearly iconic
-words, but also a number of transparently compositional words like
-*sunshine, seaweed, downpour, dishwasher, corkscrew, bedroom*. Looking
-at top rated iconic nouns with \>1 morphemes is a good way of finding
-many of these.
-
-``` r
-# 200 most iconic words for visual inspection
-words %>%
-  drop_na(ico) %>%
-  filter(ico_perc > 8) %>%
-  arrange(-ico) %>%
-  dplyr::select(word) %>%
-  slice(1:200) %>% unlist() %>% unname()
-
-# top rated iconic nouns with >1 morphemes is a good way of getting at many of these
-words %>%
-  drop_na(ico) %>%
-  filter(ico_perc > 8,
-         nmorph > 1,
-         POS == "Noun") %>%
-  arrange(-ico) %>%
-  dplyr::select(word) %>%
-  slice(1:200) %>% unlist() %>% unname()
-```
-
-#### Morphological complexity
-
-We noted a rating artefact to do with analysable compound nouns like
-bedroom, corkscrew, and airplane, which naïve raters treat as “sounding
-like what they mean” and therefore give high iconicity ratings. We can
-use data on number of morphemes from the English lexicon project (Balota
-et al. 2007) to filter out such words and look at monomorphemic words
-only.
-
-There are **1278** monomorphemic words in set A (out of a total of
-1419).
-
-<table>
-
-<caption>
-
-mean iconicity by number of morphemes
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:left;">
-
-nmorph
-
-</th>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-mean.ico
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-1278
-
-</td>
-
-<td style="text-align:right;">
-
-0.8546147
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-<td style="text-align:right;">
-
-137
-
-</td>
-
-<td style="text-align:right;">
-
-1.0236474
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-1.4055556
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-1.0000000
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-<table>
-
-<caption>
-
-highest 7 iconic words per number of morphemes (1-3)
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:left;">
-
-word
-
-</th>
-
-<th style="text-align:right;">
-
-ico
-
-</th>
-
-<th style="text-align:right;">
-
-fun
-
-</th>
-
-<th style="text-align:left;">
-
-nmorph
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:left;">
-
-click
-
-</td>
-
-<td style="text-align:right;">
-
-4.4615385
-
-</td>
-
-<td style="text-align:right;">
-
-2.135135
-
-</td>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-beep
-
-</td>
-
-<td style="text-align:right;">
-
-4.3571429
-
-</td>
-
-<td style="text-align:right;">
-
-2.615385
-
-</td>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-squeak
-
-</td>
-
-<td style="text-align:right;">
-
-4.2307692
-
-</td>
-
-<td style="text-align:right;">
-
-3.230769
-
-</td>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-chirp
-
-</td>
-
-<td style="text-align:right;">
-
-4.1428571
-
-</td>
-
-<td style="text-align:right;">
-
-3.000000
-
-</td>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-stomp
-
-</td>
-
-<td style="text-align:right;">
-
-4.1000000
-
-</td>
-
-<td style="text-align:right;">
-
-2.421053
-
-</td>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-pop
-
-</td>
-
-<td style="text-align:right;">
-
-4.0769231
-
-</td>
-
-<td style="text-align:right;">
-
-3.294118
-
-</td>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-bleep
-
-</td>
-
-<td style="text-align:right;">
-
-3.9285714
-
-</td>
-
-<td style="text-align:right;">
-
-2.931818
-
-</td>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-zigzag
-
-</td>
-
-<td style="text-align:right;">
-
-4.3000000
-
-</td>
-
-<td style="text-align:right;">
-
-3.113636
-
-</td>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-buzzer
-
-</td>
-
-<td style="text-align:right;">
-
-4.0909091
-
-</td>
-
-<td style="text-align:right;">
-
-2.833333
-
-</td>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-skateboard
-
-</td>
-
-<td style="text-align:right;">
-
-3.6000000
-
-</td>
-
-<td style="text-align:right;">
-
-2.208333
-
-</td>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-sunshine
-
-</td>
-
-<td style="text-align:right;">
-
-3.0909091
-
-</td>
-
-<td style="text-align:right;">
-
-2.064516
-
-</td>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-zipper
-
-</td>
-
-<td style="text-align:right;">
-
-2.9230769
-
-</td>
-
-<td style="text-align:right;">
-
-2.516129
-
-</td>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-freezer
-
-</td>
-
-<td style="text-align:right;">
-
-2.9166667
-
-</td>
-
-<td style="text-align:right;">
-
-2.281250
-
-</td>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-bubbly
-
-</td>
-
-<td style="text-align:right;">
-
-2.8181818
-
-</td>
-
-<td style="text-align:right;">
-
-3.352941
-
-</td>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-fireworks
-
-</td>
-
-<td style="text-align:right;">
-
-1.9000000
-
-</td>
-
-<td style="text-align:right;">
-
-2.294118
-
-</td>
-
-<td style="text-align:left;">
-
-3
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-pliers
-
-</td>
-
-<td style="text-align:right;">
-
-1.9000000
-
-</td>
-
-<td style="text-align:right;">
-
-2.352941
-
-</td>
-
-<td style="text-align:left;">
-
-3
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-influence
-
-</td>
-
-<td style="text-align:right;">
-
-0.4166667
-
-</td>
-
-<td style="text-align:right;">
-
-1.914286
-
-</td>
-
-<td style="text-align:left;">
-
-3
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-![](out/morphology-1.png)<!-- -->
-
-There are 2176 monomorphemic words in set B (61% of 3577).
-
-<table>
-
-<caption>
-
-mean iconicity by number of morphemes in set B
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:left;">
-
-nmorph
-
-</th>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-mean.ico
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:left;">
-
-\#
-
-</td>
-
-<td style="text-align:right;">
-
-14
-
-</td>
-
-<td style="text-align:right;">
-
-0.8584171
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-2176
-
-</td>
-
-<td style="text-align:right;">
-
-0.6878947
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-<td style="text-align:right;">
-
-1321
-
-</td>
-
-<td style="text-align:right;">
-
-0.5808049
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-42
-
-</td>
-
-<td style="text-align:right;">
-
-0.4412872
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-</td>
-
-<td style="text-align:right;">
-
-24
-
-</td>
-
-<td style="text-align:right;">
-
-0.2862270
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-![](out/nmorph_setB-1.png)<!-- -->
-
-There are only 5188 monomorphemic words in set C (out of 41581 words for
-which we have data on number of morphemes).
-
-<table>
-
-<caption>
-
-mean iconicity by number of morphemes in set C
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:left;">
-
-nmorph
-
-</th>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-mean.ico
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:left;">
-
-\#
-
-</td>
-
-<td style="text-align:right;">
-
-1320
-
-</td>
-
-<td style="text-align:right;">
-
-0.4958385
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-5188
-
-</td>
-
-<td style="text-align:right;">
-
-0.5429181
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-<td style="text-align:right;">
-
-20468
-
-</td>
-
-<td style="text-align:right;">
-
-0.6487038
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-11576
-
-</td>
-
-<td style="text-align:right;">
-
-0.4195044
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-4
-
-</td>
-
-<td style="text-align:right;">
-
-2689
-
-</td>
-
-<td style="text-align:right;">
-
-0.3195566
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-5
-
-</td>
-
-<td style="text-align:right;">
-
-329
-
-</td>
-
-<td style="text-align:right;">
-
-0.2877888
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-6
-
-</td>
-
-<td style="text-align:right;">
-
-11
-
-</td>
-
-<td style="text-align:right;">
-
-0.3718408
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-</td>
-
-<td style="text-align:right;">
-
-22142
-
-</td>
-
-<td style="text-align:right;">
-
-0.4707780
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-![](out/nmorph_setC-1.png)<!-- -->
 
 #### Markedness for iconicity vs funniness ratings
 
@@ -14445,6 +14745,12 @@ mean.fun
 
 </th>
 
+<th style="text-align:right;">
+
+raw.correlation
+
+</th>
+
 </tr>
 
 </thead>
@@ -14477,6 +14783,12 @@ Adjective
 
 </td>
 
+<td style="text-align:right;">
+
+0.1839577
+
+</td>
+
 </tr>
 
 <tr>
@@ -14505,6 +14817,12 @@ Noun
 
 </td>
 
+<td style="text-align:right;">
+
+0.2059030
+
+</td>
+
 </tr>
 
 <tr>
@@ -14530,6 +14848,12 @@ Verb
 <td style="text-align:right;">
 
 2.366951
+
+</td>
+
+<td style="text-align:right;">
+
+0.5255179
 
 </td>
 
