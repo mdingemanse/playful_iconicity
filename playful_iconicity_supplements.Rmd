@@ -4,14 +4,14 @@ author: "Mark Dingemanse & Bill Thompson"
 date: "(this version: `r format(Sys.Date())`)"
 output:
   github_document:
-  toc: true
-toc_depth: 3
+    toc: true
+    toc_depth: 3
 always_allow_html: yes
 editor_options: 
   chunk_output_type: console
 ---
 
-Part of supporting materials the paper **Playful iconicity: Structural markedness underlies the relation between funniness and iconicity**.  Here we report additional analyses that provide more details than we have room for in the paper.
+Part of supporting materials for the paper *Playful iconicity: Structural markedness underlies the relation between funniness and iconicity*.  Here we report additional analyses that provide more details than we have room for in the paper. The main analyses, figures, and data are in a [separate code notebook](./playful_iconicity_paper.md).
 
 ```{r global_options, include=F}
 knitr::opts_chunk$set(fig.width=8, fig.height=6, fig.path='out/',
@@ -434,7 +434,7 @@ Low imputed funniness and high imputed monomorphemic iconicity: *`r words.setC %
 
 **How about compounds?**
 
-In the new imputed ratings based on monomorphemic words, is it still easy to find analysable compounds rated as highly iconic? Yes, it is... oddball, cleanup, dustpan, killjoy, shakedown, showbizz, feedback, etc.
+In the new imputed ratings based on monomorphemic words, is it still easy to find analysable compound nouns rated as highly iconic? Yes, it is... oddball, cleanup, dustpan, killjoy, shakedown, showbizz, feedback, etc.
 
 ```{r imputed_monomorph_qual, include=F}
 
@@ -504,7 +504,8 @@ plot_grid(pSA, pSB, pSC,labels=c("A","B","C"), label_size=14,ncol=1)
 
 words.morphemetest <- words %>%
   drop_na(nmorph,ico_imputed,ico_imputed_monomorph) %>%
-  filter(set == "B",nmorph %in% (1:3)) 
+  filter(set == "B",
+         nmorph %in% (1:3)) 
 
 words.morphemetest %>%
   filter(ico_imputed_perc > 8) %>%
@@ -538,6 +539,35 @@ words.morphemetest %>%
 ```
 
 In sum, while basing imputed iconicity ratings on monomorphemic words with human ratings gives reasonable results, it does not seem to result in a marked improvement of the imputed ratings, though further analysis is needed.
+
+```{r imputed_monomorph_for_monomorph, include=F}
+
+# Note that the new imputed ratings don't even bring the basic findings better for monomorphemic words. We're losing too much data basing the imputation just on monomorphemic words.
+
+words.1 <- words %>%
+  filter(nmorph == 1) %>%
+  drop_na(ico_imputed_monomorph)
+
+words.1.setA <- words.1 %>% filter(set=="A")
+words.1.setB <- words.1 %>% filter(set=="B")
+words.1.setC <- words.1 %>% filter(set=="C")
+
+pcor.test(words.1.setB$fun, words.1.setB$ico_imputed, words.1.setB$logfreq)
+pcor.test(words.1.setB$fun, words.1.setB$ico_imputed_monomorph, words.1.setB$logfreq)
+
+
+pcor.test(words.1.setC$fun_imputed, words.1.setC$ico_imputed, words.1.setC$logfreq)
+pcor.test(words.1.setC$fun_imputed, words.1.setC$ico_imputed_monomorph, words.1.setC$logfreq)
+
+words.1 %>%
+  filter(nmorph == 1,
+         ico_imputed_perc > 9) %>%
+  group_by(set) %>%
+  summarise(n=n())
+
+
+```
+
 
 ## Markedness patterns in words with imputed ratings
 

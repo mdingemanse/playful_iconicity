@@ -3,10 +3,26 @@ Playful iconicity: supplementary analyses
 Mark Dingemanse & Bill Thompson
 (this version: 2019-11-28)
 
-Part of supporting materials the paper **Playful iconicity: Structural
-markedness underlies the relation between funniness and iconicity**.
-Here we report additional analyses that provide more details than we
-have room for in the paper.
+  - [Imputed funniness and iconicity](#imputed-funniness-and-iconicity)
+  - [Analysable morphology bias in iconicity
+    ratings](#analysable-morphology-bias-in-iconicity-ratings)
+  - [Imputing ratings based on monomorphemic words
+    only](#imputing-ratings-based-on-monomorphemic-words-only)
+  - [Markedness patterns in words with imputed
+    ratings](#markedness-patterns-in-words-with-imputed-ratings)
+  - [Markedness for iconicity vs funniness
+    ratings](#markedness-for-iconicity-vs-funniness-ratings)
+  - [Phonotactic measures from IPHOD](#phonotactic-measures-from-iphod)
+  - [Valence helps explain high-iconicity low-funniness
+    words](#valence-helps-explain-high-iconicity-low-funniness-words)
+  - [Age of acquisition](#age-of-acquisition)
+  - [Word classes](#word-classes)
+
+Part of supporting materials for the paper *Playful iconicity:
+Structural markedness underlies the relation between funniness and
+iconicity*. Here we report additional analyses that provide more details
+than we have room for in the paper. The main analyses, figures, and data
+are in a [separate code notebook](./playful_iconicity_paper.md).
 
 ## Imputed funniness and iconicity
 
@@ -2205,8 +2221,9 @@ adrenalin, storyboard, downpours*
 **How about compounds?**
 
 In the new imputed ratings based on monomorphemic words, is it still
-easy to find analysable compounds rated as highly iconic? Yes, it is…
-oddball, cleanup, dustpan, killjoy, shakedown, showbizz, feedback, etc.
+easy to find analysable compound nouns rated as highly iconic? Yes, it
+is… oddball, cleanup, dustpan, killjoy, shakedown, showbizz, feedback,
+etc.
 
 Visualisastions of iconicity ratings by number of morphemes are hard to
 interpret. The distribution of the ratings is somewhat different (a more
@@ -2222,19 +2239,335 @@ percentiles of iconicity ratings.
 
 ![](out/imputed_monomorph_proportions-1.png)<!-- -->
 
-    ## # A tibble: 3 x 2
-    ##   nmorph     n
-    ##   <chr>  <int>
-    ## 1 1        995
-    ## 2 2       2912
-    ## 3 3        489
+<table>
 
-    ## # A tibble: 3 x 2
-    ##   nmorph     n
-    ##   <chr>  <int>
-    ## 1 1        970
-    ## 2 2       2457
-    ## 3 3        707
+<caption>
+
+Set B, top 20% of words by imputed iconicity based on all words
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+nmorph
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+520
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+<td style="text-align:right;">
+
+210
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+4
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+<table>
+
+<caption>
+
+Set B, top 20% of words by imputed iconicity based on monomorphemic
+words
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+nmorph
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+417
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+<td style="text-align:right;">
+
+224
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+3
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+<table>
+
+<caption>
+
+Set C, top 20% of words by imputed iconicity based on all words
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+nmorph
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+1083
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+<td style="text-align:right;">
+
+5174
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+1408
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+<table>
+
+<caption>
+
+Set C, top 20% of words by imputed iconicity based on monomorphemic
+words
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+nmorph
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+1157
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+<td style="text-align:right;">
+
+4572
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+1759
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
 
 In sum, while basing imputed iconicity ratings on monomorphemic words
 with human ratings gives reasonable results, it does not seem to result
@@ -2498,6 +2831,118 @@ cumulative
 
 <td style="text-align:left;">
 
+clomp
+
+</td>
+
+<td style="text-align:right;">
+
+10
+
+</td>
+
+<td style="text-align:right;">
+
+2.7573962
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+blurt
+
+</td>
+
+<td style="text-align:right;">
+
+10
+
+</td>
+
+<td style="text-align:right;">
+
+2.2853380
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+squirt
+
+</td>
+
+<td style="text-align:right;">
+
+10
+
+</td>
+
+<td style="text-align:right;">
+
+2.1139378
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+spunk
+
+</td>
+
+<td style="text-align:right;">
+
+10
+
+</td>
+
+<td style="text-align:right;">
+
+2.0987844
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
 dribble
 
 </td>
@@ -2526,7 +2971,7 @@ dribble
 
 <td style="text-align:left;">
 
-trundle
+trunch
 
 </td>
 
@@ -2538,7 +2983,7 @@ trundle
 
 <td style="text-align:right;">
 
-1.7745347
+1.9866388
 
 </td>
 
@@ -2554,7 +2999,7 @@ trundle
 
 <td style="text-align:left;">
 
-blimp
+flinch
 
 </td>
 
@@ -2566,7 +3011,7 @@ blimp
 
 <td style="text-align:right;">
 
-1.7163767
+1.8646337
 
 </td>
 
@@ -2582,7 +3027,7 @@ blimp
 
 <td style="text-align:left;">
 
-crank
+sluggish
 
 </td>
 
@@ -2594,7 +3039,7 @@ crank
 
 <td style="text-align:right;">
 
-1.6032802
+1.5854586
 
 </td>
 
@@ -2610,7 +3055,7 @@ crank
 
 <td style="text-align:left;">
 
-sprink
+cronk
 
 </td>
 
@@ -2622,7 +3067,7 @@ sprink
 
 <td style="text-align:right;">
 
-1.5891782
+1.4004689
 
 </td>
 
@@ -2638,175 +3083,7 @@ sprink
 
 <td style="text-align:left;">
 
-spangle
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1.5792685
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-swash
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1.5623261
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-clinch
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1.3375040
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-slapdash
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1.3323017
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-bluish
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1.1294532
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-swank
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1.0427255
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-swaddle
+primp
 
 </td>
 
@@ -2818,35 +3095,7 @@ swaddle
 
 <td style="text-align:right;">
 
-1.0175389
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-blemish
-
-</td>
-
-<td style="text-align:right;">
-
-8
-
-</td>
-
-<td style="text-align:right;">
-
-0.9855408
+0.9036671
 
 </td>
 
@@ -2890,19 +3139,47 @@ blueish
 
 <td style="text-align:left;">
 
-snobbish
+crawfish
 
 </td>
 
 <td style="text-align:right;">
 
-7
+8
 
 </td>
 
 <td style="text-align:right;">
 
-0.7488858
+0.8564163
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+swinish
+
+</td>
+
+<td style="text-align:right;">
+
+8
+
+</td>
+
+<td style="text-align:right;">
+
+0.8504212
 
 </td>
 
@@ -2946,7 +3223,7 @@ snowbank
 
 <td style="text-align:left;">
 
-schrank
+blondish
 
 </td>
 
@@ -2958,7 +3235,7 @@ schrank
 
 <td style="text-align:right;">
 
-0.4676592
+0.4183398
 
 </td>
 
@@ -2974,7 +3251,7 @@ schrank
 
 <td style="text-align:left;">
 
-flatfish
+blandish
 
 </td>
 
@@ -2986,7 +3263,7 @@ flatfish
 
 <td style="text-align:right;">
 
-0.3870658
+0.4082991
 
 </td>
 
@@ -3002,7 +3279,7 @@ flatfish
 
 <td style="text-align:left;">
 
-tradespeople
+trench
 
 </td>
 
@@ -3014,7 +3291,7 @@ tradespeople
 
 <td style="text-align:right;">
 
-0.2557573
+0.2827599
 
 </td>
 
@@ -3043,6 +3320,62 @@ flank
 <td style="text-align:right;">
 
 0.2230756
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+crayfish
+
+</td>
+
+<td style="text-align:right;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+0.1607801
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+prudish
+
+</td>
+
+<td style="text-align:right;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+0.1531699
 
 </td>
 

@@ -20,9 +20,11 @@ Mark Dingemanse & Bill Thompson
 ## Introduction
 
 This code notebook provides a fully reproducible workflow for the paper
-**Playful iconicity: Structural markedness underlies the relation
-between funniness and iconicity**. To increase readability, not all code
-chunks present in the .Rmd source are shown in the output.
+*Playful iconicity: Structural markedness underlies the relation between
+funniness and iconicity*. To increase readability, not all code chunks
+present in the .Rmd source are shown in the output. A separate code
+notebook has the [supplementary
+analyses](./playful_iconicity_supplements.md).
 
 ### Data sources
 
@@ -283,37 +285,37 @@ diff\_rank
 
 <td style="text-align:left;">
 
-flap
+squeeze
 
 </td>
 
 <td style="text-align:right;">
 
-2.7692308
+2.5384615
 
 </td>
 
 <td style="text-align:right;">
 
-3.071429
+3.344828
 
 </td>
 
 <td style="text-align:right;">
 
-\-3.157663
+\-2.724180
 
 </td>
 
 <td style="text-align:right;">
 
-2.133539
+2.886491
 
 </td>
 
 <td style="text-align:right;">
 
-575.9231
+533.7895
 
 </td>
 
@@ -335,37 +337,37 @@ flap
 
 <td style="text-align:left;">
 
-bleep
+whirl
 
 </td>
 
 <td style="text-align:right;">
 
-3.9285714
+3.8181818
 
 </td>
 
 <td style="text-align:right;">
 
-2.931818
+2.911765
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.746375
+\-3.009426
 
 </td>
 
 <td style="text-align:right;">
 
-2.136721
+1.954243
 
 </td>
 
 <td style="text-align:right;">
 
-655.1622
+560.1250
 
 </td>
 
@@ -387,7 +389,7 @@ bleep
 
 <td style="text-align:left;">
 
-weed
+frolic
 
 </td>
 
@@ -399,25 +401,25 @@ weed
 
 <td style="text-align:right;">
 
-3.128205
+3.475000
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.593606
+\-2.973319
 
 </td>
 
 <td style="text-align:right;">
 
-2.778875
+1.633468
 
 </td>
 
 <td style="text-align:right;">
 
-566.5000
+597.5625
 
 </td>
 
@@ -439,37 +441,37 @@ weed
 
 <td style="text-align:left;">
 
-shriek
+kid
 
 </td>
 
 <td style="text-align:right;">
 
-3.5000000
+1.4545455
 
 </td>
 
 <td style="text-align:right;">
 
-2.458333
+2.781250
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.752525
+\-3.218043
 
 </td>
 
 <td style="text-align:right;">
 
-1.518514
+4.238046
 
 </td>
 
 <td style="text-align:right;">
 
-671.9189
+522.3846
 
 </td>
 
@@ -491,37 +493,37 @@ shriek
 
 <td style="text-align:left;">
 
-fun
+banjo
 
 </td>
 
 <td style="text-align:right;">
 
-0.8333333
+1.3636364
 
 </td>
 
 <td style="text-align:right;">
 
-3.355556
+2.809524
 
 </td>
 
 <td style="text-align:right;">
 
-\-3.216379
+\-2.995332
 
 </td>
 
 <td style="text-align:right;">
 
-4.079579
+1.924279
 
 </td>
 
 <td style="text-align:right;">
 
-499.4474
+626.9167
 
 </td>
 
@@ -543,43 +545,43 @@ fun
 
 <td style="text-align:left;">
 
-seaweed
+creep
 
 </td>
 
 <td style="text-align:right;">
 
-2.5000000
+2.1000000
 
 </td>
 
 <td style="text-align:right;">
 
-2.382353
+2.352941
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.503129
+\-2.637778
 
 </td>
 
 <td style="text-align:right;">
 
-1.949390
+2.758912
 
 </td>
 
 <td style="text-align:right;">
 
-658.5263
+547.1750
 
 </td>
 
 <td style="text-align:left;">
 
-2
+1
 
 </td>
 
@@ -595,37 +597,37 @@ seaweed
 
 <td style="text-align:left;">
 
-stumble
+spool
 
 </td>
 
 <td style="text-align:right;">
 
-1.7000000
+0.9000000
 
 </td>
 
 <td style="text-align:right;">
 
-2.407407
+2.676471
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.892918
+\-2.884191
 
 </td>
 
 <td style="text-align:right;">
 
-2.004321
+1.431364
 
 </td>
 
 <td style="text-align:right;">
 
-548.1538
+718.5000
 
 </td>
 
@@ -647,43 +649,43 @@ stumble
 
 <td style="text-align:left;">
 
-parka
+grapefruit
 
 </td>
 
 <td style="text-align:right;">
 
-0.8000000
+1.0909091
 
 </td>
 
 <td style="text-align:right;">
 
-2.454546
+2.361111
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.944659
+\-2.837021
 
 </td>
 
 <td style="text-align:right;">
 
-1.505150
+2.103804
 
 </td>
 
 <td style="text-align:right;">
 
-709.4091
+598.0000
 
 </td>
 
 <td style="text-align:left;">
 
-1
+2
 
 </td>
 
@@ -699,43 +701,43 @@ parka
 
 <td style="text-align:left;">
 
-bookcase
+truth
 
 </td>
 
 <td style="text-align:right;">
 
-0.8181818
+1.5000000
 
 </td>
 
 <td style="text-align:right;">
 
-2.439024
+2.230769
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.815705
+\-2.753571
 
 </td>
 
 <td style="text-align:right;">
 
-1.690196
+3.991315
 
 </td>
 
 <td style="text-align:right;">
 
-688.0286
+503.9211
 
 </td>
 
 <td style="text-align:left;">
 
-2
+1
 
 </td>
 
@@ -751,37 +753,37 @@ bookcase
 
 <td style="text-align:left;">
 
-doctor
+powder
 
 </td>
 
 <td style="text-align:right;">
 
-1.6000000
+0.3076923
 
 </td>
 
 <td style="text-align:right;">
 
-2.100000
+2.552632
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.779546
+\-2.880322
 
 </td>
 
 <td style="text-align:right;">
 
-4.129110
+2.913284
 
 </td>
 
 <td style="text-align:right;">
 
-498.2105
+555.8919
 
 </td>
 
@@ -8814,9 +8816,11 @@ Pr(\>F)
 
 ## End
 
-Thanks for your interest. If you find this useful, consider checking out
-the following resources that have been helpful in preparing this
-Rmarkdown document:
+Thanks for your interest. Also see the separate code notebook
+with[supplementary analyses](./playful_iconicity_supplements.md).
+
+If you find this useful, consider checking out the following resources
+that have been helpful in preparing this Rmarkdown document:
 
   - Two of my own past projects (remember, the person most grateful for
     your well-documented past code is future you):

@@ -13,7 +13,7 @@ editor_options:
 
 ## Introduction
 
-This code notebook provides a fully reproducible workflow for the paper **Playful iconicity: Structural markedness underlies the relation between funniness and iconicity**. To increase readability, not all code chunks present in the .Rmd source are shown in the output. 
+This code notebook provides a fully reproducible workflow for the paper *Playful iconicity: Structural markedness underlies the relation between funniness and iconicity*. To increase readability, not all code chunks present in the .Rmd source are shown in the output. A separate code notebook has the [supplementary analyses](./playful_iconicity_supplements.md).
 
 ```{r global_options, include=F}
 knitr::opts_chunk$set(fig.width=8, fig.height=6, fig.path='out/',
@@ -738,7 +738,7 @@ Model comparison for combined funniness and iconicity scores suggests that havin
 words <- words %>%
   mutate(funico = ico_z + fun_z,
          funico_perc = ntile(funico,100))
-  
+
 words.setA <- words %>% filter(set == "A")
 m5.1 <- lm(funico ~ logfreq + rt,data=words.setA)
 summary(m5.1)
@@ -962,7 +962,10 @@ Comparison of models with combined imputed funniness and iconicity as a dependen
 
 
 ## End
-Thanks for your interest. If you find this useful, consider checking out the following resources that have been helpful in preparing this Rmarkdown document:
+Thanks for your interest. Also see the separate code notebook with[supplementary analyses](./playful_iconicity_supplements.md).
+
+
+If you find this useful, consider checking out the following resources that have been helpful in preparing this Rmarkdown document:
 
 * Two of my own past projects (remember, the person most grateful for your well-documented past code is future you):
   * [Expressiveness and grammatical integration](http://ideophone.org/collab/expint/) (by Mark Dingemanse) 
