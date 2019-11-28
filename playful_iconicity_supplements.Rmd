@@ -1,0 +1,883 @@
+---
+title: "Playful iconicity: supplementary analyses"
+author: "Mark Dingemanse & Bill Thompson"
+date: "(this version: `r format(Sys.Date())`)"
+output:
+  github_document:
+  toc: true
+toc_depth: 3
+always_allow_html: yes
+editor_options: 
+  chunk_output_type: console
+---
+
+Part of supporting materials the paper **Playful iconicity: Structural markedness underlies the relation between funniness and iconicity**.  Here we report additional analyses that provide more details than we have room for in the paper.
+
+```{r global_options, include=F}
+knitr::opts_chunk$set(fig.width=8, fig.height=6, fig.path='out/',
+                      echo=TRUE, warning=FALSE, message=FALSE)
+options(knitr.kable.NA = '') # set NA values in knitr tables as blank
+
+```
+
+```{r preliminaries, include=F}
+
+# Packages and useful functions
+list.of.packages <- c("knitr","kableExtra","stringr","tidyverse","GGally","ggthemes","readxl","ggrepel","ppcor","car","cowplot","flextable","effsize")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)>0) install.packages(new.packages)
+lapply(list.of.packages, require, character.only=T)
+rm(list.of.packages,new.packages)
+
+`%notin%` <- function(x,y) !(x %in% y) 
+
+# with thanks to Bodo Winter:
+mean.na <- function(x) mean(x, na.rm = T)
+sd.na <- function(x) sd(x, na.rm = T)
+
+# print model outputs using kable
+print_table <- function(lm.input) {
+  lm.anova <- anova(lm.input) %>%
+    mutate(predictor = row.names(.),
+           pes = c(`Sum Sq`[-nrow(.)],NA)/(`Sum Sq` + `Sum Sq`[nrow(.)])) %>%
+    setNames(., c("df", "SS","MS", "$F$", "$p$","predictor", "partial $\\eta^2$")) %>%
+    dplyr::select(c(predictor,1:2,4:5,7))
+  kable(lm.anova,digits=3)
+}
+
+# load data
+words <- read_csv("data/words.csv") %>%
+  dplyr::select(-X1)
+
+```
+
+
+## Imputed funniness and iconicity
+
+In the paper, we test the imputation method by seeing whether the funniness ~ iconicity relation is upheld in imputed iconicity ratings. This is a good test case because we have a sizable test set (3.577) and there is an objective definition of iconicity (resemblance between aspects of form and aspects of meaning). Indeed we find that words with high imputed iconicity are clearly imitative and cite some evidence from OED definitions (though we don't do this in a systematic way).
+
+It is also reasonable to test the imputation method the other way around. Does the relation between human iconicity ratings and imputed funniness ratings make any sense? There are 1.526 words for which we have human iconicity ratings but not funniness ratings. Since this is a much smaller set and there is no objective ways to judge the funniness of words we don't report this comparison in the paper, but it comes out just as expected.
+
+```{r imputed_fun, echo=F} 
+
+words.setD <- words %>% filter(set=="D")
+
+words %>%
+  filter(set=="D") %>%
+  ggplot(aes(x=ico,y=fun_imputed)) +
+  theme_tufte() + 
+  labs(x="iconicity", y="imputed funniness") + 
+  ggtitle("Imputed funniness and human iconicity ratings (n = 1526)",subtitle="(labelling top 20 words with high imputed funniness)") +
+  stat_smooth(method="loess",colour="grey",span=0.8) +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    #data=sample_n(words.setD %>% filter(fun_imputed_perc > 9),12),
+    data=words.setD %>% arrange(-fun_imputed) %>% slice(1:20),
+    aes(label=word),
+    size=4,
+    alpha=0.8,
+    segment.colour="grey50",
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+
+```
+
+```{r imputed_fun_lm, include=F}
+
+mS2.1 <- lm(fun_imputed ~ logfreq + rt, words.setD)
+summary(mS2.1)
+
+mS2.2 <- lm(fun_imputed ~ logfreq + rt + ico, words.setD)
+plot(fitted(mS2.2),residuals(mS2.2))  # no obvious linearity
+qqnorm(residuals(mS2.2))
+qqline(residuals(mS2.2))           # looks OK, slight right skew or light tailed as above
+vif(mS2.2)                         # all below 2 so no indications of multicollinearity
+
+summary(mS2.2)
+anova(mS2.1,mS2.2)
+
+```
+
+We construct a linear model predicting imputed funniness based on frequency and rt, and compare that with a model that includes human iconicity ratings see how much this improves our predictions.
+
+Compared to model mS2.1, which predicts fun_imputed with just log frequency and lexical decision time, model mS2.2 including iconicity as predictor provides a significantly better fit (F = 125.88, *p* < 0.0001) and explains a larger portion of the variance (adjusted R2 = 0.32 vs. 0.24).
+
+**Model mS2.1**: `r format(mS2.1$call)`
+`r print_table(mS2.1)`
+
+**Model m2.2**: `r format(mS2.2$call)`
+`r print_table(mS2.2)`
+
+`r kable(anova(mS2.1,mS2.2),caption="model comparison")`
+
+A partial correlations analysis shows that there is 32% of covariance between iconicity ratings and imputed funniness that is not explained by word frequency (r = 0.32, p < 0.0001). In other words, human iconicity ratings are a strong predictor of imputed funniness.
+
+```{r fun_imputed_pcor_2, echo=F}
+# partial correlation
+pcor.test(x=words.setD$fun_imputed,y=words.setD$ico,z=words.setD$logfreq) %>% kable(caption="imputed funniness and iconicity controlling for word frequency")
+
+```
+
+**Example words**
+
+High imputed funniness and high iconicity: *`r words.setD %>% filter(diff_rank_setD > 19) %>% arrange(-ico) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+
+Low imputed funniness and low iconicity: *`r words.setD %>% filter(diff_rank_setD <= 2) %>% arrange(-desc(ico_imputed)) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+
+High funniness and low iconicity: *`r words.setD %>% filter(fun_imputed_perc > 9, ico_perc < 4) %>% arrange(desc(fun_imputed)) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+
+Low imputed funniness and high iconicity: *`r words.setD %>% filter(ico_perc > 9, fun_imputed_perc < 3) %>% arrange(-ico) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+
+
+## Analysable morphology bias in iconicity ratings
+
+An inspection of the top few hundred words reveals many clearly iconic words, but also a number of transparently compositional words like *sunshine, seaweed, downpour, dishwasher, corkscrew, bedroom*. Looking at top rated iconic nouns with >1 morphemes is a good way of finding many of these.
+
+```{r examining_ico_ratings, results='hide'}
+
+# 200 most iconic words for visual inspection
+words %>%
+  drop_na(ico) %>%
+  filter(ico_perc > 8) %>%
+  arrange(-ico) %>%
+  dplyr::select(word) %>%
+  slice(1:200) %>% unlist() %>% unname()
+
+# top rated iconic nouns with >1 morphemes is a good way of getting at many of these
+words %>%
+  drop_na(ico) %>%
+  filter(ico_perc > 8,
+         nmorph > 1,
+         POS == "Noun") %>%
+  arrange(-ico) %>%
+  dplyr::select(word) %>%
+  slice(1:200) %>% unlist() %>% unname()
+
+```
+
+These analysable compound nouns are treated by naïve raters as "sounding like what they mean" and therefore given high iconicity ratings, leading to rating artefacts. We can use data on number of morphemes from the English lexicon project (Balota et al. 2007) to filter out such words and look at monomorphemic words only.
+
+The plots and partial correlations below show that the basic patterns emerge somewhat clearer in monomorphemic words, as expected. All findings remain the same. 
+
+There are **1278** monomorphemic words in set A (out of a total of 1419). 
+
+```{r morphology, echo=F}
+
+words.setA <- words %>%
+  drop_na(ico,fun)
+
+words.setB <- words %>%
+  drop_na(fun) %>%
+  filter(is.na(ico))
+
+words.setC <- words %>%
+  filter(is.na(ico),
+         is.na(fun))
+
+words.monomorphemic <- words %>%
+  drop_na(set) %>% filter(nmorph == 1)
+
+words %>%
+  drop_na(ico,fun) %>%
+  group_by(nmorph) %>%
+  summarise(n=n(),mean.ico=mean.na(ico)) %>%
+  kable(caption="mean iconicity by number of morphemes")
+
+words %>%
+  drop_na(ico,fun,nmorph) %>%
+  group_by(nmorph) %>%
+  arrange(-ico) %>%
+  dplyr::select(word,ico,fun,nmorph) %>%
+  slice(1:7) %>%
+  kable(caption="highest 7 iconic words per number of morphemes (1-3)")
+
+words %>%
+  filter(nmorph == 1) %>%
+  ggplot(aes(ico,fun)) +
+  theme_tufte() + 
+  labs(x="iconicity", y="funniness") + 
+  ggtitle("Funniness and iconicity in monomorphemic words (n = 1278)",subtitle="(labelling 30 words from the high funniness high iconicity quadrant)") +
+  stat_smooth(method="loess",colour="grey",span=0.8) +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    data=sample_n(subset(words.setA %>% filter(nmorph==1),diff_rank > 19),30),
+    aes(label=word),
+    size=4,
+    alpha=0.8,
+    segment.colour="grey50",
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+
+words.setA.1 <- words.monomorphemic %>%
+  filter(set == "A")
+
+pcor.test(x=words.setA.1$fun,y=words.setA.1$ico,z=words.setA.1$logfreq) %>% 
+  kable(caption="Partial correlations between funniness and iconicity, controlling for frequency, in monomorphemic words")
+
+```
+
+There are `r words %>% drop_na(fun) %>% filter(is.na(ico), nmorph == 1) %>% summarise(n=n())`  monomorphemic words in set B (61% of 3577).
+
+```{r nmorph_setB, echo=F}
+
+# Funniness and imputed iconicity
+
+words %>%
+  filter(set=="B") %>%
+  group_by(nmorph) %>%
+  summarise(n=n(),mean.ico=mean.na(ico_imputed)) %>%
+  kable(caption="mean iconicity by number of morphemes in set B")
+
+words %>%
+  drop_na(fun) %>%
+  filter(is.na(ico),
+         nmorph == 1) %>%
+  ggplot(aes(ico_imputed,fun)) +
+  theme_tufte() + labs(x="iconicity", y="funniness") + 
+  ggtitle("Funniness and imputed iconicity in monomorphemic words (n = 2176)",subtitle="(labelling 30 words from the high funniness high iconicity quadrant)") +
+  stat_smooth(method="loess",colour="grey",span=0.8) +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    data=sample_n(subset(words.setB %>% filter(nmorph==1),diff_rank_setB > 19),30),
+    aes(label=word),
+    size=4,
+    alpha=0.8,
+    segment.colour="grey50",
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+
+words.setB.1 <- words.monomorphemic %>%
+  filter(set == "B")
+
+pcor.test(x=words.setB.1$fun,y=words.setB.1$ico_imputed,z=words.setB.1$logfreq) %>% 
+  kable(caption="Partial correlations between funniness and imputed iconicity, controlling for frequency, in monomorphemic words")
+```
+
+There are only `r words %>% filter(is.na(ico), is.na(fun), nmorph == 1) %>% summarise(n=n()) %>% unlist() %>% unname()` monomorphemic words in set C (out of `r words %>% drop_na(nmorph) %>% filter(set=="C") %>% summarise(n=n()) %>% unlist() %>% unname()` words for which we have data on number of morphemes). 
+
+```{r nmorph_setC, echo=F}
+# Imputed funniness and imputed iconicity (n = 5188)
+
+words %>%
+  filter(set=="C") %>%
+  group_by(nmorph) %>%
+  summarise(n=n(),mean.ico=mean.na(ico_imputed)) %>%
+  kable(caption="mean iconicity by number of morphemes in set C")
+
+words %>%
+  drop_na(fun) %>%
+  filter(is.na(ico),
+         nmorph == 1) %>%
+  ggplot(aes(ico_imputed,fun_imputed)) +
+  theme_tufte() + labs(x="iconicity", y="imputed funniness") + 
+  ggtitle("Imputed funniness and imputed iconicity in monomorphemic words (n = 5188)",subtitle="(labelling 30 words from the high funniness high iconicity quadrant)") +
+  stat_smooth(method="loess",colour="grey",span=0.8) +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    data=sample_n(subset(words.setC %>% filter(nmorph==1),diff_rank_setC > 19),30),
+    aes(label=word),
+    size=4,
+    alpha=0.8,
+    segment.colour="grey50",
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+
+words.setC.1 <- words.monomorphemic %>%
+  filter(set == "C")
+
+pcor.test(x=words.setC.1$fun_imputed,y=words.setC.1$ico_imputed,z=words.setC.1$logfreq) %>% 
+  kable(caption="Partial correlations between imputed funniness and imputed iconicity, controlling for frequency, in monomorphemic words")
+
+
+```
+
+## Imputing ratings based on monomorphemic words only
+
+Given what we know about the bias in iconicity ratings it may make sense to base imputation only on monomorphemic words and see how this affects the results. It should lead to less analysable compounds showing up high in the imputed iconicity ratings of set B and set C.
+
+Model comparison shows that a model with imputed monomorphemic iconicity has a
+significantly better fit (*F* 227.5, *p* < 0.0001) and explains a larger amount of variance (R<sup>2</sup> = 0.139 vs 0.084) than a model with just frequency and RT. However, the original model with imputed iconicity based on all words explains still more of the variance (R<sup>2</sup> = 0.187).
+
+
+```{r imputed_monomorph, echo=F}
+
+# innocent import problem here caused by the "#" value in the nmorph field
+words.new <- read_csv("data/words-setABC-with-nmorph-with-ico-fun-monomorph-predictions.csv") %>%
+  dplyr::select(word,ico,fun,ico_imputed_monomorph,fun_imputed_monomorph) %>%
+  distinct()
+
+words <- words %>%
+  left_join(words.new) %>%
+  mutate(ico_imputed_monomorph_perc = ntile(ico_imputed_monomorph,10),
+         fun_imputed_monomorph_perc = ntile(fun_imputed_monomorph,10))
+
+
+words %>%
+  filter(set=="B") %>%
+  ggplot(aes(ico_imputed_monomorph,fun)) +
+  theme_tufte() + labs(x="imputed iconicity", y="funniness") + 
+  ggtitle("Funniness and imputed icoincity in 3.577 words",subtitle="With imputed ratings based on monomorphemic words") +
+  geom_point(alpha=0.5,na.rm=T) +
+  stat_smooth(method="loess",colour="grey",span=0.8) +
+  NULL
+
+```
+
+```{r imputed_monomorph_B_lm, include=F}
+# in set B
+words.setB <- words %>%
+  filter(set == "B") %>%
+  drop_na(ico_imputed_monomorph)
+
+
+mS3.1 <- lm(fun ~ logfreq + rt, words.setB)
+summary(mS3.1)
+
+mS3.2 <- lm(fun ~ logfreq + rt + ico_imputed_monomorph, words.setB)
+summary(mS3.2)
+
+anova(mS3.1,mS3.2)
+
+mS3.3 <- lm(fun ~ logfreq + rt + ico_imputed, words.setB)
+summary(mS3.3)
+
+
+anova(mS3.1,mS3.3)
+anova(mS3.2,mS3.3)
+
+```
+
+Partial correlations show 23% covariance in set B (n = 3036) between funniness and imputed iconicity based on monomorphemic words, controlling for word frequency.
+
+```{r imputed_monomorph_B_ppcor,echo=F}
+
+pcor.test(x=words.setB$fun,y=words.setB$ico_imputed_monomorph,z=words.setB$logfreq) %>% 
+  kable(caption="Partial correlations between funniness and imputed monomorphemic iconicity, controlling for frequency")
+
+```
+
+
+**Example words**
+
+High imputed funniness and high imputed monomorphemic iconicity: *`r words.setB %>% filter(fun_perc > 9, ico_imputed_monomorph_perc > 9) %>% arrange(-ico_imputed_monomorph) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+
+Low funniness and low imputed monomorphemic iconicity: *`r words.setB %>% filter(fun_perc < 2, ico_imputed_monomorph_perc < 2) %>% arrange(desc(ico_imputed_monomorph)) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+
+High funniness and low imputed monomorphemic iconicity: *`r words.setB %>% filter(fun_perc > 9, ico_imputed_monomorph_perc < 3) %>% arrange(desc(fun_imputed)) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+
+Low funniness and high imputed monomorphemic iconicity: *`r words.setB %>% filter(ico_imputed_monomorph_perc > 9, fun_perc < 3) %>% arrange(-ico_imputed_monomorph) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+
+
+**Set C**
+In set C we see the same: regressions are not much improved by using imputed scores based on monomorphemic words only. 
+
+Since the monomorphemic ratings were introduced specifically to check whether we can address the analysable compound bias in iconicity ratings, we use the original imputed funniness ratings, although we also have imputed funniness ratings based on monomorphemic words (`fun_imputed_monomorph`).
+
+Model comparison shows that the imputed iconicity ratings based on monomorphemic words are pretty good, explaining more variance (R<sup>2</sup> = 0.14 versus 0.06) than a model without iconicity. However, a model based on the original imputed ratings does much better (R<sup>2</sup> = 0.24), so this is not giving us more power to detect the relation between funniness and iconicity ratings.
+
+```{r imputed_monomorph_C, echo=F}
+words %>%
+  filter(set=="C") %>%
+  ggplot(aes(ico_imputed_monomorph,fun_imputed)) +
+  theme_tufte() + labs(x="imputed iconicity", y="imputed funniness") + 
+  ggtitle("Imputed iconicity x imputed funniness (n = 62.971)",
+          subtitle="With imputed ratings based on monomorphemic words") +
+  geom_point(alpha=0.5,na.rm=T) +
+  stat_smooth(data=sample_n(words %>% filter(set=="C"),6297),method="loess",colour="grey",span=0.8) +
+  NULL
+# we do stat_smooth with 10% of data because of memory issues
+```
+
+
+```{r imputed_monomorph_C_lm, include=F}
+words.setC <- words %>% 
+  filter(set == "C") %>%
+  drop_na(fun_imputed_monomorph)
+
+mS4.1 <- lm(fun_imputed ~ logfreq + rt, words.setC)
+summary(mS4.1)
+
+mS4.2 <- lm(fun_imputed ~ logfreq + rt + ico_imputed_monomorph, words.setC)
+summary(mS4.2)
+
+anova(mS4.1,mS4.2)
+
+mS4.3 <- lm(fun_imputed ~ logfreq + rt + ico_imputed, words.setC)
+summary(mS4.3)
+
+anova(mS4.1,mS4.2)
+
+
+```
+
+**Example words**
+
+High imputed funniness and high imputed monomorphemic iconicity: *`r words.setC %>% filter(fun_imputed_perc > 9, ico_imputed_monomorph_perc > 9) %>% arrange(-ico_imputed_monomorph) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+
+Low imputed funniness and low imputed monomorphemic iconicity: *`r words.setC %>% filter(fun_imputed_perc < 2, ico_imputed_monomorph_perc < 2) %>% arrange(desc(ico_imputed_monomorph)) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+
+High imputed funniness and low imputed monomorphemic iconicity: *`r words.setC %>% filter(fun_imputed_perc > 9, ico_imputed_monomorph_perc < 3) %>% arrange(desc(fun_imputed)) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+
+Low imputed funniness and high imputed monomorphemic iconicity: *`r words.setC %>% filter(ico_imputed_monomorph_perc > 9, fun_imputed_perc < 3) %>% arrange(-ico_imputed_monomorph) %>% dplyr::select(word) %>% slice(1:20) %>% unlist() %>% unname()`*
+
+**How about compounds?**
+
+In the new imputed ratings based on monomorphemic words, is it still easy to find analysable compounds rated as highly iconic? Yes, it is... oddball, cleanup, dustpan, killjoy, shakedown, showbizz, feedback, etc.
+
+```{r imputed_monomorph_qual, include=F}
+
+# top rated iconic nouns with >1 morphemes is a good way of getting at many of these
+
+words %>%
+  filter(set == "B") %>%
+  drop_na(ico_imputed_monomorph) %>%
+  filter(ico_imputed_monomorph_perc > 8,
+         nmorph > 1,
+         POS == "Noun") %>%
+  arrange(-ico_imputed_monomorph) %>%
+  dplyr::select(word) %>%
+  slice(1:200) %>% unlist() %>% unname()
+
+words %>%
+  filter(set == "C") %>%
+  drop_na(ico_imputed_monomorph) %>%
+  filter(ico_imputed_monomorph_perc > 8,
+         nmorph > 1,
+         POS == "Noun") %>%
+  arrange(-ico_imputed_monomorph) %>%
+  dplyr::select(word) %>%
+  slice(1:200) %>% unlist() %>% unname()
+
+```
+
+Visualisastions of iconicity ratings by number of morphemes are hard to interpret. The distribution of the ratings is somewhat different (a more squat distribution in the ratings based on monomorphemic words), but it is not obvious that there are large differences in the relative preponderance of monomorphemic versus multimorphemic words in the top percentiles of iconicity ratings.
+
+```{r imputed_monomorph_proportions, echo=F}
+
+words %>%
+  filter(set == "A", ico_perc > 8) %>%
+  summarise(n=n())
+
+pSA <- words %>%
+  filter(set == "A",
+         nmorph %in% 1:3,
+         ico_perc> 8) %>%
+  ggplot(aes(ico,color=nmorph)) +
+  theme_tufte() + ggtitle("Top 20% most iconic words in set A (n = 265)",
+  subtitle="by number of morphemes, using human ratings") +
+  labs(x = "iconicity") + scale_x_continuous(limits=c(0,5)) +
+  stat_density(geom="line") 
+
+pSB <- words %>%
+  filter(set %in% c("B"),
+         nmorph %in% 1:3,
+         ico_imputed_perc > 8) %>%
+  ggplot(aes(ico_imputed,color=nmorph)) +
+  theme_tufte() + ggtitle("Top 20% most iconic words in set B (n = 882)",
+  subtitle="imputed ratings based on all human-rated words") +
+  labs(x = "imputed iconicity") + scale_x_continuous(limits=c(0,5)) +
+  stat_density(geom="line") 
+
+pSC <- words %>%
+  filter(set %in% c("B"),
+         nmorph %in% 1:3,
+         ico_imputed_monomorph_perc > 8) %>%
+  ggplot(aes(ico_imputed_monomorph,color=nmorph)) +
+  theme_tufte() + ggtitle("Top 20% most iconic words in set B (n = 773)",
+                          subtitle="imputed ratings based on monomorphemic words") +
+  labs(x = "imputed iconicity") + scale_x_continuous(limits=c(0,5)) +
+  stat_density(geom="line") 
+
+plot_grid(pSA, pSB, pSC,labels=c("A","B","C"), label_size=14,ncol=1)
+
+words.morphemetest <- words %>%
+  drop_na(nmorph,ico_imputed,ico_imputed_monomorph) %>%
+  filter(set == "B",nmorph %in% (1:3)) 
+
+words.morphemetest %>%
+  filter(ico_imputed_perc > 8) %>%
+  group_by(nmorph) %>%
+  summarise(n=n()) %>%
+  kable(caption="Set B, top 20% of words by imputed iconicity based on all words")
+
+words.morphemetest %>%
+  filter(ico_imputed_monomorph_perc > 8) %>%
+  group_by(nmorph) %>%
+  summarise(n=n()) %>%
+  kable(caption="Set B, top 20% of words by imputed iconicity based on monomorphemic words")
+
+words.morphemetest <- words %>%
+  drop_na(nmorph,ico_imputed,ico_imputed_monomorph) %>%
+  filter(set == "C",nmorph %in% (1:3)) 
+
+words.morphemetest %>%
+  filter(ico_imputed_perc > 8) %>%
+  group_by(nmorph) %>%
+  summarise(n=n()) %>%
+  kable(caption="Set C, top 20% of words by imputed iconicity based on all words")
+
+words.morphemetest %>%
+  filter(ico_imputed_monomorph_perc > 8) %>%
+  group_by(nmorph) %>%
+  summarise(n=n()) %>%
+  kable(caption="Set C, top 20% of words by imputed iconicity based on monomorphemic words")
+
+
+```
+
+In sum, while basing imputed iconicity ratings on monomorphemic words with human ratings gives reasonable results, it does not seem to result in a marked improvement of the imputed ratings, though further analysis is needed.
+
+## Markedness patterns in words with imputed ratings
+
+While the primary focus of analysis 4 was on set A (the core set of human ratings), it's interesting to see how well the structural cues fare in explaining independently imputed iconicity ratings in the larger datasets.
+
+```{r markedness_imputed, fig.width=10.2,fig.height=6, echo=F}
+
+# quick look: are words high in cumulative markedness also high in imputed iconicity?
+
+words %>%
+  filter(is.na(ico)) %>%
+  group_by(cumulative) %>%
+  summarise(n=n(),ico_imputed=mean.na(ico_imputed),fun_imputed=mean.na(fun_imputed)) %>%
+  kable(caption="Mean imputed scores by levels of cumulative markedness")
+
+words %>%
+  filter(is.na(ico),
+         ico_imputed_perc < 10) %>%
+  summarise(n=n(),ico_imputed=mean.na(ico_imputed),
+            fun_imputed=mean.na(fun_imputed),
+            cumulative=mean.na(cumulative)) %>%
+  kable(caption="Cumulative markedness for <10 deciles of imputed iconicity")
+  
+
+# sample any 20 words of high phonological complexity and you'll get mostly the upper 10%
+words %>%
+  filter(is.na(ico),
+         cumulative == 2) %>%
+  sample_n(20) %>%
+  arrange(-ico_imputed) %>%
+  dplyr::select(word,ico_imputed_perc,ico_imputed,cumulative) %>%
+  kable(caption="imputed iconicity for 20 random words of high phonological complexity")
+
+# have a look at the distribution
+words.setB %>%
+  group_by(ico_imputed_perc) %>%
+  summarise(n=n(),
+            ico=mean.na(ico_imputed),
+            fun=mean.na(fun_imputed),
+            onset=mean.na(complex.onset),
+            coda=mean.na(complex.coda),
+            verbdim=mean.na(complex.verbdim),
+            cumulative=mean.na(cumulative)) %>%
+  kable(caption="Cumulative markedness scores per iconicity decile in Set B")
+
+words.setC %>%
+  group_by(ico_imputed_perc) %>%
+  summarise(n=n(),
+            ico=mean.na(ico_imputed),
+            fun=mean.na(fun_imputed),
+            onset=mean.na(complex.onset),
+            coda=mean.na(complex.coda),
+            verbdim=mean.na(complex.verbdim),
+            cumulative=mean.na(cumulative)) %>%
+  kable(caption="Cumulative markedness scores per iconicity decile in Set C")
+
+# define snippets to minimise repetition
+markedness_layers <- list(
+  stat_smooth(method="loess", span=0.8,color="black",se=T),
+  stat_smooth(method="loess", span=0.7,se=F, color="black",show.legend = T,linetype="longdash",aes(y=onset)),
+  stat_smooth(method="loess", span=0.7,se=F, color="black",show.legend = T,linetype="dashed",aes(y=coda)),
+  stat_smooth(method="loess", span=0.7,se=F, color="black",show.legend = T,linetype="dotted",aes(y=verbdim))
+)
+
+pS1B <- words.setB %>%
+  mutate(target_perc = ntile(ico_imputed,100)) %>%
+  group_by(target_perc) %>%
+  summarise(n=n(),
+            onset=mean.na(complex.onset),
+            coda=mean.na(complex.coda),
+            verbdim=mean.na(complex.verbdim),
+            complexity=mean.na(cumulative)) %>%
+  ggplot(aes(target_perc,complexity)) +
+  theme_tufte() +
+  ggtitle("Structural markedness and imputed iconicity (n = 3.577)",
+          subtitle="Every dot represents 36 words") +
+  labs(y="cumulative markedness",x="imputed iconicity (percentile)") +
+  scale_y_continuous(limits=c(0,1)) +
+  geom_point(shape=1) + 
+  markedness_layers
+
+pS1C <- words.setC %>%
+  mutate(target_perc = ntile(ico_imputed,100)) %>%
+  group_by(target_perc) %>%
+  summarise(n=n(),
+            onset=mean.na(complex.onset),
+            coda=mean.na(complex.coda),
+            verbdim=mean.na(complex.verbdim),
+            complexity=mean.na(cumulative)) %>%
+  ggplot(aes(target_perc,complexity)) +
+  theme_tufte() +
+  ggtitle("Structural markedness and imputed iconicity (n = 63.680)",
+          subtitle="Every dot represents 637 or 638 words") +
+  labs(y="cumulative markedness",x="imputed iconicity (percentile)") +
+  scale_y_continuous(limits=c(0,1)) +
+  geom_point(shape=1) +
+  markedness_layers
+
+plot_grid(pS1B, pS1C, labels="AUTO", label_size=14,nrow=1)
+
+
+```
+
+
+
+## Markedness for iconicity vs funniness ratings
+
+Cumulative markedness is particularly good for predicting iconicity, rivalling funniness, word frequency and log letter frequency as a predictor of iconicity rating (model `mS.1`). It is less good for predicting funniness ratings, which are (as we know) also influenced by semantic and collocational factors (model `mS.2`).
+
+```{r markedness_details, include=F}
+
+mS.1 <- lm(ico ~ logfreq + rt + fun + logletterfreq + cumulative,data=words.setA)
+summary(mS.1)
+
+# much less so for funniness ratings, which are (as we know) also influenced by semantic and collocational factors
+mS.2 <- lm(fun ~ logfreq + rt + logletterfreq + ico * cumulative,data=words.setA)
+summary(mS.2)
+
+```
+
+**Model mS.1**: `r format(mS.1$call)`
+`r print_table(mS.1)`
+
+**Model mS.2**: `r format(mS.2$call)`
+`r print_table(mS.2)`
+
+## Phonotactic measures from IPHOD
+A quick look at a range of IPhOD measures shows that none of them correlates as strongly with iconicity or funniness as logletterfreq, so they don't offer us much additional explanatory power. 
+
+N.B. IPhOD contains homographs, but frequencies are given only at the level of orthographic forms. To avoid duplication of data we keep only the first of multiple homographs in IPhOD, accepting some loss of precision about possible pronunciations. We use IPhOD's phonotactic probability and phonological density measures. Since we have no stress-related hypotheses we work with unstressed calculations. We work with values unweighted for frequency because we include frequency as a fixed effect in later analyses.
+
+```{r iphodmeasures, echo=F}
+
+words %>%
+  filter(!is.na(ico)) %>% 
+  dplyr::select(ico,fun,unsDENS,unsBPAV,unsPOSPAV,unsTPAV,unsLCPOSPAV) %>%
+  ggpairs(cardinality_threshold=20) +
+  theme_tufte()
+
+```
+
+```{r iphodmeasures_more, include=F}
+# extreme ends of triphone probability
+words %>%
+  filter(!is.na(ico), !is.na(fun),
+         (triphone_perc > 9 | triphone_perc < 2)) %>%
+  arrange(triphone_perc) %>%
+  dplyr::select(word,fun,ico,unsTPAV,triphone_perc) %>%
+  group_by(triphone_perc) %>%
+  slice(1:10) %>%
+  kable(caption="Extreme ends of triphone probability")
+
+# extreme ends of biphone probability
+words %>%
+  filter(!is.na(ico), !is.na(fun),
+         (biphone_perc > 9 | biphone_perc < 2)) %>%
+  arrange(biphone_perc) %>%
+  dplyr::select(word,fun,ico,unsTPAV,biphone_perc) %>%
+  group_by(biphone_perc) %>%
+  slice(1:10) %>%
+  kable(caption="Extreme ends of biphone probability")
+
+
+# extreme ends of phonological density
+words %>%
+  filter(!is.na(ico), !is.na(fun)) %>%
+  arrange(-unsDENS) %>%
+  dplyr::select(word,fun,ico,unsDENS) %>%
+  slice(1:20) %>%
+  kable(caption="Extreme ends of phonological density")
+
+```
+
+## Valence helps explain high-iconicity low-funniness words
+
+Valence is one reason for some iconic words not being rated as funny. Words like 'crash', 'dread', 'scratch' and 'shoot' (all in the lowest percentiles of valence) may be highly iconic but they have no positive or humorous connotation. In general, valence is of course already known to be related to funniness ratings: negative words are unlikely to be rated as highly funny.
+
+```{r words-2, echo=F}
+# words rated as iconic but not funny tend to be from lower valence percentiles
+words %>% 
+  filter(ico_perc > 8, fun_perc < 2) %>%
+  arrange(-ico) %>%
+  dplyr::select(word,ico,fun,ico_perc,fun_perc,valence_perc) %>%
+  slice(1:20) %>%
+  kable(caption="Valence percentiles for words rated as iconic but not funny")
+
+```
+
+
+## Age of acquisition
+Simon Kirby [asked on Twitter](https://twitter.com/SimonKirby/status/1123602157322887169) whether the relation between funniness and iconicity might have something to do with child-directedness. This is hard to test directly (and unlikely to apply across the board) but if this were the case presumably it would also be reflected in AoA ratings — e.g., the more funny and iconic words would have relatively lower AoA ratings. (Importantly: we already know from Perry et al. 2017 that AoA is negatively correlated with iconicity: words rated higher in iconicity have a somewhat lower age of acquisition.)
+
+We have AoA data for all 1.419 words in set A. It doesn't really explain the iconicity + funniness relation. That is, words high in both iconicity and funniness are not strikingly low in AoA. 
+
+Though an important caveat is that this particular small subset may not be the best data to judge this on.
+
+```{r AoA_check, echo=F}
+
+# using AoA data from Kuperman et al. 2012
+aoa <- read_csv("data/kuperman_2014_AOA.csv") %>% 
+  plyr::rename(c("Word" = "word", "Rating.Mean" = "aoa"))
+
+words <- words %>% 
+  left_join(aoa) %>%
+  mutate(aoa_perc = ntile(aoa,100))
+
+# if iconicity+fun is explained by AoA we would expect diff_rank (where 2 = minimum ico & funniness, 20 = maximum ico and funniness) to show a pattern. In particular, higher deciles should show lower AoA. This doesn't seem to be the case: AoA hovers around 6-7 for every step.
+words %>%
+  drop_na(ico,fun) %>%
+  group_by(diff_rank) %>%
+  summarise(n=n(),mean.aoa=mean.na(aoa)) %>%
+  kable(caption="AoA ratings for every decile of combined iconicity and funniness")
+
+# and looking at all words learned until age 3.5, it's not predominantly the ones in the high-iconicity high-funniness quadrant
+words %>% 
+  drop_na(ico,fun,aoa) %>% 
+  ggplot(aes(ico,fun)) +
+  theme_tufte() +
+  ggtitle("Funniness and iconicity", subtitle="(all words learned until age 3.5 labelled") +
+  labs(x="iconicity", y="funniness") +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    data=. %>% filter(aoa < 3.5),
+    aes(label=word),
+    size=5,
+    alpha=0.8,
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+```
+
+The sign of simple (uncorrected) correlations is positive for funniness (r = 0.1), but negative for iconicity (r = -0.07), so if anything there is not a unitary effect here (and the two cancel each other out). 
+
+```{r aoa_correlations, results='hide'}
+
+cor.test(words$fun,words$aoa)
+cor.test(words$ico,words$aoa)
+
+cor.test(words$diff_rank,words$aoa)
+
+
+# doesn't look very different in the ico_imputed ratings in set B
+
+words %>%
+  drop_na(aoa) %>%
+  filter(set=="B") %>%
+  group_by(diff_rank_setB) %>%
+  summarise(n=n(),mean.ico=mean.na(ico_imputed),mean.aoa=mean.na(aoa)) %>%
+  kable(caption="AoA ratings for every decile of imputed iconicity and funniness in set B")
+```
+
+```{r aoa_plots, echo=F}
+words %>% 
+  drop_na(aoa) %>% 
+  filter(set=="B") %>%
+  ggplot(aes(ico_imputed,fun)) +
+  theme_tufte() +
+  ggtitle("Funniness and imputed iconicity",subtitle="(all words learned until age 3.5 labelled)") +
+  labs(x="iconicity", y="funniness") +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    data=. %>% filter(aoa < 3.6),
+    aes(label=word),
+    size=5,
+    alpha=0.8,
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+
+# ico_imputed and fun_imputed ratings in set C
+
+words %>%
+  drop_na(aoa) %>%
+  filter(set=="C") %>%
+  group_by(diff_rank_setC) %>%
+  summarise(n=n(),mean.ico=mean.na(ico_imputed),mean.aoa=mean.na(aoa)) %>%
+  kable(caption="AoA ratings for every decile of imputed iconicity and funniness in set C")
+
+words %>% 
+  drop_na(aoa) %>% 
+  filter(set=="C") %>%
+  ggplot(aes(ico_imputed,fun_imputed)) +
+  theme_tufte() +
+  ggtitle("Imputed funniness and imputed iconicity",subtitle="(all words learned until age 3.5 labelled)") +
+  labs(x="imputed iconicity", y="imputed funniness") +
+  geom_point(alpha=0.5,na.rm=T) +
+  geom_label_repel(
+    data=. %>% filter(aoa < 3.5),
+    aes(label=word),
+    size=5,
+    alpha=0.8,
+    label.size=NA,
+    label.r=unit(0,"lines"),
+    box.padding=unit(0.35, "lines"),
+    point.padding=unit(0.3,"lines")
+  )
+
+# whatever there is seems mostly driven by iconicity, not funniness
+
+words %>%
+  drop_na(aoa) %>%
+  filter(set=="C") %>%
+  mutate(fun_imputed_perc = ntile(fun_imputed,20)) %>%
+  group_by(fun_imputed_perc) %>%
+  summarise(n=n(),mean.fun=mean.na(fun_imputed),mean.aoa=mean.na(aoa)) %>%
+  kable(caption="Same for funniness")
+
+
+```
+
+## Word classes
+Reviewer 1 asked us to look into word classes. We report this here as an exploratory analysis. The correlation between funniness and iconicity ratings has the same sign across word classes. The somewhat steeper correlation in verbs (*n* = 241) can be attributed in part to the verbal diminutive suffix *-le* (*n* = 17). 
+
+```{r exploratory_POS,echo=F}
+
+words %>%
+  filter(set=="A",POS %in% c("Adjective","Noun","Verb")) %>%
+  group_by(POS) %>%
+  summarise(n=n(),mean.ico=mean.na(ico),mean.fun=mean.na(fun),
+            raw.correlation=cor.test(ico,fun)$estimate) %>%
+  kable(caption="Mean iconicity and funniness in set A across word classes")
+
+words %>%
+  filter(POS %in% c("Adjective","Noun","Verb")) %>%
+  ggplot(aes(ico,fun,color=POS)) +
+  theme_tufte() + ggtitle("Funniness and iconicity by POS") +
+  geom_point(alpha=0.5) +
+  geom_smooth(method="lm") +
+  facet_wrap(~ POS)
+
+words %>%
+  filter(POS == "Verb",set=="A") %>%
+  ggplot(aes(ico,fun,color=as.factor(complex.verbdim))) +
+  theme_tufte() + ggtitle("Funniness and iconicity in verbs",subtitle="Teasing apart verbs with and without -le suffix") +
+  labs(colour="-le suffix") +
+  geom_point(alpha=0.5) +
+  geom_smooth(method="lm")
+
+```

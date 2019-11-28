@@ -1,7 +1,7 @@
 Playful iconicity: data & analyses
 ================
 Mark Dingemanse & Bill Thompson
-(this version: 2019-11-27)
+(this version: 2019-11-28)
 
   - [Introduction](#introduction)
       - [Data sources](#data-sources)
@@ -15,14 +15,6 @@ Mark Dingemanse & Bill Thompson
         iconicity](#imputed-funniness-and-imputed-iconicity)
       - [Structural properties of highly rated
         words](#structural-properties-of-highly-rated-words)
-  - [Supplementary analyses](#supplementary-analyses)
-      - [Imputed funniness and
-        iconicity](#imputed-funniness-and-iconicity)
-      - [Analysable morphology bias in iconicity
-        ratings](#analysable-morphology-bias-in-iconicity-ratings)
-      - [Imputing ratings based on monomorphemic words
-        only](#imputing-ratings-based-on-monomorphemic-words-only)
-      - [Other analyses](#other-analyses)
   - [End](#end)
 
 ## Introduction
@@ -46,7 +38,7 @@ Primary data sources:
 We use these ratings in our analyses, but we also feed them to our
 [imputation method](/benchmark-prediction.py), which regresses the human
 ratings against semantic vectors in order to generate imputed ratings
-for an additional 63.721 words.
+for an additional 63.680 words.
 
 Secondary data sources:
 
@@ -97,20 +89,20 @@ words <- words %>%
          triphone_perc = ntile(unsTPAV,10),
          posprob_perc = ntile(unsPOSPAV,10),
          valence_perc = ntile(valence,10))
-
-words.export <- words %>%
-  drop_na(set)
-write.csv(words.export, file="data/words.csv")
 ```
 
 ### Descriptive data
 
-We have **4996** words rated for funniness, **2945** rated for
-iconicity, and **1419** in the intersection (set A). We have **3577**
+We have **4.996** words rated for funniness, **2.945** rated for
+iconicity, and **1.419** in the intersection (set A). We have **3.577**
 words with human funniness ratings and imputed iconicity ratings (set
-B). We have imputed data for a total of **70.245** words, and we’re
-venturing outside the realm of rated words for **63.723** of them (set
+B). We have imputed data for a total of **70.202** words, and we’re
+venturing outside the realm of rated words for **63.680** of them (set
 C).
+
+(We also have 1.526 words with human iconicity ratings and imputed
+funniness ratings in set D, the mirror image of set B; this is not used
+in the paper but reported on in Supplementary Analyses below.)
 
 <table>
 
@@ -178,7 +170,7 @@ C
 
 <td style="text-align:right;">
 
-63723
+63680
 
 </td>
 
@@ -203,6 +195,15 @@ D
 </tbody>
 
 </table>
+
+    ## # A tibble: 3 x 9
+    ##   word    ico   fun ico_perc fun_perc ico_imputed fun_imputed
+    ##   <chr> <dbl> <dbl>    <int>    <int>       <dbl>       <dbl>
+    ## 1 wigg~   2.6  3.52       10       10        3.37        3.39
+    ## 2 wobb~   2.4  3.15        9       10        3.06        3.11
+    ## 3 wagg~  NA   NA          NA       NA        2.37        3.42
+    ## # ... with 2 more variables: ico_imputed_perc <int>,
+    ## #   fun_imputed_perc <int>
 
 The most important columns in the data are shown below for set A. Sets B
 and C feature `ico_imputed` and `fun_imputed` instead of or in addition
@@ -282,37 +283,37 @@ diff\_rank
 
 <td style="text-align:left;">
 
-dump
+flap
 
 </td>
 
 <td style="text-align:right;">
 
-2.9375
+2.7692308
 
 </td>
 
 <td style="text-align:right;">
 
-3.09375
+3.071429
 
 </td>
 
 <td style="text-align:right;">
 
-\-3.580025
+\-3.157663
 
 </td>
 
 <td style="text-align:right;">
 
-3.167613
+2.133539
 
 </td>
 
 <td style="text-align:right;">
 
-533.1795
+575.9231
 
 </td>
 
@@ -325,6 +326,474 @@ dump
 <td style="text-align:right;">
 
 20
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+bleep
+
+</td>
+
+<td style="text-align:right;">
+
+3.9285714
+
+</td>
+
+<td style="text-align:right;">
+
+2.931818
+
+</td>
+
+<td style="text-align:right;">
+
+\-2.746375
+
+</td>
+
+<td style="text-align:right;">
+
+2.136721
+
+</td>
+
+<td style="text-align:right;">
+
+655.1622
+
+</td>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+19
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+weed
+
+</td>
+
+<td style="text-align:right;">
+
+1.7000000
+
+</td>
+
+<td style="text-align:right;">
+
+3.128205
+
+</td>
+
+<td style="text-align:right;">
+
+\-2.593606
+
+</td>
+
+<td style="text-align:right;">
+
+2.778875
+
+</td>
+
+<td style="text-align:right;">
+
+566.5000
+
+</td>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+18
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+shriek
+
+</td>
+
+<td style="text-align:right;">
+
+3.5000000
+
+</td>
+
+<td style="text-align:right;">
+
+2.458333
+
+</td>
+
+<td style="text-align:right;">
+
+\-2.752525
+
+</td>
+
+<td style="text-align:right;">
+
+1.518514
+
+</td>
+
+<td style="text-align:right;">
+
+671.9189
+
+</td>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+17
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+fun
+
+</td>
+
+<td style="text-align:right;">
+
+0.8333333
+
+</td>
+
+<td style="text-align:right;">
+
+3.355556
+
+</td>
+
+<td style="text-align:right;">
+
+\-3.216379
+
+</td>
+
+<td style="text-align:right;">
+
+4.079579
+
+</td>
+
+<td style="text-align:right;">
+
+499.4474
+
+</td>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+16
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+seaweed
+
+</td>
+
+<td style="text-align:right;">
+
+2.5000000
+
+</td>
+
+<td style="text-align:right;">
+
+2.382353
+
+</td>
+
+<td style="text-align:right;">
+
+\-2.503129
+
+</td>
+
+<td style="text-align:right;">
+
+1.949390
+
+</td>
+
+<td style="text-align:right;">
+
+658.5263
+
+</td>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+<td style="text-align:right;">
+
+15
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+stumble
+
+</td>
+
+<td style="text-align:right;">
+
+1.7000000
+
+</td>
+
+<td style="text-align:right;">
+
+2.407407
+
+</td>
+
+<td style="text-align:right;">
+
+\-2.892918
+
+</td>
+
+<td style="text-align:right;">
+
+2.004321
+
+</td>
+
+<td style="text-align:right;">
+
+548.1538
+
+</td>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+14
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+parka
+
+</td>
+
+<td style="text-align:right;">
+
+0.8000000
+
+</td>
+
+<td style="text-align:right;">
+
+2.454546
+
+</td>
+
+<td style="text-align:right;">
+
+\-2.944659
+
+</td>
+
+<td style="text-align:right;">
+
+1.505150
+
+</td>
+
+<td style="text-align:right;">
+
+709.4091
+
+</td>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+13
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+bookcase
+
+</td>
+
+<td style="text-align:right;">
+
+0.8181818
+
+</td>
+
+<td style="text-align:right;">
+
+2.439024
+
+</td>
+
+<td style="text-align:right;">
+
+\-2.815705
+
+</td>
+
+<td style="text-align:right;">
+
+1.690196
+
+</td>
+
+<td style="text-align:right;">
+
+688.0286
+
+</td>
+
+<td style="text-align:left;">
+
+2
+
+</td>
+
+<td style="text-align:right;">
+
+12
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+doctor
+
+</td>
+
+<td style="text-align:right;">
+
+1.6000000
+
+</td>
+
+<td style="text-align:right;">
+
+2.100000
+
+</td>
+
+<td style="text-align:right;">
+
+\-2.779546
+
+</td>
+
+<td style="text-align:right;">
+
+4.129110
+
+</td>
+
+<td style="text-align:right;">
+
+498.2105
+
+</td>
+
+<td style="text-align:left;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+11
 
 </td>
 
@@ -1805,13 +2274,13 @@ logfreq
 
 <td style="text-align:right;">
 
-91.757
+92.862
 
 </td>
 
 <td style="text-align:right;">
 
-1004.158
+1018.093
 
 </td>
 
@@ -1845,13 +2314,13 @@ rt
 
 <td style="text-align:right;">
 
-13.480
+13.422
 
 </td>
 
 <td style="text-align:right;">
 
-147.523
+147.150
 
 </td>
 
@@ -1879,13 +2348,13 @@ Residuals
 
 <td style="text-align:right;">
 
-19232
+19204
 
 </td>
 
 <td style="text-align:right;">
 
-1757.369
+1751.629
 
 </td>
 
@@ -1974,13 +2443,13 @@ logfreq
 
 <td style="text-align:right;">
 
-91.757
+92.862
 
 </td>
 
 <td style="text-align:right;">
 
-1241.826
+1258.529
 
 </td>
 
@@ -1992,7 +2461,7 @@ logfreq
 
 <td style="text-align:right;">
 
-0.061
+0.062
 
 </td>
 
@@ -2014,13 +2483,13 @@ rt
 
 <td style="text-align:right;">
 
-13.480
+13.422
 
 </td>
 
 <td style="text-align:right;">
 
-182.439
+181.901
 
 </td>
 
@@ -2054,13 +2523,13 @@ ico\_imputed
 
 <td style="text-align:right;">
 
-336.409
+334.714
 
 </td>
 
 <td style="text-align:right;">
 
-4552.893
+4536.279
 
 </td>
 
@@ -2088,13 +2557,13 @@ Residuals
 
 <td style="text-align:right;">
 
-19231
+19203
 
 </td>
 
 <td style="text-align:right;">
 
-1420.960
+1416.915
 
 </td>
 
@@ -2174,13 +2643,13 @@ Pr(\>F)
 
 <td style="text-align:right;">
 
-19232
+19204
 
 </td>
 
 <td style="text-align:right;">
 
-1757.369
+1751.629
 
 </td>
 
@@ -2206,13 +2675,13 @@ Pr(\>F)
 
 <td style="text-align:right;">
 
-19231
+19203
 
 </td>
 
 <td style="text-align:right;">
 
-1420.960
+1416.915
 
 </td>
 
@@ -2224,19 +2693,120 @@ Pr(\>F)
 
 <td style="text-align:right;">
 
-336.4088
+334.7145
 
 </td>
 
 <td style="text-align:right;">
 
-4552.893
+4536.279
 
 </td>
 
 <td style="text-align:right;">
 
 0
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+Partial correlations show that imputed iconicity and imputed funniness
+share 43% covariance not explained by word frequency.
+
+<table>
+
+<caption>
+
+imputed funniness and imputed iconicity controlling for word frequency
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:right;">
+
+estimate
+
+</th>
+
+<th style="text-align:right;">
+
+p.value
+
+</th>
+
+<th style="text-align:right;">
+
+statistic
+
+</th>
+
+<th style="text-align:right;">
+
+n
+
+</th>
+
+<th style="text-align:right;">
+
+gp
+
+</th>
+
+<th style="text-align:left;">
+
+Method
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:right;">
+
+0.4274166
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+119.302
+
+</td>
+
+<td style="text-align:right;">
+
+63680
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+<td style="text-align:left;">
+
+pearson
 
 </td>
 
@@ -2348,13 +2918,13 @@ mean\_fun
 
 <td style="text-align:right;">
 
-1.2535179
+1.2562724
 
 </td>
 
 <td style="text-align:right;">
 
-2.511225
+2.510892
 
 </td>
 
@@ -2370,13 +2940,13 @@ mean\_fun
 
 <td style="text-align:right;">
 
-1.1030444
+1.0972947
 
 </td>
 
 <td style="text-align:right;">
 
-2.434061
+2.434144
 
 </td>
 
@@ -5064,6 +5634,34 @@ cumulative
 
 <td style="text-align:left;">
 
+brr
+
+</td>
+
+<td style="text-align:right;">
+
+10
+
+</td>
+
+<td style="text-align:right;">
+
+4.065481
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
 squish
 
 </td>
@@ -5092,7 +5690,7 @@ squish
 
 <td style="text-align:left;">
 
-squiggle
+clunks
 
 </td>
 
@@ -5104,35 +5702,7 @@ squiggle
 
 <td style="text-align:right;">
 
-2.594691
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-scraping
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-2.537723
+2.965891
 
 </td>
 
@@ -5260,7 +5830,7 @@ crunk
 
 <td style="text-align:left;">
 
-sweeps
+sw
 
 </td>
 
@@ -5272,7 +5842,7 @@ sweeps
 
 <td style="text-align:right;">
 
-1.959795
+1.898677
 
 </td>
 
@@ -5288,7 +5858,7 @@ sweeps
 
 <td style="text-align:left;">
 
-squirting
+flipping
 
 </td>
 
@@ -5300,7 +5870,7 @@ squirting
 
 <td style="text-align:right;">
 
-1.919734
+1.875252
 
 </td>
 
@@ -5316,7 +5886,7 @@ squirting
 
 <td style="text-align:left;">
 
-arr
+flatly
 
 </td>
 
@@ -5328,7 +5898,7 @@ arr
 
 <td style="text-align:right;">
 
-1.870472
+1.819130
 
 </td>
 
@@ -5344,7 +5914,7 @@ arr
 
 <td style="text-align:left;">
 
-cloudless
+crumping
 
 </td>
 
@@ -5356,7 +5926,7 @@ cloudless
 
 <td style="text-align:right;">
 
-1.758071
+1.737702
 
 </td>
 
@@ -5400,7 +5970,7 @@ flourish
 
 <td style="text-align:left;">
 
-pried
+crispy
 
 </td>
 
@@ -5412,7 +5982,7 @@ pried
 
 <td style="text-align:right;">
 
-1.642401
+1.721382
 
 </td>
 
@@ -5568,7 +6138,7 @@ tramp
 
 <td style="text-align:left;">
 
-snaffles
+speakeasy
 
 </td>
 
@@ -5580,7 +6150,7 @@ snaffles
 
 <td style="text-align:right;">
 
-1.409668
+1.393087
 
 </td>
 
@@ -5596,7 +6166,7 @@ snaffles
 
 <td style="text-align:left;">
 
-suckle
+scornfully
 
 </td>
 
@@ -5608,7 +6178,7 @@ suckle
 
 <td style="text-align:right;">
 
-1.382101
+1.366685
 
 </td>
 
@@ -5702,6 +6272,34 @@ spoilsport
 
 <td style="text-align:left;">
 
+draughted
+
+</td>
+
+<td style="text-align:right;">
+
+7
+
+</td>
+
+<td style="text-align:right;">
+
+0.7022719
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
 drank
 
 </td>
@@ -5721,90 +6319,6 @@ drank
 <td style="text-align:right;">
 
 2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-cranial
-
-</td>
-
-<td style="text-align:right;">
-
-6
-
-</td>
-
-<td style="text-align:right;">
-
-0.6046020
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-pragmatically
-
-</td>
-
-<td style="text-align:right;">
-
-6
-
-</td>
-
-<td style="text-align:right;">
-
-0.5722633
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-sloughed
-
-</td>
-
-<td style="text-align:right;">
-
-6
-
-</td>
-
-<td style="text-align:right;">
-
-0.5457573
-
-</td>
-
-<td style="text-align:right;">
-
-1
 
 </td>
 
@@ -5842,6 +6356,62 @@ sweetfish
 
 <td style="text-align:left;">
 
+protectress
+
+</td>
+
+<td style="text-align:right;">
+
+6
+
+</td>
+
+<td style="text-align:right;">
+
+0.5275526
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+transmits
+
+</td>
+
+<td style="text-align:right;">
+
+5
+
+</td>
+
+<td style="text-align:right;">
+
+0.4734109
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
 schrank
 
 </td>
@@ -5870,7 +6440,7 @@ schrank
 
 <td style="text-align:left;">
 
-criticising
+blamed
 
 </td>
 
@@ -5882,7 +6452,7 @@ criticising
 
 <td style="text-align:right;">
 
-0.4053748
+0.4105656
 
 </td>
 
@@ -5926,19 +6496,19 @@ flatfish
 
 <td style="text-align:left;">
 
-preciouses
+crystallised
 
 </td>
 
 <td style="text-align:right;">
 
-4
+5
 
 </td>
 
 <td style="text-align:right;">
 
-0.3157891
+0.3525224
 
 </td>
 
@@ -5982,62 +6552,6 @@ trench
 
 <td style="text-align:left;">
 
-splurge
-
-</td>
-
-<td style="text-align:right;">
-
-4
-
-</td>
-
-<td style="text-align:right;">
-
-0.2610832
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-creates
-
-</td>
-
-<td style="text-align:right;">
-
-4
-
-</td>
-
-<td style="text-align:right;">
-
-0.2384936
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
 preshrunk
 
 </td>
@@ -6057,6 +6571,62 @@ preshrunk
 <td style="text-align:right;">
 
 2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+spectroscopic
+
+</td>
+
+<td style="text-align:right;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+0.1460491
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+splendours
+
+</td>
+
+<td style="text-align:right;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+0.0495967
+
+</td>
+
+<td style="text-align:right;">
+
+1
 
 </td>
 
@@ -6150,7 +6720,7 @@ flemish
 
 <td style="text-align:left;">
 
-creationists
+flamingos
 
 </td>
 
@@ -6162,7 +6732,7 @@ creationists
 
 <td style="text-align:right;">
 
-\-0.0599508
+\-0.0452134
 
 </td>
 
@@ -6178,19 +6748,19 @@ creationists
 
 <td style="text-align:left;">
 
-scripting
+cryptography
 
 </td>
 
 <td style="text-align:right;">
 
-1
+2
 
 </td>
 
 <td style="text-align:right;">
 
-\-0.2189394
+\-0.1193397
 
 </td>
 
@@ -6206,19 +6776,19 @@ scripting
 
 <td style="text-align:left;">
 
-pronouns
+triangulation
 
 </td>
 
 <td style="text-align:right;">
 
-1
+2
 
 </td>
 
 <td style="text-align:right;">
 
-\-0.2318031
+\-0.1590728
 
 </td>
 
@@ -7035,31 +7605,31 @@ complexity
 
 <td style="text-align:right;">
 
-15931
+15920
 
 </td>
 
 <td style="text-align:right;">
 
-0.0639006
+0.0639447
 
 </td>
 
 <td style="text-align:right;">
 
-0.0060260
+0.0060302
 
 </td>
 
 <td style="text-align:right;">
 
-0.0003766
+0.0003769
 
 </td>
 
 <td style="text-align:right;">
 
-0.0703032
+0.0703518
 
 </td>
 
@@ -7075,31 +7645,31 @@ complexity
 
 <td style="text-align:right;">
 
-15931
+15920
 
 </td>
 
 <td style="text-align:right;">
 
-0.0731906
+0.0731784
 
 </td>
 
 <td style="text-align:right;">
 
-0.0076580
+0.0076005
 
 </td>
 
 <td style="text-align:right;">
 
-0.0009416
+0.0009422
 
 </td>
 
 <td style="text-align:right;">
 
-0.0817902
+0.0817211
 
 </td>
 
@@ -7115,31 +7685,31 @@ complexity
 
 <td style="text-align:right;">
 
-15931
+15920
 
 </td>
 
 <td style="text-align:right;">
 
-0.0923985
+0.0923367
 
 </td>
 
 <td style="text-align:right;">
 
-0.0096667
+0.0097362
 
 </td>
 
 <td style="text-align:right;">
 
-0.0009416
+0.0009422
 
 </td>
 
 <td style="text-align:right;">
 
-0.1030067
+0.1030151
 
 </td>
 
@@ -7155,31 +7725,31 @@ complexity
 
 <td style="text-align:right;">
 
-15930
+15920
 
 </td>
 
 <td style="text-align:right;">
 
-0.1583176
+0.1583543
 
 </td>
 
 <td style="text-align:right;">
 
-0.0156309
+0.0155151
 
 </td>
 
 <td style="text-align:right;">
 
-0.0049592
+0.0049623
 
 </td>
 
 <td style="text-align:right;">
 
-0.1789077
+0.1788317
 
 </td>
 
@@ -7253,31 +7823,31 @@ complexity
 
 <td style="text-align:right;">
 
-6373
+6368
 
 </td>
 
 <td style="text-align:right;">
 
-0.0564883
+0.0565327
 
 </td>
 
 <td style="text-align:right;">
 
-0.0061196
+0.0061244
 
 </td>
 
 <td style="text-align:right;">
 
-0.0003138
+0.0003141
 
 </td>
 
 <td style="text-align:right;">
 
-0.0629217
+0.0629711
 
 </td>
 
@@ -7293,31 +7863,31 @@ complexity
 
 <td style="text-align:right;">
 
-6372
+6368
 
 </td>
 
 <td style="text-align:right;">
 
-0.0684244
+0.0684673
 
 </td>
 
 <td style="text-align:right;">
 
-0.0045512
+0.0045540
 
 </td>
 
 <td style="text-align:right;">
 
-0.0004708
+0.0004711
 
 </td>
 
 <td style="text-align:right;">
 
-0.0734463
+0.0734925
 
 </td>
 
@@ -7333,31 +7903,31 @@ complexity
 
 <td style="text-align:right;">
 
-6372
+6368
 
 </td>
 
 <td style="text-align:right;">
 
-0.0715631
+0.0714510
 
 </td>
 
 <td style="text-align:right;">
 
-0.0084746
+0.0084799
 
 </td>
 
 <td style="text-align:right;">
 
-0.0001569
+0.0001570
 
 </td>
 
 <td style="text-align:right;">
 
-0.0801946
+0.0800879
 
 </td>
 
@@ -7373,31 +7943,31 @@ complexity
 
 <td style="text-align:right;">
 
-6373
+6368
 
 </td>
 
 <td style="text-align:right;">
 
-0.0674721
+0.0675251
 
 </td>
 
 <td style="text-align:right;">
 
-0.0069041
+0.0069095
 
 </td>
 
 <td style="text-align:right;">
 
-0.0010984
+0.0010992
 
 </td>
 
 <td style="text-align:right;">
 
-0.0754747
+0.0755339
 
 </td>
 
@@ -7413,31 +7983,31 @@ complexity
 
 <td style="text-align:right;">
 
-6372
+6368
 
 </td>
 
 <td style="text-align:right;">
 
-0.0787822
+0.0788317
 
 </td>
 
 <td style="text-align:right;">
 
-0.0081607
+0.0080088
 
 </td>
 
 <td style="text-align:right;">
 
-0.0012555
+0.0012563
 
 </td>
 
 <td style="text-align:right;">
 
-0.0881984
+0.0880967
 
 </td>
 
@@ -7453,31 +8023,31 @@ complexity
 
 <td style="text-align:right;">
 
-6372
+6368
 
 </td>
 
 <td style="text-align:right;">
 
-0.0822348
+0.0819724
 
 </td>
 
 <td style="text-align:right;">
 
-0.0076899
+0.0078518
 
 </td>
 
 <td style="text-align:right;">
 
-0.0006277
+0.0006281
 
 </td>
 
 <td style="text-align:right;">
 
-0.0905524
+0.0904523
 
 </td>
 
@@ -7493,31 +8063,31 @@ complexity
 
 <td style="text-align:right;">
 
-6373
+6368
 
 </td>
 
 <td style="text-align:right;">
 
-0.0979131
+0.0978329
 
 </td>
 
 <td style="text-align:right;">
 
-0.0105131
+0.0105214
 
 </td>
 
 <td style="text-align:right;">
 
-0.0010984
+0.0010992
 
 </td>
 
 <td style="text-align:right;">
 
-0.1095246
+0.1094535
 
 </td>
 
@@ -7533,31 +8103,31 @@ complexity
 
 <td style="text-align:right;">
 
-6372
+6368
 
 </td>
 
 <td style="text-align:right;">
 
-0.1101695
+0.1103957
 
 </td>
 
 <td style="text-align:right;">
 
-0.0111425
+0.0111495
 
 </td>
 
 <td style="text-align:right;">
 
-0.0025110
+0.0025126
 
 </td>
 
 <td style="text-align:right;">
 
-0.1238230
+0.1240578
 
 </td>
 
@@ -7573,31 +8143,31 @@ complexity
 
 <td style="text-align:right;">
 
-6372
+6368
 
 </td>
 
 <td style="text-align:right;">
 
-0.1348085
+0.1350503
 
 </td>
 
 <td style="text-align:right;">
 
-0.0144382
+0.0144472
 
 </td>
 
 <td style="text-align:right;">
 
-0.0028249
+0.0028266
 
 </td>
 
 <td style="text-align:right;">
 
-0.1520716
+0.1523241
 
 </td>
 
@@ -7613,31 +8183,31 @@ complexity
 
 <td style="text-align:right;">
 
-6372
+6368
 
 </td>
 
 <td style="text-align:right;">
 
-0.2016635
+0.2014761
 
 </td>
 
 <td style="text-align:right;">
 
-0.0194601
+0.0191583
 
 </td>
 
 <td style="text-align:right;">
 
-0.0076899
+0.0076947
 
 </td>
 
 <td style="text-align:right;">
 
-0.2288136
+0.2283291
 
 </td>
 
@@ -7650,8 +8220,8 @@ complexity
 Comparison of models with combined imputed funniness and iconicity as a
 dependent variable shows that a linear model including cumulative
 markedness as predictor provides a significantly better fit (F1,19230 =
-338.07, p \< 0.0001) and explains a little bit more the variance
-(adjusted R2 = 0.11 vs. 0.12) than a model with just word frequency,
+337.3, p \< 0.0001) and explains a little bit more the variance
+(adjusted R2 = 0.124 vs. 0.109) than a model with just word frequency,
 lexical decision time and log letter frequency.
 
 **Model m5.4**: lm(formula = funico\_imputed \~ logfreq + rt +
@@ -7721,13 +8291,13 @@ logfreq
 
 <td style="text-align:right;">
 
-1005.50
+1025.303
 
 </td>
 
 <td style="text-align:right;">
 
-354.617
+361.774
 
 </td>
 
@@ -7761,19 +8331,19 @@ rt
 
 <td style="text-align:right;">
 
-4.85
+4.778
 
 </td>
 
 <td style="text-align:right;">
 
-1.711
+1.686
 
 </td>
 
 <td style="text-align:right;">
 
-0.191
+0.194
 
 </td>
 
@@ -7801,13 +8371,13 @@ logletterfreq
 
 <td style="text-align:right;">
 
-5643.07
+5608.765
 
 </td>
 
 <td style="text-align:right;">
 
-1990.182
+1979.029
 
 </td>
 
@@ -7819,7 +8389,7 @@ logletterfreq
 
 <td style="text-align:right;">
 
-0.094
+0.093
 
 </td>
 
@@ -7835,13 +8405,13 @@ Residuals
 
 <td style="text-align:right;">
 
-19231
+19203
 
 </td>
 
 <td style="text-align:right;">
 
-54528.61
+54423.210
 
 </td>
 
@@ -7930,25 +8500,25 @@ logfreq
 
 <td style="text-align:right;">
 
-1005.500
+1025.303
 
 </td>
 
 <td style="text-align:right;">
 
-360.833
+368.110
 
 </td>
 
 <td style="text-align:right;">
 
-0.000
+0.00
 
 </td>
 
 <td style="text-align:right;">
 
-0.018
+0.019
 
 </td>
 
@@ -7970,19 +8540,19 @@ rt
 
 <td style="text-align:right;">
 
-4.850
+4.778
 
 </td>
 
 <td style="text-align:right;">
 
-1.740
+1.716
 
 </td>
 
 <td style="text-align:right;">
 
-0.187
+0.19
 
 </td>
 
@@ -8010,19 +8580,19 @@ logletterfreq
 
 <td style="text-align:right;">
 
-5643.070
+5608.765
 
 </td>
 
 <td style="text-align:right;">
 
-2025.066
+2013.687
 
 </td>
 
 <td style="text-align:right;">
 
-0.000
+0.00
 
 </td>
 
@@ -8050,19 +8620,19 @@ cumulative
 
 <td style="text-align:right;">
 
-942.083
+939.486
 
 </td>
 
 <td style="text-align:right;">
 
-338.075
+337.299
 
 </td>
 
 <td style="text-align:right;">
 
-0.000
+0.00
 
 </td>
 
@@ -8084,13 +8654,13 @@ Residuals
 
 <td style="text-align:right;">
 
-19230
+19202
 
 </td>
 
 <td style="text-align:right;">
 
-53586.523
+53483.724
 
 </td>
 
@@ -8170,13 +8740,13 @@ Pr(\>F)
 
 <td style="text-align:right;">
 
-19231
+19203
 
 </td>
 
 <td style="text-align:right;">
 
-54528.61
+54423.21
 
 </td>
 
@@ -8202,13 +8772,13 @@ Pr(\>F)
 
 <td style="text-align:right;">
 
-19230
+19202
 
 </td>
 
 <td style="text-align:right;">
 
-53586.52
+53483.72
 
 </td>
 
@@ -8220,13 +8790,13 @@ Pr(\>F)
 
 <td style="text-align:right;">
 
-942.0828
+939.4858
 
 </td>
 
 <td style="text-align:right;">
 
-338.0748
+337.299
 
 </td>
 
@@ -8241,7330 +8811,6 @@ Pr(\>F)
 </tbody>
 
 </table>
-
-## Supplementary analyses
-
-Here we report additional analyses that provide more details than we
-have room for in the paper.
-
-### Imputed funniness and iconicity
-
-In the paper, we test the imputation method by seeing whether the
-fun\~iconicity relation is upheld in imputed iconicity ratings. The
-reason is that we have a sizable test set (3.577) and there is an
-objective definition of iconicity (resemblance between aspects of form
-and aspects of meaning). In the paper, we point out that words with high
-imputed iconicity are indeed clearly imitative and cite some evidence
-from OED definitions (though we don’t do this in a systematic way).
-
-Can we also test the imputation method the other way around? There are
-1.526 words for which we have human iconicity ratings but not funniness
-ratings. Since this is a much smaller set and there is no objective ways
-to judge the funniness of words we don’t report this comparison in the
-paper, but it comes out as expected.
-
-``` r
-words.setD <- words %>% filter(set=="D")
-
-words %>%
-  filter(set=="D") %>%
-  ggplot(aes(x=ico,y=fun_imputed)) +
-  theme_tufte() + 
-  labs(x="iconicity", y="imputed funniness") + 
-  ggtitle("Imputed funniness and human iconicity ratings (n = 1526)",subtitle="(labelling top 15 words with high imputed funniness)") +
-  stat_smooth(method="loess",colour="grey",span=0.8) +
-  geom_point(alpha=0.5,na.rm=T) +
-  geom_label_repel(
-    #data=sample_n(words.setD %>% filter(fun_imputed_perc > 9),12),
-    data=words.setD %>% arrange(-fun_imputed) %>% slice(1:15),
-    aes(label=word),
-    size=4,
-    alpha=0.8,
-    segment.colour="grey50",
-    label.size=NA,
-    label.r=unit(0,"lines"),
-    box.padding=unit(0.35, "lines"),
-    point.padding=unit(0.3,"lines")
-  )
-```
-
-![](out/imputed_fun-1.png)<!-- -->
-
-``` r
-mS2.1 <- lm(fun_imputed ~ logfreq + rt, words.setD)
-summary(mS2.1)
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = fun_imputed ~ logfreq + rt, data = words.setD)
-    ## 
-    ## Residuals:
-    ##      Min       1Q   Median       3Q      Max 
-    ## -0.82355 -0.19056 -0.00997  0.18545  0.99558 
-    ## 
-    ## Coefficients:
-    ##               Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  2.1400246  0.1326180  16.137  < 2e-16 ***
-    ## logfreq     -0.0962365  0.0104864  -9.177  < 2e-16 ***
-    ## rt           0.0009374  0.0001893   4.952 8.61e-07 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 0.2977 on 1006 degrees of freedom
-    ##   (517 observations deleted due to missingness)
-    ## Multiple R-squared:  0.2392, Adjusted R-squared:  0.2377 
-    ## F-statistic: 158.2 on 2 and 1006 DF,  p-value: < 2.2e-16
-
-``` r
-mS2.2 <- lm(fun_imputed ~ logfreq + rt + ico, words.setD)
-plot(fitted(mS2.2),residuals(mS2.2))  # no obvious linearity
-```
-
-![](out/imputed_fun-2.png)<!-- -->
-
-``` r
-qqnorm(residuals(mS2.2))
-qqline(residuals(mS2.2))           # looks OK, slight right skew or light tailed as above
-```
-
-![](out/imputed_fun-3.png)<!-- -->
-
-``` r
-vif(mS2.2)                         # all below 2 so no indications of multicollinearity
-```
-
-    ##  logfreq       rt      ico 
-    ## 1.913598 1.856358 1.065061
-
-``` r
-summary(mS2.2)
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = fun_imputed ~ logfreq + rt + ico, data = words.setD)
-    ## 
-    ## Residuals:
-    ##      Min       1Q   Median       3Q      Max 
-    ## -0.89958 -0.18667  0.00119  0.16164  1.01843 
-    ## 
-    ## Coefficients:
-    ##               Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  2.0119858  0.1256012  16.019  < 2e-16 ***
-    ## logfreq     -0.0766722  0.0100430  -7.634 5.26e-14 ***
-    ## rt           0.0009062  0.0001786   5.075 4.62e-07 ***
-    ## ico          0.0883170  0.0078717  11.220  < 2e-16 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 0.2808 on 1005 degrees of freedom
-    ##   (517 observations deleted due to missingness)
-    ## Multiple R-squared:  0.3239, Adjusted R-squared:  0.3219 
-    ## F-statistic: 160.5 on 3 and 1005 DF,  p-value: < 2.2e-16
-
-``` r
-anova(mS2.1,mS2.2)
-```
-
-    ## Analysis of Variance Table
-    ## 
-    ## Model 1: fun_imputed ~ logfreq + rt
-    ## Model 2: fun_imputed ~ logfreq + rt + ico
-    ##   Res.Df    RSS Df Sum of Sq      F    Pr(>F)    
-    ## 1   1006 89.170                                  
-    ## 2   1005 79.244  1    9.9255 125.88 < 2.2e-16 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-As in §3.2 in the paper we can try to predict imputed funniness based on
-frequency and rt, and see how much iconicity ratings improve our
-predictions.
-
-Compared to model mS2.1, which predicts fun\_imputed with just log
-frequency and lexical decision time, model mS2.2 including iconicity as
-predictor provides a significantly better fit and explains a larger
-portion of the variance.
-
-**Model mS2.1**: lm(formula = fun\_imputed \~ logfreq + rt, data =
-words.setD)
-
-<table>
-
-<thead>
-
-<tr>
-
-<th style="text-align:left;">
-
-predictor
-
-</th>
-
-<th style="text-align:right;">
-
-df
-
-</th>
-
-<th style="text-align:right;">
-
-SS
-
-</th>
-
-<th style="text-align:right;">
-
-\(F\)
-
-</th>
-
-<th style="text-align:right;">
-
-\(p\)
-
-</th>
-
-<th style="text-align:right;">
-
-partial \(\eta^2\)
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:left;">
-
-logfreq
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-25.869
-
-</td>
-
-<td style="text-align:right;">
-
-291.852
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-0.225
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-rt
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-2.174
-
-</td>
-
-<td style="text-align:right;">
-
-24.522
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-0.024
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-Residuals
-
-</td>
-
-<td style="text-align:right;">
-
-1006
-
-</td>
-
-<td style="text-align:right;">
-
-89.170
-
-</td>
-
-<td style="text-align:right;">
-
-</td>
-
-<td style="text-align:right;">
-
-</td>
-
-<td style="text-align:right;">
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-**Model m2.2**: lm(formula = fun\_imputed \~ logfreq + rt + ico, data =
-words.setD)
-
-<table>
-
-<thead>
-
-<tr>
-
-<th style="text-align:left;">
-
-predictor
-
-</th>
-
-<th style="text-align:right;">
-
-df
-
-</th>
-
-<th style="text-align:right;">
-
-SS
-
-</th>
-
-<th style="text-align:right;">
-
-\(F\)
-
-</th>
-
-<th style="text-align:right;">
-
-\(p\)
-
-</th>
-
-<th style="text-align:right;">
-
-partial \(\eta^2\)
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:left;">
-
-logfreq
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-25.869
-
-</td>
-
-<td style="text-align:right;">
-
-328.080
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-0.246
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-rt
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-2.174
-
-</td>
-
-<td style="text-align:right;">
-
-27.566
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-0.027
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-ico
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-9.926
-
-</td>
-
-<td style="text-align:right;">
-
-125.878
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-0.111
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-Residuals
-
-</td>
-
-<td style="text-align:right;">
-
-1005
-
-</td>
-
-<td style="text-align:right;">
-
-79.244
-
-</td>
-
-<td style="text-align:right;">
-
-</td>
-
-<td style="text-align:right;">
-
-</td>
-
-<td style="text-align:right;">
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-<table>
-
-<caption>
-
-model comparison
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:right;">
-
-Res.Df
-
-</th>
-
-<th style="text-align:right;">
-
-RSS
-
-</th>
-
-<th style="text-align:right;">
-
-Df
-
-</th>
-
-<th style="text-align:right;">
-
-Sum of Sq
-
-</th>
-
-<th style="text-align:right;">
-
-F
-
-</th>
-
-<th style="text-align:right;">
-
-Pr(\>F)
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:right;">
-
-1006
-
-</td>
-
-<td style="text-align:right;">
-
-89.16985
-
-</td>
-
-<td style="text-align:right;">
-
-</td>
-
-<td style="text-align:right;">
-
-</td>
-
-<td style="text-align:right;">
-
-</td>
-
-<td style="text-align:right;">
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-1005
-
-</td>
-
-<td style="text-align:right;">
-
-79.24433
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-9.92552
-
-</td>
-
-<td style="text-align:right;">
-
-125.8784
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-A partial correlations analysis shows that there is 32% of covariance
-between iconicity ratings and imputed funniness that is not explained by
-word frequency (r = 0.32, p \< 0.0001). In other words, iconicity
-ratings can also help us predict imputed funniness.
-
-**Example words**
-
-High imputed funniness and high iconicity: *gurgle, mushy, screech,
-icky, goopy, hiss, quack, cooing, chirping, squishy, mini, crinkle,
-sizzle, slosh, slurp, purring, splat, crinkly, buzz, scoot*
-
-Low imputed funniness and low iconicity: *synagogue, bequeath, require,
-choose, repent, condition, ambulance, polio, injury, attorney, oppose,
-resign, denial, motionless*
-
-High funniness and low iconicity: *buttock, knave, cockatoo, bib, yam,
-donut, zucchini, honeyed, dewy, emu, budgie, buttery, holey, vagina,
-leotards, parakeet, kitten, burl, downy, slang*
-
-Low imputed funniness and high iconicity: *explosion, crushed, no,
-stinging, breathe, harsh, sting, huge, fibrous*
-
-### Analysable morphology bias in iconicity ratings
-
-An inspection of the top few hundred words reveals many clearly iconic
-words, but also a number of transparently compositional words like
-*sunshine, seaweed, downpour, dishwasher, corkscrew, bedroom*. Looking
-at top rated iconic nouns with \>1 morphemes is a good way of finding
-many of these.
-
-``` r
-# 200 most iconic words for visual inspection
-words %>%
-  drop_na(ico) %>%
-  filter(ico_perc > 8) %>%
-  arrange(-ico) %>%
-  dplyr::select(word) %>%
-  slice(1:200) %>% unlist() %>% unname()
-
-# top rated iconic nouns with >1 morphemes is a good way of getting at many of these
-words %>%
-  drop_na(ico) %>%
-  filter(ico_perc > 8,
-         nmorph > 1,
-         POS == "Noun") %>%
-  arrange(-ico) %>%
-  dplyr::select(word) %>%
-  slice(1:200) %>% unlist() %>% unname()
-```
-
-These analysable compound nouns are treated by naïve raters as “sounding
-like what they mean” and therefore given high iconicity ratings, leading
-to rating artefacts. We can use data on number of morphemes from the
-English lexicon project (Balota et al. 2007) to filter out such words
-and look at monomorphemic words only.
-
-The plots and partial correlations below show that the basic patterns
-emerge somewhat clearer in monomorphemic words, as expected. All
-findings remain essentially the same.
-
-There are **1278** monomorphemic words in set A (out of a total of
-1419).
-
-<table>
-
-<caption>
-
-mean iconicity by number of morphemes
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:left;">
-
-nmorph
-
-</th>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-mean.ico
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-1278
-
-</td>
-
-<td style="text-align:right;">
-
-0.8546147
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-<td style="text-align:right;">
-
-137
-
-</td>
-
-<td style="text-align:right;">
-
-1.0236474
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-1.4055556
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-1.0000000
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-<table>
-
-<caption>
-
-highest 7 iconic words per number of morphemes (1-3)
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:left;">
-
-word
-
-</th>
-
-<th style="text-align:right;">
-
-ico
-
-</th>
-
-<th style="text-align:right;">
-
-fun
-
-</th>
-
-<th style="text-align:left;">
-
-nmorph
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:left;">
-
-click
-
-</td>
-
-<td style="text-align:right;">
-
-4.4615385
-
-</td>
-
-<td style="text-align:right;">
-
-2.135135
-
-</td>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-beep
-
-</td>
-
-<td style="text-align:right;">
-
-4.3571429
-
-</td>
-
-<td style="text-align:right;">
-
-2.615385
-
-</td>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-squeak
-
-</td>
-
-<td style="text-align:right;">
-
-4.2307692
-
-</td>
-
-<td style="text-align:right;">
-
-3.230769
-
-</td>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-chirp
-
-</td>
-
-<td style="text-align:right;">
-
-4.1428571
-
-</td>
-
-<td style="text-align:right;">
-
-3.000000
-
-</td>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-stomp
-
-</td>
-
-<td style="text-align:right;">
-
-4.1000000
-
-</td>
-
-<td style="text-align:right;">
-
-2.421053
-
-</td>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-pop
-
-</td>
-
-<td style="text-align:right;">
-
-4.0769231
-
-</td>
-
-<td style="text-align:right;">
-
-3.294118
-
-</td>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-bleep
-
-</td>
-
-<td style="text-align:right;">
-
-3.9285714
-
-</td>
-
-<td style="text-align:right;">
-
-2.931818
-
-</td>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-zigzag
-
-</td>
-
-<td style="text-align:right;">
-
-4.3000000
-
-</td>
-
-<td style="text-align:right;">
-
-3.113636
-
-</td>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-buzzer
-
-</td>
-
-<td style="text-align:right;">
-
-4.0909091
-
-</td>
-
-<td style="text-align:right;">
-
-2.833333
-
-</td>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-skateboard
-
-</td>
-
-<td style="text-align:right;">
-
-3.6000000
-
-</td>
-
-<td style="text-align:right;">
-
-2.208333
-
-</td>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-sunshine
-
-</td>
-
-<td style="text-align:right;">
-
-3.0909091
-
-</td>
-
-<td style="text-align:right;">
-
-2.064516
-
-</td>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-zipper
-
-</td>
-
-<td style="text-align:right;">
-
-2.9230769
-
-</td>
-
-<td style="text-align:right;">
-
-2.516129
-
-</td>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-freezer
-
-</td>
-
-<td style="text-align:right;">
-
-2.9166667
-
-</td>
-
-<td style="text-align:right;">
-
-2.281250
-
-</td>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-bubbly
-
-</td>
-
-<td style="text-align:right;">
-
-2.8181818
-
-</td>
-
-<td style="text-align:right;">
-
-3.352941
-
-</td>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-fireworks
-
-</td>
-
-<td style="text-align:right;">
-
-1.9000000
-
-</td>
-
-<td style="text-align:right;">
-
-2.294118
-
-</td>
-
-<td style="text-align:left;">
-
-3
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-pliers
-
-</td>
-
-<td style="text-align:right;">
-
-1.9000000
-
-</td>
-
-<td style="text-align:right;">
-
-2.352941
-
-</td>
-
-<td style="text-align:left;">
-
-3
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-influence
-
-</td>
-
-<td style="text-align:right;">
-
-0.4166667
-
-</td>
-
-<td style="text-align:right;">
-
-1.914286
-
-</td>
-
-<td style="text-align:left;">
-
-3
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-![](out/morphology-1.png)<!-- -->
-
-<table>
-
-<caption>
-
-Partial correlations between funniness and iconicity, controlling for
-frequency, in monomorphemic words
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:right;">
-
-estimate
-
-</th>
-
-<th style="text-align:right;">
-
-p.value
-
-</th>
-
-<th style="text-align:right;">
-
-statistic
-
-</th>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-gp
-
-</th>
-
-<th style="text-align:left;">
-
-Method
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:right;">
-
-0.2158506
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-7.893486
-
-</td>
-
-<td style="text-align:right;">
-
-1278
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:left;">
-
-pearson
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-There are 2176 monomorphemic words in set B (61% of 3577).
-
-<table>
-
-<caption>
-
-mean iconicity by number of morphemes in set B
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:left;">
-
-nmorph
-
-</th>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-mean.ico
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:left;">
-
-\#
-
-</td>
-
-<td style="text-align:right;">
-
-14
-
-</td>
-
-<td style="text-align:right;">
-
-0.8584171
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-2176
-
-</td>
-
-<td style="text-align:right;">
-
-0.6878947
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-<td style="text-align:right;">
-
-1321
-
-</td>
-
-<td style="text-align:right;">
-
-0.5808049
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-42
-
-</td>
-
-<td style="text-align:right;">
-
-0.4412872
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-</td>
-
-<td style="text-align:right;">
-
-24
-
-</td>
-
-<td style="text-align:right;">
-
-0.2862270
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-![](out/nmorph_setB-1.png)<!-- -->
-
-<table>
-
-<caption>
-
-Partial correlations between funniness and imputed iconicity,
-controlling for frequency, in monomorphemic words
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:right;">
-
-estimate
-
-</th>
-
-<th style="text-align:right;">
-
-p.value
-
-</th>
-
-<th style="text-align:right;">
-
-statistic
-
-</th>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-gp
-
-</th>
-
-<th style="text-align:left;">
-
-Method
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:right;">
-
-0.3278004
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-16.17424
-
-</td>
-
-<td style="text-align:right;">
-
-2176
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:left;">
-
-pearson
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-There are only 5188 monomorphemic words in set C (out of 41581 words for
-which we have data on number of morphemes).
-
-<table>
-
-<caption>
-
-mean iconicity by number of morphemes in set C
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:left;">
-
-nmorph
-
-</th>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-mean.ico
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:left;">
-
-\#
-
-</td>
-
-<td style="text-align:right;">
-
-1320
-
-</td>
-
-<td style="text-align:right;">
-
-0.4958385
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-5188
-
-</td>
-
-<td style="text-align:right;">
-
-0.5429181
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-2
-
-</td>
-
-<td style="text-align:right;">
-
-20468
-
-</td>
-
-<td style="text-align:right;">
-
-0.6487038
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-11576
-
-</td>
-
-<td style="text-align:right;">
-
-0.4195044
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-4
-
-</td>
-
-<td style="text-align:right;">
-
-2689
-
-</td>
-
-<td style="text-align:right;">
-
-0.3195566
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-5
-
-</td>
-
-<td style="text-align:right;">
-
-329
-
-</td>
-
-<td style="text-align:right;">
-
-0.2877888
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-6
-
-</td>
-
-<td style="text-align:right;">
-
-11
-
-</td>
-
-<td style="text-align:right;">
-
-0.3718408
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-</td>
-
-<td style="text-align:right;">
-
-22142
-
-</td>
-
-<td style="text-align:right;">
-
-0.4707780
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-![](out/nmorph_setC-1.png)<!-- -->
-
-<table>
-
-<caption>
-
-Partial correlations between imputed funniness and imputed iconicity,
-controlling for frequency, in monomorphemic words
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:right;">
-
-estimate
-
-</th>
-
-<th style="text-align:right;">
-
-p.value
-
-</th>
-
-<th style="text-align:right;">
-
-statistic
-
-</th>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-gp
-
-</th>
-
-<th style="text-align:left;">
-
-Method
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:right;">
-
-0.4378671
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-35.07016
-
-</td>
-
-<td style="text-align:right;">
-
-5188
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:left;">
-
-pearson
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-### Imputing ratings based on monomorphemic words only
-
-Given what we know about the bias in iconicity ratings it may make sense
-to base imputation only on monomorphemic words and see how this affects
-the results. It should lead to less analysable compounds showing up high
-in the imputed iconicity ratings of set B and set C.
-
-### Other analyses
-
-#### Markedness patterns in words with imputed ratings
-
-While the primary focus of analysis 4 was on set A (the core set of
-human ratings), it’s interesting to see how well the structural cues
-fare in explaining independently imputed iconicity ratings in the larger
-datasets.
-
-<table>
-
-<caption>
-
-Mean imputed scores by levels of cumulative markedness
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:right;">
-
-cumulative
-
-</th>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-ico\_imputed
-
-</th>
-
-<th style="text-align:right;">
-
-fun\_imputed
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-59880
-
-</td>
-
-<td style="text-align:right;">
-
-0.4911536
-
-</td>
-
-<td style="text-align:right;">
-
-2.377658
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-7307
-
-</td>
-
-<td style="text-align:right;">
-
-0.7854608
-
-</td>
-
-<td style="text-align:right;">
-
-2.450575
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-<td style="text-align:right;">
-
-113
-
-</td>
-
-<td style="text-align:right;">
-
-1.2294607
-
-</td>
-
-<td style="text-align:right;">
-
-2.646994
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-<table>
-
-<caption>
-
-Cumulative markedness for \<10 deciles of imputed iconicity
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-ico\_imputed
-
-</th>
-
-<th style="text-align:right;">
-
-fun\_imputed
-
-</th>
-
-<th style="text-align:right;">
-
-cumulative
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:right;">
-
-60978
-
-</td>
-
-<td style="text-align:right;">
-
-0.3904239
-
-</td>
-
-<td style="text-align:right;">
-
-2.35391
-
-</td>
-
-<td style="text-align:right;">
-
-0.0985765
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-<table>
-
-<caption>
-
-imputed iconicity for 20 random words of high phonological complexity
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:left;">
-
-word
-
-</th>
-
-<th style="text-align:right;">
-
-ico\_imputed\_perc
-
-</th>
-
-<th style="text-align:right;">
-
-ico\_imputed
-
-</th>
-
-<th style="text-align:right;">
-
-cumulative
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:left;">
-
-swoosh
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-3.8021451
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-blurt
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-2.2853380
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-crunk
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-2.1653418
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-crumple
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1.9479412
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-flinch
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1.8646337
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-clump
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1.5840648
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-scribble
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1.5335878
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-squash
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1.4720196
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-blank
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1.4354367
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-bluish
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1.1294532
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-cleanish
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1.0357122
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-primp
-
-</td>
-
-<td style="text-align:right;">
-
-8
-
-</td>
-
-<td style="text-align:right;">
-
-0.9036671
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-spinsterish
-
-</td>
-
-<td style="text-align:right;">
-
-6
-
-</td>
-
-<td style="text-align:right;">
-
-0.5475747
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-blanch
-
-</td>
-
-<td style="text-align:right;">
-
-6
-
-</td>
-
-<td style="text-align:right;">
-
-0.4864278
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-flatfish
-
-</td>
-
-<td style="text-align:right;">
-
-5
-
-</td>
-
-<td style="text-align:right;">
-
-0.3870658
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-tradespeople
-
-</td>
-
-<td style="text-align:right;">
-
-4
-
-</td>
-
-<td style="text-align:right;">
-
-0.2557573
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-crayfish
-
-</td>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-0.1607801
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-preshrunk
-
-</td>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-0.1581131
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-transport
-
-</td>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-0.0254468
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-spearfish
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-<td style="text-align:right;">
-
-0.0134083
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-<table>
-
-<caption>
-
-Cumulative markedness scores per iconicity decile in Set B
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:right;">
-
-ico\_imputed\_perc
-
-</th>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-ico
-
-</th>
-
-<th style="text-align:right;">
-
-fun
-
-</th>
-
-<th style="text-align:right;">
-
-onset
-
-</th>
-
-<th style="text-align:right;">
-
-coda
-
-</th>
-
-<th style="text-align:right;">
-
-verbdim
-
-</th>
-
-<th style="text-align:right;">
-
-cumulative
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-236
-
-</td>
-
-<td style="text-align:right;">
-
-\-0.4510110
-
-</td>
-
-<td style="text-align:right;">
-
-2.208529
-
-</td>
-
-<td style="text-align:right;">
-
-0.0762712
-
-</td>
-
-<td style="text-align:right;">
-
-0.0127119
-
-</td>
-
-<td style="text-align:right;">
-
-0.0000000
-
-</td>
-
-<td style="text-align:right;">
-
-0.0889831
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-<td style="text-align:right;">
-
-286
-
-</td>
-
-<td style="text-align:right;">
-
-\-0.0833503
-
-</td>
-
-<td style="text-align:right;">
-
-2.271581
-
-</td>
-
-<td style="text-align:right;">
-
-0.0769231
-
-</td>
-
-<td style="text-align:right;">
-
-0.0174825
-
-</td>
-
-<td style="text-align:right;">
-
-0.0000000
-
-</td>
-
-<td style="text-align:right;">
-
-0.0944056
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-279
-
-</td>
-
-<td style="text-align:right;">
-
-0.1031261
-
-</td>
-
-<td style="text-align:right;">
-
-2.317306
-
-</td>
-
-<td style="text-align:right;">
-
-0.1003584
-
-</td>
-
-<td style="text-align:right;">
-
-0.0250896
-
-</td>
-
-<td style="text-align:right;">
-
-0.0000000
-
-</td>
-
-<td style="text-align:right;">
-
-0.1254480
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-4
-
-</td>
-
-<td style="text-align:right;">
-
-339
-
-</td>
-
-<td style="text-align:right;">
-
-0.2583464
-
-</td>
-
-<td style="text-align:right;">
-
-2.317771
-
-</td>
-
-<td style="text-align:right;">
-
-0.1356932
-
-</td>
-
-<td style="text-align:right;">
-
-0.0176991
-
-</td>
-
-<td style="text-align:right;">
-
-0.0029499
-
-</td>
-
-<td style="text-align:right;">
-
-0.1563422
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-5
-
-</td>
-
-<td style="text-align:right;">
-
-337
-
-</td>
-
-<td style="text-align:right;">
-
-0.4039974
-
-</td>
-
-<td style="text-align:right;">
-
-2.343713
-
-</td>
-
-<td style="text-align:right;">
-
-0.1068249
-
-</td>
-
-<td style="text-align:right;">
-
-0.0237389
-
-</td>
-
-<td style="text-align:right;">
-
-0.0059347
-
-</td>
-
-<td style="text-align:right;">
-
-0.1364985
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-6
-
-</td>
-
-<td style="text-align:right;">
-
-381
-
-</td>
-
-<td style="text-align:right;">
-
-0.5478001
-
-</td>
-
-<td style="text-align:right;">
-
-2.378327
-
-</td>
-
-<td style="text-align:right;">
-
-0.1259843
-
-</td>
-
-<td style="text-align:right;">
-
-0.0262467
-
-</td>
-
-<td style="text-align:right;">
-
-0.0026247
-
-</td>
-
-<td style="text-align:right;">
-
-0.1548556
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-7
-
-</td>
-
-<td style="text-align:right;">
-
-402
-
-</td>
-
-<td style="text-align:right;">
-
-0.7090162
-
-</td>
-
-<td style="text-align:right;">
-
-2.414340
-
-</td>
-
-<td style="text-align:right;">
-
-0.1268657
-
-</td>
-
-<td style="text-align:right;">
-
-0.0174129
-
-</td>
-
-<td style="text-align:right;">
-
-0.0000000
-
-</td>
-
-<td style="text-align:right;">
-
-0.1442786
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-8
-
-</td>
-
-<td style="text-align:right;">
-
-428
-
-</td>
-
-<td style="text-align:right;">
-
-0.9010321
-
-</td>
-
-<td style="text-align:right;">
-
-2.493104
-
-</td>
-
-<td style="text-align:right;">
-
-0.1401869
-
-</td>
-
-<td style="text-align:right;">
-
-0.0490654
-
-</td>
-
-<td style="text-align:right;">
-
-0.0000000
-
-</td>
-
-<td style="text-align:right;">
-
-0.1892523
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-460
-
-</td>
-
-<td style="text-align:right;">
-
-1.1700581
-
-</td>
-
-<td style="text-align:right;">
-
-2.532319
-
-</td>
-
-<td style="text-align:right;">
-
-0.1565217
-
-</td>
-
-<td style="text-align:right;">
-
-0.0282609
-
-</td>
-
-<td style="text-align:right;">
-
-0.0065217
-
-</td>
-
-<td style="text-align:right;">
-
-0.1913043
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-429
-
-</td>
-
-<td style="text-align:right;">
-
-1.7755170
-
-</td>
-
-<td style="text-align:right;">
-
-2.711261
-
-</td>
-
-<td style="text-align:right;">
-
-0.2331002
-
-</td>
-
-<td style="text-align:right;">
-
-0.0862471
-
-</td>
-
-<td style="text-align:right;">
-
-0.0326340
-
-</td>
-
-<td style="text-align:right;">
-
-0.3519814
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-<table>
-
-<caption>
-
-Cumulative markedness scores per iconicity decile in Set C
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:right;">
-
-ico\_imputed\_perc
-
-</th>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-ico
-
-</th>
-
-<th style="text-align:right;">
-
-fun
-
-</th>
-
-<th style="text-align:right;">
-
-onset
-
-</th>
-
-<th style="text-align:right;">
-
-coda
-
-</th>
-
-<th style="text-align:right;">
-
-verbdim
-
-</th>
-
-<th style="text-align:right;">
-
-cumulative
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-6676
-
-</td>
-
-<td style="text-align:right;">
-
-\-0.4515018
-
-</td>
-
-<td style="text-align:right;">
-
-2.246385
-
-</td>
-
-<td style="text-align:right;">
-
-0.0573697
-
-</td>
-
-<td style="text-align:right;">
-
-0.0058418
-
-</td>
-
-<td style="text-align:right;">
-
-0.0002996
-
-</td>
-
-<td style="text-align:right;">
-
-0.0635111
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-<td style="text-align:right;">
-
-6585
-
-</td>
-
-<td style="text-align:right;">
-
-\-0.0869870
-
-</td>
-
-<td style="text-align:right;">
-
-2.271796
-
-</td>
-
-<td style="text-align:right;">
-
-0.0681853
-
-</td>
-
-<td style="text-align:right;">
-
-0.0053151
-
-</td>
-
-<td style="text-align:right;">
-
-0.0004556
-
-</td>
-
-<td style="text-align:right;">
-
-0.0739560
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-6566
-
-</td>
-
-<td style="text-align:right;">
-
-0.1026346
-
-</td>
-
-<td style="text-align:right;">
-
-2.292720
-
-</td>
-
-<td style="text-align:right;">
-
-0.0711240
-
-</td>
-
-<td style="text-align:right;">
-
-0.0076150
-
-</td>
-
-<td style="text-align:right;">
-
-0.0003046
-
-</td>
-
-<td style="text-align:right;">
-
-0.0790436
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-4
-
-</td>
-
-<td style="text-align:right;">
-
-6456
-
-</td>
-
-<td style="text-align:right;">
-
-0.2592712
-
-</td>
-
-<td style="text-align:right;">
-
-2.308436
-
-</td>
-
-<td style="text-align:right;">
-
-0.0675341
-
-</td>
-
-<td style="text-align:right;">
-
-0.0078996
-
-</td>
-
-<td style="text-align:right;">
-
-0.0012392
-
-</td>
-
-<td style="text-align:right;">
-
-0.0766729
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-5
-
-</td>
-
-<td style="text-align:right;">
-
-6407
-
-</td>
-
-<td style="text-align:right;">
-
-0.4035463
-
-</td>
-
-<td style="text-align:right;">
-
-2.335267
-
-</td>
-
-<td style="text-align:right;">
-
-0.0783518
-
-</td>
-
-<td style="text-align:right;">
-
-0.0076479
-
-</td>
-
-<td style="text-align:right;">
-
-0.0010926
-
-</td>
-
-<td style="text-align:right;">
-
-0.0870922
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-6
-
-</td>
-
-<td style="text-align:right;">
-
-6389
-
-</td>
-
-<td style="text-align:right;">
-
-0.5498806
-
-</td>
-
-<td style="text-align:right;">
-
-2.359699
-
-</td>
-
-<td style="text-align:right;">
-
-0.0871811
-
-</td>
-
-<td style="text-align:right;">
-
-0.0081390
-
-</td>
-
-<td style="text-align:right;">
-
-0.0007826
-
-</td>
-
-<td style="text-align:right;">
-
-0.0961027
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-7
-
-</td>
-
-<td style="text-align:right;">
-
-6295
-
-</td>
-
-<td style="text-align:right;">
-
-0.7112090
-
-</td>
-
-<td style="text-align:right;">
-
-2.398376
-
-</td>
-
-<td style="text-align:right;">
-
-0.0984909
-
-</td>
-
-<td style="text-align:right;">
-
-0.0106434
-
-</td>
-
-<td style="text-align:right;">
-
-0.0011120
-
-</td>
-
-<td style="text-align:right;">
-
-0.1102462
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-8
-
-</td>
-
-<td style="text-align:right;">
-
-6277
-
-</td>
-
-<td style="text-align:right;">
-
-0.9048808
-
-</td>
-
-<td style="text-align:right;">
-
-2.451664
-
-</td>
-
-<td style="text-align:right;">
-
-0.1110403
-
-</td>
-
-<td style="text-align:right;">
-
-0.0119484
-
-</td>
-
-<td style="text-align:right;">
-
-0.0023897
-
-</td>
-
-<td style="text-align:right;">
-
-0.1253784
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-6179
-
-</td>
-
-<td style="text-align:right;">
-
-1.1734941
-
-</td>
-
-<td style="text-align:right;">
-
-2.524058
-
-</td>
-
-<td style="text-align:right;">
-
-0.1382101
-
-</td>
-
-<td style="text-align:right;">
-
-0.0144036
-
-</td>
-
-<td style="text-align:right;">
-
-0.0035604
-
-</td>
-
-<td style="text-align:right;">
-
-0.1561741
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-5893
-
-</td>
-
-<td style="text-align:right;">
-
-1.8190395
-
-</td>
-
-<td style="text-align:right;">
-
-2.694686
-
-</td>
-
-<td style="text-align:right;">
-
-0.2058374
-
-</td>
-
-<td style="text-align:right;">
-
-0.0193450
-
-</td>
-
-<td style="text-align:right;">
-
-0.0074665
-
-</td>
-
-<td style="text-align:right;">
-
-0.2326489
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-![](out/markedness_imputed-1.png)<!-- -->
-
-#### Markedness for iconicity vs funniness ratings
-
-Cumulative markedness is particularly good for predicting iconicity,
-rivalling funniness, word frequency and log letter frequency as a
-predictor of iconicity rating (model `mS.1`). It is less good for
-predicting funniness ratings, which are (as we know) also influenced by
-semantic and collocational factors (model `mS.2`).
-
-**Model mS.1**: lm(formula = ico \~ logfreq + rt + fun + logletterfreq +
-cumulative, , data = words.setA)
-
-<table>
-
-<thead>
-
-<tr>
-
-<th style="text-align:left;">
-
-predictor
-
-</th>
-
-<th style="text-align:right;">
-
-df
-
-</th>
-
-<th style="text-align:right;">
-
-SS
-
-</th>
-
-<th style="text-align:right;">
-
-\(F\)
-
-</th>
-
-<th style="text-align:right;">
-
-\(p\)
-
-</th>
-
-<th style="text-align:right;">
-
-partial \(\eta^2\)
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:left;">
-
-logfreq
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-58.495
-
-</td>
-
-<td style="text-align:right;">
-
-55.422
-
-</td>
-
-<td style="text-align:right;">
-
-0.000
-
-</td>
-
-<td style="text-align:right;">
-
-0.038
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-rt
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-0.054
-
-</td>
-
-<td style="text-align:right;">
-
-0.051
-
-</td>
-
-<td style="text-align:right;">
-
-0.822
-
-</td>
-
-<td style="text-align:right;">
-
-0.000
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-fun
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-72.397
-
-</td>
-
-<td style="text-align:right;">
-
-68.594
-
-</td>
-
-<td style="text-align:right;">
-
-0.000
-
-</td>
-
-<td style="text-align:right;">
-
-0.046
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-logletterfreq
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-44.700
-
-</td>
-
-<td style="text-align:right;">
-
-42.351
-
-</td>
-
-<td style="text-align:right;">
-
-0.000
-
-</td>
-
-<td style="text-align:right;">
-
-0.029
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-cumulative
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-73.125
-
-</td>
-
-<td style="text-align:right;">
-
-69.284
-
-</td>
-
-<td style="text-align:right;">
-
-0.000
-
-</td>
-
-<td style="text-align:right;">
-
-0.047
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-Residuals
-
-</td>
-
-<td style="text-align:right;">
-
-1413
-
-</td>
-
-<td style="text-align:right;">
-
-1491.344
-
-</td>
-
-<td style="text-align:right;">
-
-</td>
-
-<td style="text-align:right;">
-
-</td>
-
-<td style="text-align:right;">
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-**Model mS.2**: lm(formula = fun \~ logfreq + rt + logletterfreq + ico
-\* cumulative, , data = words.setA)
-
-<table>
-
-<thead>
-
-<tr>
-
-<th style="text-align:left;">
-
-predictor
-
-</th>
-
-<th style="text-align:right;">
-
-df
-
-</th>
-
-<th style="text-align:right;">
-
-SS
-
-</th>
-
-<th style="text-align:right;">
-
-\(F\)
-
-</th>
-
-<th style="text-align:right;">
-
-\(p\)
-
-</th>
-
-<th style="text-align:right;">
-
-partial \(\eta^2\)
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:left;">
-
-logfreq
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-36.143
-
-</td>
-
-<td style="text-align:right;">
-
-266.115
-
-</td>
-
-<td style="text-align:right;">
-
-0.000
-
-</td>
-
-<td style="text-align:right;">
-
-0.159
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-rt
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-1.249
-
-</td>
-
-<td style="text-align:right;">
-
-9.195
-
-</td>
-
-<td style="text-align:right;">
-
-0.002
-
-</td>
-
-<td style="text-align:right;">
-
-0.006
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-logletterfreq
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-7.653
-
-</td>
-
-<td style="text-align:right;">
-
-56.346
-
-</td>
-
-<td style="text-align:right;">
-
-0.000
-
-</td>
-
-<td style="text-align:right;">
-
-0.038
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-ico
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-6.144
-
-</td>
-
-<td style="text-align:right;">
-
-45.241
-
-</td>
-
-<td style="text-align:right;">
-
-0.000
-
-</td>
-
-<td style="text-align:right;">
-
-0.031
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-cumulative
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-0.092
-
-</td>
-
-<td style="text-align:right;">
-
-0.676
-
-</td>
-
-<td style="text-align:right;">
-
-0.411
-
-</td>
-
-<td style="text-align:right;">
-
-0.000
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-ico:cumulative
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-0.858
-
-</td>
-
-<td style="text-align:right;">
-
-6.315
-
-</td>
-
-<td style="text-align:right;">
-
-0.012
-
-</td>
-
-<td style="text-align:right;">
-
-0.004
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-Residuals
-
-</td>
-
-<td style="text-align:right;">
-
-1412
-
-</td>
-
-<td style="text-align:right;">
-
-191.773
-
-</td>
-
-<td style="text-align:right;">
-
-</td>
-
-<td style="text-align:right;">
-
-</td>
-
-<td style="text-align:right;">
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-#### Phonotactic measures from IPHOD
-
-A quick look at a range of IPhOD measures shows that none of them
-correlates as strongly with iconicity or funniness as logletterfreq, so
-they don’t offer us much additional explanatory power.
-
-N.B. IPhOD contains homographs, but frequencies are given only at the
-level of orthographic forms. To avoid duplication of data we keep only
-the first of multiple homographs in IPhOD, accepting some loss of
-precision about possible pronunciations. We use IPhOD’s phonotactic
-probability and phonological density measures. Since we have no
-stress-related hypotheses we work with unstressed calculations. We work
-with values unweighted for frequency because we include frequency as a
-fixed effect in later analyses.
-
-![](out/iphodmeasures-1.png)<!-- -->
-
-#### Valence helps explain high-iconicity low-funniness words
-
-Valence is one reason for some iconic words not being rated as funny.
-Words like ‘crash’, ‘dread’, ‘scratch’ and ‘shoot’ (all in the lowest
-percentiles of valence) may be highly iconic but they have no positive
-or humorous connotation. In general, valence is of course already known
-to be related to funniness ratings: negative words are unlikely to be
-rated as highly funny.
-
-<table>
-
-<caption>
-
-Valence percentiles for words rated as iconic but not funny
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:left;">
-
-word
-
-</th>
-
-<th style="text-align:right;">
-
-ico
-
-</th>
-
-<th style="text-align:right;">
-
-fun
-
-</th>
-
-<th style="text-align:right;">
-
-ico\_perc
-
-</th>
-
-<th style="text-align:right;">
-
-fun\_perc
-
-</th>
-
-<th style="text-align:right;">
-
-valence\_perc
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:left;">
-
-crash
-
-</td>
-
-<td style="text-align:right;">
-
-3.769231
-
-</td>
-
-<td style="text-align:right;">
-
-1.731707
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-scratch
-
-</td>
-
-<td style="text-align:right;">
-
-3.285714
-
-</td>
-
-<td style="text-align:right;">
-
-1.800000
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-5
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-low
-
-</td>
-
-<td style="text-align:right;">
-
-2.916667
-
-</td>
-
-<td style="text-align:right;">
-
-1.575758
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-shoot
-
-</td>
-
-<td style="text-align:right;">
-
-2.600000
-
-</td>
-
-<td style="text-align:right;">
-
-1.838710
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-dread
-
-</td>
-
-<td style="text-align:right;">
-
-2.545454
-
-</td>
-
-<td style="text-align:right;">
-
-1.583333
-
-</td>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-pulse
-
-</td>
-
-<td style="text-align:right;">
-
-2.416667
-
-</td>
-
-<td style="text-align:right;">
-
-1.923077
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-slum
-
-</td>
-
-<td style="text-align:right;">
-
-2.400000
-
-</td>
-
-<td style="text-align:right;">
-
-1.696970
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-stab
-
-</td>
-
-<td style="text-align:right;">
-
-2.285714
-
-</td>
-
-<td style="text-align:right;">
-
-1.666667
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-killer
-
-</td>
-
-<td style="text-align:right;">
-
-2.090909
-
-</td>
-
-<td style="text-align:right;">
-
-1.466667
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-carnage
-
-</td>
-
-<td style="text-align:right;">
-
-2.090909
-
-</td>
-
-<td style="text-align:right;">
-
-1.885714
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-sick
-
-</td>
-
-<td style="text-align:right;">
-
-2.000000
-
-</td>
-
-<td style="text-align:right;">
-
-1.846154
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-torment
-
-</td>
-
-<td style="text-align:right;">
-
-2.000000
-
-</td>
-
-<td style="text-align:right;">
-
-1.310345
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-prompt
-
-</td>
-
-<td style="text-align:right;">
-
-2.000000
-
-</td>
-
-<td style="text-align:right;">
-
-1.914286
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-stick
-
-</td>
-
-<td style="text-align:right;">
-
-1.928571
-
-</td>
-
-<td style="text-align:right;">
-
-1.769231
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-6
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-small
-
-</td>
-
-<td style="text-align:right;">
-
-1.923077
-
-</td>
-
-<td style="text-align:right;">
-
-1.769231
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-7
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-gloom
-
-</td>
-
-<td style="text-align:right;">
-
-1.916667
-
-</td>
-
-<td style="text-align:right;">
-
-1.888889
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-corpse
-
-</td>
-
-<td style="text-align:right;">
-
-1.900000
-
-</td>
-
-<td style="text-align:right;">
-
-1.878788
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-victim
-
-</td>
-
-<td style="text-align:right;">
-
-1.846154
-
-</td>
-
-<td style="text-align:right;">
-
-1.571429
-
-</td>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-#### Age of acquisition
-
-Simon Kirby [asked on
-Twitter](https://twitter.com/SimonKirby/status/1123602157322887169)
-whether the relation between funniness and iconicity might have
-something to do with child-directedness. This is hard to test directly
-(and unlikely to apply across the board) but if this were the case
-presumably it would also be reflected in AoA ratings — e.g., the more
-funny and iconic words would have relatively lower AoA ratings.
-(Importantly: we already know from Perry et al. 2017 that AoA is
-negatively correlated with iconicity: words rated higher in iconicity
-have a somewhat lower age of acquisition.)
-
-We have AoA data for all 1.419 words in set A. It doesn’t really explain
-the iconicity + funniness relation. That is, words high in both
-iconicity and funniness are not strikingly low in AoA.
-
-Though an important caveat is that this particular small subset may not
-be the best data to judge this on.
-
-<table>
-
-<caption>
-
-AoA ratings for every decile of combined iconicity and funniness
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:right;">
-
-diff\_rank
-
-</th>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-mean.aoa
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-<td style="text-align:right;">
-
-14
-
-</td>
-
-<td style="text-align:right;">
-
-6.714286
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-39
-
-</td>
-
-<td style="text-align:right;">
-
-7.150513
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-4
-
-</td>
-
-<td style="text-align:right;">
-
-66
-
-</td>
-
-<td style="text-align:right;">
-
-6.632273
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-5
-
-</td>
-
-<td style="text-align:right;">
-
-71
-
-</td>
-
-<td style="text-align:right;">
-
-6.578169
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-6
-
-</td>
-
-<td style="text-align:right;">
-
-98
-
-</td>
-
-<td style="text-align:right;">
-
-6.425612
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-7
-
-</td>
-
-<td style="text-align:right;">
-
-104
-
-</td>
-
-<td style="text-align:right;">
-
-6.498365
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-8
-
-</td>
-
-<td style="text-align:right;">
-
-113
-
-</td>
-
-<td style="text-align:right;">
-
-6.420443
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-122
-
-</td>
-
-<td style="text-align:right;">
-
-6.417049
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-112
-
-</td>
-
-<td style="text-align:right;">
-
-6.270446
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-11
-
-</td>
-
-<td style="text-align:right;">
-
-124
-
-</td>
-
-<td style="text-align:right;">
-
-6.340081
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-12
-
-</td>
-
-<td style="text-align:right;">
-
-102
-
-</td>
-
-<td style="text-align:right;">
-
-5.975392
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-13
-
-</td>
-
-<td style="text-align:right;">
-
-88
-
-</td>
-
-<td style="text-align:right;">
-
-6.211932
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-14
-
-</td>
-
-<td style="text-align:right;">
-
-84
-
-</td>
-
-<td style="text-align:right;">
-
-6.348333
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-15
-
-</td>
-
-<td style="text-align:right;">
-
-62
-
-</td>
-
-<td style="text-align:right;">
-
-6.193387
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-16
-
-</td>
-
-<td style="text-align:right;">
-
-48
-
-</td>
-
-<td style="text-align:right;">
-
-6.368542
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-17
-
-</td>
-
-<td style="text-align:right;">
-
-48
-
-</td>
-
-<td style="text-align:right;">
-
-6.667917
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-18
-
-</td>
-
-<td style="text-align:right;">
-
-44
-
-</td>
-
-<td style="text-align:right;">
-
-6.930454
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-19
-
-</td>
-
-<td style="text-align:right;">
-
-40
-
-</td>
-
-<td style="text-align:right;">
-
-7.022500
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-20
-
-</td>
-
-<td style="text-align:right;">
-
-40
-
-</td>
-
-<td style="text-align:right;">
-
-7.146500
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-![](out/AoA_check-1.png)<!-- -->
-
-The sign of simple (uncorrected) correlations is positive for funniness
-(r = 0.1), but negative for iconicity (r = -0.07), so if anything there
-is not a unitary effect here (and the two cancel each other out).
-
-``` r
-cor.test(words$fun,words$aoa)
-cor.test(words$ico,words$aoa)
-
-cor.test(words$diff_rank,words$aoa)
-
-
-# doesn't look very different in the ico_imputed ratings in set B
-
-words %>%
-  drop_na(aoa) %>%
-  filter(set=="B") %>%
-  group_by(diff_rank_setB) %>%
-  summarise(n=n(),mean.ico=mean.na(ico_imputed),mean.aoa=mean.na(aoa)) %>%
-  kable(caption="AoA ratings for every decile of imputed iconicity and funniness in set B")
-```
-
-![](out/aoa_plots-1.png)<!-- -->
-
-<table>
-
-<caption>
-
-AoA ratings for every decile of imputed iconicity and funniness in set C
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:right;">
-
-diff\_rank\_setC
-
-</th>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-mean.ico
-
-</th>
-
-<th style="text-align:right;">
-
-mean.aoa
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-<td style="text-align:right;">
-
-541
-
-</td>
-
-<td style="text-align:right;">
-
-\-0.4430372
-
-</td>
-
-<td style="text-align:right;">
-
-12.207763
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-819
-
-</td>
-
-<td style="text-align:right;">
-
-\-0.2536526
-
-</td>
-
-<td style="text-align:right;">
-
-12.024139
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-4
-
-</td>
-
-<td style="text-align:right;">
-
-1107
-
-</td>
-
-<td style="text-align:right;">
-
-\-0.1041372
-
-</td>
-
-<td style="text-align:right;">
-
-11.913487
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-5
-
-</td>
-
-<td style="text-align:right;">
-
-1343
-
-</td>
-
-<td style="text-align:right;">
-
-0.0007449
-
-</td>
-
-<td style="text-align:right;">
-
-12.018317
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-6
-
-</td>
-
-<td style="text-align:right;">
-
-1470
-
-</td>
-
-<td style="text-align:right;">
-
-0.0751371
-
-</td>
-
-<td style="text-align:right;">
-
-11.941469
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-7
-
-</td>
-
-<td style="text-align:right;">
-
-1727
-
-</td>
-
-<td style="text-align:right;">
-
-0.1730005
-
-</td>
-
-<td style="text-align:right;">
-
-11.830724
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-8
-
-</td>
-
-<td style="text-align:right;">
-
-1662
-
-</td>
-
-<td style="text-align:right;">
-
-0.2612421
-
-</td>
-
-<td style="text-align:right;">
-
-11.806552
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1803
-
-</td>
-
-<td style="text-align:right;">
-
-0.3371805
-
-</td>
-
-<td style="text-align:right;">
-
-11.927848
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1835
-
-</td>
-
-<td style="text-align:right;">
-
-0.4196720
-
-</td>
-
-<td style="text-align:right;">
-
-11.680169
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-11
-
-</td>
-
-<td style="text-align:right;">
-
-1717
-
-</td>
-
-<td style="text-align:right;">
-
-0.5198181
-
-</td>
-
-<td style="text-align:right;">
-
-11.644985
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-12
-
-</td>
-
-<td style="text-align:right;">
-
-1576
-
-</td>
-
-<td style="text-align:right;">
-
-0.5936368
-
-</td>
-
-<td style="text-align:right;">
-
-11.555647
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-13
-
-</td>
-
-<td style="text-align:right;">
-
-1446
-
-</td>
-
-<td style="text-align:right;">
-
-0.6787072
-
-</td>
-
-<td style="text-align:right;">
-
-11.525470
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-14
-
-</td>
-
-<td style="text-align:right;">
-
-1258
-
-</td>
-
-<td style="text-align:right;">
-
-0.7794434
-
-</td>
-
-<td style="text-align:right;">
-
-11.491240
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-15
-
-</td>
-
-<td style="text-align:right;">
-
-1111
-
-</td>
-
-<td style="text-align:right;">
-
-0.8547821
-
-</td>
-
-<td style="text-align:right;">
-
-11.429307
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-16
-
-</td>
-
-<td style="text-align:right;">
-
-989
-
-</td>
-
-<td style="text-align:right;">
-
-0.9603580
-
-</td>
-
-<td style="text-align:right;">
-
-11.149737
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-17
-
-</td>
-
-<td style="text-align:right;">
-
-872
-
-</td>
-
-<td style="text-align:right;">
-
-1.0550966
-
-</td>
-
-<td style="text-align:right;">
-
-11.097764
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-18
-
-</td>
-
-<td style="text-align:right;">
-
-754
-
-</td>
-
-<td style="text-align:right;">
-
-1.2269235
-
-</td>
-
-<td style="text-align:right;">
-
-10.894496
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-19
-
-</td>
-
-<td style="text-align:right;">
-
-695
-
-</td>
-
-<td style="text-align:right;">
-
-1.3899950
-
-</td>
-
-<td style="text-align:right;">
-
-10.605137
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-20
-
-</td>
-
-<td style="text-align:right;">
-
-720
-
-</td>
-
-<td style="text-align:right;">
-
-1.8808527
-
-</td>
-
-<td style="text-align:right;">
-
-9.922056
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-![](out/aoa_plots-2.png)<!-- -->
-
-<table>
-
-<caption>
-
-Same for funniness
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:right;">
-
-fun\_imputed\_perc
-
-</th>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-mean.fun
-
-</th>
-
-<th style="text-align:right;">
-
-mean.aoa
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-1173
-
-</td>
-
-<td style="text-align:right;">
-
-1.812664
-
-</td>
-
-<td style="text-align:right;">
-
-11.31784
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-<td style="text-align:right;">
-
-1172
-
-</td>
-
-<td style="text-align:right;">
-
-1.957615
-
-</td>
-
-<td style="text-align:right;">
-
-11.50012
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-1172
-
-</td>
-
-<td style="text-align:right;">
-
-2.025881
-
-</td>
-
-<td style="text-align:right;">
-
-11.45037
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-4
-
-</td>
-
-<td style="text-align:right;">
-
-1172
-
-</td>
-
-<td style="text-align:right;">
-
-2.077926
-
-</td>
-
-<td style="text-align:right;">
-
-11.52347
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-5
-
-</td>
-
-<td style="text-align:right;">
-
-1173
-
-</td>
-
-<td style="text-align:right;">
-
-2.121506
-
-</td>
-
-<td style="text-align:right;">
-
-11.57662
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-6
-
-</td>
-
-<td style="text-align:right;">
-
-1172
-
-</td>
-
-<td style="text-align:right;">
-
-2.161231
-
-</td>
-
-<td style="text-align:right;">
-
-11.53405
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-7
-
-</td>
-
-<td style="text-align:right;">
-
-1172
-
-</td>
-
-<td style="text-align:right;">
-
-2.200283
-
-</td>
-
-<td style="text-align:right;">
-
-11.56191
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-8
-
-</td>
-
-<td style="text-align:right;">
-
-1172
-
-</td>
-
-<td style="text-align:right;">
-
-2.236559
-
-</td>
-
-<td style="text-align:right;">
-
-11.60704
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-9
-
-</td>
-
-<td style="text-align:right;">
-
-1173
-
-</td>
-
-<td style="text-align:right;">
-
-2.270368
-
-</td>
-
-<td style="text-align:right;">
-
-11.63872
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-10
-
-</td>
-
-<td style="text-align:right;">
-
-1172
-
-</td>
-
-<td style="text-align:right;">
-
-2.303472
-
-</td>
-
-<td style="text-align:right;">
-
-11.77792
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-11
-
-</td>
-
-<td style="text-align:right;">
-
-1172
-
-</td>
-
-<td style="text-align:right;">
-
-2.338455
-
-</td>
-
-<td style="text-align:right;">
-
-11.66225
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-12
-
-</td>
-
-<td style="text-align:right;">
-
-1172
-
-</td>
-
-<td style="text-align:right;">
-
-2.375916
-
-</td>
-
-<td style="text-align:right;">
-
-11.78852
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-13
-
-</td>
-
-<td style="text-align:right;">
-
-1173
-
-</td>
-
-<td style="text-align:right;">
-
-2.416352
-
-</td>
-
-<td style="text-align:right;">
-
-11.81532
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-14
-
-</td>
-
-<td style="text-align:right;">
-
-1172
-
-</td>
-
-<td style="text-align:right;">
-
-2.458623
-
-</td>
-
-<td style="text-align:right;">
-
-11.76346
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-15
-
-</td>
-
-<td style="text-align:right;">
-
-1172
-
-</td>
-
-<td style="text-align:right;">
-
-2.505897
-
-</td>
-
-<td style="text-align:right;">
-
-11.89981
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-16
-
-</td>
-
-<td style="text-align:right;">
-
-1172
-
-</td>
-
-<td style="text-align:right;">
-
-2.560511
-
-</td>
-
-<td style="text-align:right;">
-
-11.85959
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-17
-
-</td>
-
-<td style="text-align:right;">
-
-1173
-
-</td>
-
-<td style="text-align:right;">
-
-2.625822
-
-</td>
-
-<td style="text-align:right;">
-
-11.69723
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-18
-
-</td>
-
-<td style="text-align:right;">
-
-1172
-
-</td>
-
-<td style="text-align:right;">
-
-2.712530
-
-</td>
-
-<td style="text-align:right;">
-
-11.59436
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-19
-
-</td>
-
-<td style="text-align:right;">
-
-1172
-
-</td>
-
-<td style="text-align:right;">
-
-2.833903
-
-</td>
-
-<td style="text-align:right;">
-
-11.54706
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-20
-
-</td>
-
-<td style="text-align:right;">
-
-1172
-
-</td>
-
-<td style="text-align:right;">
-
-3.092242
-
-</td>
-
-<td style="text-align:right;">
-
-10.73520
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-#### Word classes
-
-Reviewer 1 asked us to look into word classes. We report this here as an
-exploratory analysis. The correlation between funniness and iconicity
-ratings has the same sign across word classes. The somewhat steeper
-correlation in verbs (*n* = 241) can be attributed in part to the verbal
-diminutive suffix *-le* (*n* = 17).
-
-<table>
-
-<caption>
-
-Mean iconicity and funniness in set A across word classes
-
-</caption>
-
-<thead>
-
-<tr>
-
-<th style="text-align:left;">
-
-POS
-
-</th>
-
-<th style="text-align:right;">
-
-n
-
-</th>
-
-<th style="text-align:right;">
-
-mean.ico
-
-</th>
-
-<th style="text-align:right;">
-
-mean.fun
-
-</th>
-
-<th style="text-align:right;">
-
-raw.correlation
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:left;">
-
-Adjective
-
-</td>
-
-<td style="text-align:right;">
-
-109
-
-</td>
-
-<td style="text-align:right;">
-
-0.9662906
-
-</td>
-
-<td style="text-align:right;">
-
-2.270046
-
-</td>
-
-<td style="text-align:right;">
-
-0.1839577
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-Noun
-
-</td>
-
-<td style="text-align:right;">
-
-1049
-
-</td>
-
-<td style="text-align:right;">
-
-0.7212491
-
-</td>
-
-<td style="text-align:right;">
-
-2.367076
-
-</td>
-
-<td style="text-align:right;">
-
-0.2059030
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:left;">
-
-Verb
-
-</td>
-
-<td style="text-align:right;">
-
-241
-
-</td>
-
-<td style="text-align:right;">
-
-1.4846836
-
-</td>
-
-<td style="text-align:right;">
-
-2.366951
-
-</td>
-
-<td style="text-align:right;">
-
-0.5255179
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-![](out/exploratory_POS-1.png)<!-- -->![](out/exploratory_POS-2.png)<!-- -->
 
 ## End
 
