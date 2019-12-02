@@ -273,9 +273,6 @@ right_panel <- plot_grid(pB, pC,ncol = 1,labels=c("B","C"))
 
 plot_grid(pA, right_panel,labels=c("A",NA,NA), label_size=14, rel_widths = c(2,1))
 
-ggsave("out/fig_ico_funniness_labelled.png",width=8,height=5)
-ggsave("out/fig_ico_funniness_labelled.pdf",width=8,height=5)
-
 ```
 
 **Figure 3: Funniness and iconicity**
@@ -303,9 +300,6 @@ p3C <- ggplot(words.setC,aes(ico_imputed,fun_imputed_resid)) +
 
 plot_grid(p3A, p3B, p3C, labels="AUTO", label_size=14,nrow=1)
 
-ggsave("out/fig_ico_funniness_lm.png",width=10.2,height=4)
-ggsave("out/fig_ico_funniness_lm.pdf",width=10.2,height=4)
-
 
 ```
 
@@ -328,10 +322,6 @@ ggplot(words.setA,aes(ico,fun)) +
     box.padding=unit(0.35, "lines"),
     point.padding=unit(0.3,"lines")
   )
-
-ggsave("out/fig_ico_funniness_highestrated.png",width=10.2,height=6)
-ggsave("out/fig_ico_funniness_highestrated.pdf",width=10.2,height=6)
-
 
 ```
 
@@ -421,9 +411,6 @@ p4C <- words %>%
   markedness_layers
 
 plot_grid(p4A, p4B, p4C, labels="AUTO", label_size=14,nrow=1)
-
-ggsave("out/fig_markedness_panel.png",width=10.2,height=4)
-ggsave("out/fig_markedness_panel.pdf",width=10.2,height=4)
 
 ```
 

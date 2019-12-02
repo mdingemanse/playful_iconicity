@@ -1,7 +1,7 @@
 Playful iconicity: data & analyses
 ================
 Mark Dingemanse & Bill Thompson
-(this version: 2019-11-28)
+(this version: 2019-12-03)
 
   - [Introduction](#introduction)
       - [Data sources](#data-sources)
@@ -285,37 +285,37 @@ diff\_rank
 
 <td style="text-align:left;">
 
-squeeze
+flop
 
 </td>
 
 <td style="text-align:right;">
 
-2.5384615
+3.142857
 
 </td>
 
 <td style="text-align:right;">
 
-3.344828
+3.031250
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.724180
+\-3.223260
 
 </td>
 
 <td style="text-align:right;">
 
-2.886491
+2.075547
 
 </td>
 
 <td style="text-align:right;">
 
-533.7895
+587.9189
 
 </td>
 
@@ -337,37 +337,37 @@ squeeze
 
 <td style="text-align:left;">
 
-whirl
+whine
 
 </td>
 
 <td style="text-align:right;">
 
-3.8181818
+2.666667
 
 </td>
 
 <td style="text-align:right;">
 
-2.911765
+2.833333
 
 </td>
 
 <td style="text-align:right;">
 
-\-3.009426
+\-2.706352
 
 </td>
 
 <td style="text-align:right;">
 
-1.954243
+1.924279
 
 </td>
 
 <td style="text-align:right;">
 
-560.1250
+588.6667
 
 </td>
 
@@ -389,37 +389,37 @@ whirl
 
 <td style="text-align:left;">
 
-frolic
+slip
 
 </td>
 
 <td style="text-align:right;">
 
-1.7000000
+2.615385
 
 </td>
 
 <td style="text-align:right;">
 
-3.475000
+2.586207
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.973319
+\-2.978875
 
 </td>
 
 <td style="text-align:right;">
 
-1.633468
+3.120903
 
 </td>
 
 <td style="text-align:right;">
 
-597.5625
+546.2000
 
 </td>
 
@@ -441,37 +441,37 @@ frolic
 
 <td style="text-align:left;">
 
-kid
+sigh
 
 </td>
 
 <td style="text-align:right;">
 
-1.4545455
+2.800000
 
 </td>
 
 <td style="text-align:right;">
 
-2.781250
+2.535714
 
 </td>
 
 <td style="text-align:right;">
 
-\-3.218043
+\-2.941718
 
 </td>
 
 <td style="text-align:right;">
 
-4.238046
+2.240549
 
 </td>
 
 <td style="text-align:right;">
 
-522.3846
+577.4595
 
 </td>
 
@@ -493,37 +493,37 @@ kid
 
 <td style="text-align:left;">
 
-banjo
+must
 
 </td>
 
 <td style="text-align:right;">
 
-1.3636364
+1.500000
 
 </td>
 
 <td style="text-align:right;">
 
-2.809524
+2.636364
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.995332
+\-2.952673
 
 </td>
 
 <td style="text-align:right;">
 
-1.924279
+4.552206
 
 </td>
 
 <td style="text-align:right;">
 
-626.9167
+569.8056
 
 </td>
 
@@ -545,37 +545,37 @@ banjo
 
 <td style="text-align:left;">
 
-creep
+frog
 
 </td>
 
 <td style="text-align:right;">
 
-2.1000000
+2.181818
 
 </td>
 
 <td style="text-align:right;">
 
-2.352941
+2.440000
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.637778
+\-3.097211
 
 </td>
 
 <td style="text-align:right;">
 
-2.758912
+2.781037
 
 </td>
 
 <td style="text-align:right;">
 
-547.1750
+533.2051
 
 </td>
 
@@ -597,37 +597,37 @@ creep
 
 <td style="text-align:left;">
 
-spool
+moose
 
 </td>
 
 <td style="text-align:right;">
 
-0.9000000
+0.300000
 
 </td>
 
 <td style="text-align:right;">
 
-2.676471
+3.103448
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.884191
+\-2.622790
 
 </td>
 
 <td style="text-align:right;">
 
-1.431364
+2.451786
 
 </td>
 
 <td style="text-align:right;">
 
-718.5000
+550.5263
 
 </td>
 
@@ -649,43 +649,43 @@ spool
 
 <td style="text-align:left;">
 
-grapefruit
+stretch
 
 </td>
 
 <td style="text-align:right;">
 
-1.0909091
+2.400000
 
 </td>
 
 <td style="text-align:right;">
 
-2.361111
+2.187500
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.837021
+\-2.616122
 
 </td>
 
 <td style="text-align:right;">
 
-2.103804
+2.874482
 
 </td>
 
 <td style="text-align:right;">
 
-598.0000
+567.4615
 
 </td>
 
 <td style="text-align:left;">
 
-2
+1
 
 </td>
 
@@ -701,37 +701,37 @@ grapefruit
 
 <td style="text-align:left;">
 
-truth
+block
 
 </td>
 
 <td style="text-align:right;">
 
-1.5000000
+2.428571
 
 </td>
 
 <td style="text-align:right;">
 
-2.230769
+2.153846
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.753571
+\-3.366796
 
 </td>
 
 <td style="text-align:right;">
 
-3.991315
+3.315551
 
 </td>
 
 <td style="text-align:right;">
 
-503.9211
+537.0000
 
 </td>
 
@@ -753,37 +753,37 @@ truth
 
 <td style="text-align:left;">
 
-powder
+lark
 
 </td>
 
 <td style="text-align:right;">
 
-0.3076923
+\-0.900000
 
 </td>
 
 <td style="text-align:right;">
 
-2.552632
+3.025641
 
 </td>
 
 <td style="text-align:right;">
 
-\-2.880322
+\-3.000745
 
 </td>
 
 <td style="text-align:right;">
 
-2.913284
+1.924279
 
 </td>
 
 <td style="text-align:right;">
 
-555.8919
+607.9375
 
 </td>
 
