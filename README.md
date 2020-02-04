@@ -12,7 +12,7 @@ Main analyses:
 * [playful_iconicity_paper.md](playful_iconicity_paper.md) : contains all analyses
 
 Subsidiary Python scripts:
-* [expand-intersection.py](expand-intersaction.py) : expands intersection between norm sets
+* [expand-intersection.py](expand-intersection.py) : expands intersection between norm sets
 * [benchmark-prediction.py](benchmark-prediction.py) : benchmarks predictions
 * [tag-letter-entropy.py](tag-letter-entropy.py) : computes letter entropy
 * [impute-from-monomorphemic.py](impute-from-monomorphemic.py) : imputes norms from just monomorphemic words
