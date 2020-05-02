@@ -1,0 +1,92 @@
+---
+title: "Iconicity, playfulness, and gestures"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+First load packages and data.
+
+```{r packages results='hide',include=F}
+list.of.packages <- c("tidyverse","here","osfr")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)>0) install.packages(new.packages)
+lapply(list.of.packages, require, character.only=T)
+rm(list.of.packages,new.packages)
+
+`%notin%` <- function(x,y) !(x %in% y) 
+
+mean.na <- function(x) mean(x, na.rm = T)
+sd.na <- function(x) sd(x, na.rm = T)
+```
+
+```{r load_data}
+file <-  read_csv("data/monomorphemic.csv") %>%
+  dplyr::select(-X1) # we don't need the row numbers
+
+```
+
+We're using 1278 monomorphemic words. Let's drop NA values and add deciles and a simple difference rank for easy exploration and selection of subsets. Let's look what the rating distritutions look like by bin.
+
+```{r}
+
+# drop NA values and add deciles (i.e. 10 bins) and a difference rank for easy selection of subsets
+mono <- file %>%
+  drop_na(ico,fun) %>%
+  mutate(fun_perc = ntile(fun,10),
+         ico_perc = ntile(ico,10),
+         diff_rank = fun_perc + ico_perc,
+         logfreq_perc = ntile(logfreq,10))
+
+# What do the rating distributions look like? We group by ico_perc (10 bins)
+mono %>%
+  group_by(ico_perc) %>%
+  summarise(ico_mean = mean.na(ico),fun_mean=mean.na(fun),logfreq_mean=mean.na(logfreq),logfreq_sd=sd.na(logfreq),n=n())
+```
+
+Okay but we know  that frequency is related to perceived iconicity and to funniness ratings, so we don't want that confounding. If we want to explore the relation between iconicity, playfulness and gesture, we need words of approximately the same frequency band that vary in the factors of interest. 
+
+So we take words that are at most one sd in logfreq removed from each other (i.e. we select a band of 1 sd wide around the mean logfreq). Possibly, a simple frequency bin would be as good or even better (due to logfreq not being normally distributed).
+
+
+```{r avoid_confounds}
+
+mean.na(mono$logfreq)
+sd.na(mono$logfreq)
+
+mono %>%
+  filter(logfreq > 2.5, logfreq < 3.3 ) %>%
+  group_by(ico_perc) %>%
+  summarise(ico_mean = mean.na(ico),fun_mean=mean.na(fun),logfreq_mean=mean.na(logfreq),logfreq_sd=sd.na(logfreq),n=n())
+
+```
+
+Further, we know that the likelihood of gesture varies by word class, so we don't want that as a confound either. One easy way to do that would be to take only Verbs (known to correlate most strongly with iconic gestures in English), or only Verbs and Adjectives. I'm doing the former here.
+
+Now, from this subset it would probably be justified to take the top N and bottom N in terms of iconicity ratings — since our main interest is in the contrast. Though another approach would be to sample along the continous measure and get a more graded look. All depends on data availability.
+
+```{r select_verbs}
+mono.V <- mono %>% filter(POS=="Verb")
+
+top40 <- mono.V %>%
+  arrange(desc(ico)) %>%
+  slice(1:40)
+
+bottom40 <- mono.V %>%
+  arrange(ico) %>% slice(1:40)
+
+topandbottom40verbs <- rbind(top40,bottom40)
+
+```
+
+Save the data as a new csv file
+
+```{r}
+topandbottom40verbs %>%
+  write_csv('data/topandbottom40verbs.csv',
+            col_names = TRUE) # this makes sure that the computer does not confuse column names as being actual datapoints
+```
